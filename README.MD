@@ -12,7 +12,7 @@ This folder contains the database structure, database migrations and model to cr
     - [Windows](#windows)
   - [MySQL Client (MYSQL WORKBENCH)](#mysql-client-mysql-workbench)
     - [Windows](#windows-1)
-- [Migrations](#migrations)
+- [Getting Started](#getting-started)
 - [How to contribute](#how-to-contribute)
   - [Requirements](#requirements-1)
   - [Installation](#installation-1)
@@ -81,23 +81,26 @@ This folder contains the database structure, database migrations and model to cr
 4. Create a new connection see .env_example for the credentials.
 5. Create a new database with the name `lingianhotel_db`.
 
-# Migrations
+# Getting Started
 
 1. Open the terminal.
 2. Navigate to the `database` folder.
-3. Run the following command to install the dependencies:
+3. open the `.env_example` file and copy its content.
+4. Create a new file named `.env` and paste the content.
+
+5. Run the following command to install the dependencies:
 
 ```bash
 npm install
 ```
 
-4. Run the following command to push existing database migrations and its tables:
+6. Run the following command to push existing database migrations and its tables:
 
 ```bash
 npx prisma db push
 ```
 
-5. Run the following command to seed the database `(not ready yet)`:
+7. Run the following command to seed the database `(not ready yet)`:
 
 ```bash
 npx prisma db seed
@@ -121,7 +124,7 @@ npx prisma db seed
 1. Clone the repository.
 2. Open the terminal.
 3. Navigate to the `database` folder.
-4. Cat the `.env_example` file and copy its content.
+4. open the `.env_example` file and copy its content.
 5. Create a new file named `.env` and paste the content.
 6. Replace the values of the variables with the correct values.
 7. Run the following command to install the dependencies:
