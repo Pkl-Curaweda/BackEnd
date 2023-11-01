@@ -35,6 +35,12 @@ enum OrderStatus {
   CANCEL
 }
 
+enum RoomType {
+  STANDARD
+  DELUXE
+  FAMILY
+}
+
 // Front Office Area
 
 model Guest {
@@ -70,6 +76,23 @@ model User {
   orders      Order[]
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model Room {
+  id              Int     @id @default(autoincrement())
+  room_type       RoomType
+  room_image      String
+  room_code       Int
+  category        String
+  floor           Int
+  i               Int
+  occupied_status Boolean
+  overlook        String
+  description     String
+  bed_setup       String
+  connecting      String
+  capacity        Int
+  price           Float
 }
 
 // End Front Office Area
