@@ -1,0 +1,162 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESS
+  DONE
+  CANCEL
+}
+
+
+enum OrderStatus {
+  PENDING
+  PROCESS
+  DELIVERED
+  DONE
+  CANCEL
+}
+
+// Front Office Area
+
+model Guest {
+  id           Int      @id @default(autoincrement())
+  username     String
+  password     String   
+}
+
+
+
+// This table is for admin & mitra (hotel)
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String
+  users       User[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  name        String
+  gender      Gender
+  phone       String
+  picture     String
+  birthday    DateTime
+  nik         String
+  email       String  @unique
+  username    String  @unique
+  password    String
+  role        Role   @relation(fields: [roleId], references: [id])
+  roleId      Int
+  orders      Order[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+// End Front Office Area
+
+
+
+// In Room Service Area
+
+model ServiceType {
+  id         Int      @id @default(autoincrement())
+  name       String
+  services   Service[]
+  subTypes   SubType[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model SubType {
+  id         Int      @id @default(autoincrement())
+  name       String
+  serviceType ServiceType @relation(fields: [serviceTypeId], references: [id])
+  serviceTypeId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String
+  price       Int
+  desc        String
+  picture     String
+  serviceType ServiceType @relation(fields: [serviceTypeId], references: [id])
+  serviceTypeId Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+
+model PaymentMethod {
+  id         Int      @id @default(autoincrement())
+  name       String
+  QRIS       QRIS[]
+  BANK       BANK[]
+  transactions   Transaction[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// if payment flow is manually from admin (not using payment gateway)
+model QRIS {
+  id         Int      @id @default(autoincrement())
+  name       String
+  source     String
+  qrCode     String
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model BANK {
+  id            Int      @id @default(autoincrement())
+  name          String
+  source        String
+  receiver      String
+  accountNumber String
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  name       String
+  status     PaymentStatus
+  paymentMethod    PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+  paymentMethodId Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  room_number Int
+  subtotal    Float
+  total       Float
+  ppn         Float
+  fees        Float
+}
+
+// End In Room Service Area
