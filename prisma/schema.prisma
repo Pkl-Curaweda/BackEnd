@@ -12,7 +12,7 @@ enum Gender {
   FEMALE
 }
 
-enum Type {
+enum ProductReqType {
   DRINK
   FOOD
   CLEANINGTOOL
@@ -134,6 +134,7 @@ model Service {
 model ProductReq {
   id          Int      @id @default(autoincrement())
   title       String
+  type        ProductReqType
   desc        String
   price       Int
   picture     String          
