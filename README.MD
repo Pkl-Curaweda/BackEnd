@@ -23,6 +23,36 @@ This folder contains the database structure, database migrations and model to cr
     - [`guest`](#guest)
       - [Description](#description)
       - [Columns](#columns)
+    - [`role`](#role)
+      - [Description](#description-1)
+      - [Columns](#columns-1)
+    - [`user`](#user)
+      - [Description](#description-2)
+      - [Columns](#columns-2)
+    - [`servicetype`](#servicetype)
+      - [Description](#description-3)
+      - [Columns](#columns-3)
+    - [`subtype`](#subtype)
+      - [Description](#description-4)
+      - [Columns](#columns-4)
+    - [`service`](#service)
+      - [Description](#description-5)
+      - [Columns](#columns-5)
+    - [`paymentmethod`](#paymentmethod)
+      - [Description](#description-6)
+      - [Columns](#columns-6)
+    - [`payment`](#payment)
+      - [Description](#description-7)
+      - [Columns](#columns-7)
+    - [`transaction`](#transaction)
+      - [Description](#description-8)
+      - [Columns](#columns-8)
+    - [`order`](#order)
+      - [Description](#description-9)
+      - [Columns](#columns-9)
+    - [`orderdetail`](#orderdetail)
+      - [Description](#description-10)
+      - [Columns](#columns-10)
 
 # Requirements
 
@@ -100,13 +130,13 @@ npx prisma db seed
 npm install
 ```
 
-9. Run the following command to migrate existing database `(not ready yet)`:
+8.. Run the following command to migrate existing database and its tables:
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma db push
 ```
 
-10. Run the following command to seed the database `(not ready yet)`:
+9.  Run the following command to seed the database `(not ready yet)`:
 
 ```bash
 npx prisma db seed
@@ -117,13 +147,13 @@ npx prisma db seed
 1. Open the terminal.
 2. Navigate to the `database` folder.
 3. Create a new model in the `schema.prisma` file.
-4. Run the following command to create a new migration `(not ready yet)`:
+4. Run the following command to create a new migration:
 
 ```bash
 npx prisma migrate dev --name <migration_name>
 ```
 
-1. Run the following command to apply the migration:
+5. Run the following command to apply the migration:
 
 ```bash
 npx prisma db push
@@ -192,5 +222,186 @@ This table contains the information of the guest and data for guest access hotel
 | `id`        | `integer` | Unique identifier for the guest |
 | `username`  | `string`  | Username of the guest           |
 | `password`  | `string`  | Password of the guest           |
+
+### `role`
+
+#### Description
+
+This table contains the information of the role of the user.
+
+#### Columns
+
+| Column name  | Type       | Description                            |
+| ------------ | ---------- | -------------------------------------- |
+| `id`         | `integer`  | Unique identifier for the role         |
+| `name`       | `string`   | Name of the role                       |
+| `created_at` | `datetime` | Date and time when the role is created |
+| `updated_at` | `datetime` | Date and time when the role is updated |
+
+### `user`
+
+#### Description
+
+This table contains the information of the admin / mitra.
+
+#### Columns
+
+| Column name  | Type                    | Description                            |
+| ------------ | ----------------------- | -------------------------------------- |
+| `id`         | `integer`               | Unique identifier for the user         |
+| `name`       | `string`                | Name of the user                       |
+| `gender`     | `enum('MALE', 'FEMAL')` | Gender og the user                     |
+| `phone`      | `string`                | Phone number of the user               |
+| `picture`    | `string`                | Picture of the user                    |
+| `birthday`   | `datetime`              | Birthday of the user                   |
+| `nik`        | `string`                | National Identity Card of the user     |
+| `email`      | `string`                | Email of the user                      |
+| `username`   | `string`                | Username of the user                   |
+| `password`   | `string`                | Password of the user                   |
+| `role`       | `integer`               | Role of the user                       |
+| `created_at` | `datetime`              | Date and time when the user is created |
+| `updated_at` | `datetime`              | Date and time when the user is updated |
+
+### `servicetype`
+
+#### Description
+
+This table contains the information of the service type.
+
+#### Columns
+
+| Column name  | Type       | Description                                    |
+| ------------ | ---------- | ---------------------------------------------- |
+| `id`         | `integer`  | Unique identifier for the service type         |
+| `name`       | `string`   | Name of the service type                       |
+| `created_at` | `datetime` | Date and time when the service type is created |
+| `updated_at` | `datetime` | Date and time when the service type is updated |
+
+### `subtype`
+
+#### Description
+
+This table contains the information of the subtype (eg. the service type is minimarket then the subtype is cleaningtool, drink, snack etc ).
+
+#### Columns
+
+| Column name     | Type       | Description                               |
+| --------------- | ---------- | ----------------------------------------- |
+| `id`            | `integer`  | Unique identifier for the subtype         |
+| `name`          | `string`   | Name of the subtype                       |
+| `serviceTypeId` | `integer`  | ServiceTypeId of the subtype              |
+| `created_at`    | `datetime` | Date and time when the subtype is created |
+| `updated_at`    | `datetime` | Date and time when the subtype is updated |
+
+### `service`
+
+#### Description
+
+This table contains the information of the service.
+
+#### Columns
+
+| Column name     | Type       | Description                               |
+| --------------- | ---------- | ----------------------------------------- |
+| `id`            | `integer`  | Unique identifier for the service         |
+| `name`          | `string`   | Name of the service                       |
+| `price`         | `integer`  | Price of the service                      |
+| `desc`          | `string`   | Description of the service                |
+| `picture`       | `string`   | Picture of the service                    |
+| `serviceTypeId` | `integer`  | ServiceTypeId of the service              |
+| `created_at`    | `datetime` | Date and time when the service is created |
+| `updated_at`    | `datetime` | Date and time when the service is updated |
+
+### `paymentmethod`
+
+#### Description
+
+This table contains the information of the payment method (eg. cash, qris, transfer, etc.).
+
+#### Columns
+
+| Column name  | Type       | Description                                      |
+| ------------ | ---------- | ------------------------------------------------ |
+| `id`         | `integer`  | Unique identifier for the payment method         |
+| `name`       | `string`   | Name of the payment method                       |
+| `created_at` | `datetime` | Date and time when the payment method is created |
+| `updated_at` | `datetime` | Date and time when the payment method is updated |
+
+### `payment`
+
+#### Description
+
+This table contains the information of the payment.
+
+#### Columns
+
+| Column name       | Type                | Description                               |
+| ----------------- | ------------------- | ----------------------------------------- |
+| `id`              | `integer`           | Unique identifier for the payment         |
+| `name`            | `string`            | Name of the payment                       |
+| `code`            | `string`            | Code of the payment                       |
+| `params`          | `string` `nullable` | Params of the payment if exist            |
+| `paymentMethodId` | `integer`           | PaymentMethodId of the payment            |
+| `created_at`      | `datetime`          | Date and time when the payment is created |
+| `updated_at`      | `datetime`          | Date and time when the payment is updated |
+
+### `transaction`
+
+#### Description
+
+This table contains the information of the transaction.
+
+#### Columns
+
+| Column name  | Type                                     | Description                                   |
+| ------------ | ---------------------------------------- | --------------------------------------------- |
+| `id`         | `integer`                                | Unique identifier for the transaction         |
+| `name`       | `string`                                 | Name of the transaction                       |
+| `status`     | `enum('PENDING', 'SUCCEEDED', 'FAILED')` | Status of the transaction                     |
+| `paymentId`  | `integer`                                | PaymentId of the transaction                  |
+| `orderId`    | `integer`                                | OrderId of the transaction                    |
+| `created_at` | `datetime`                               | Date and time when the transaction is created |
+| `expired_at` | `datetime`                               | Date and time when the transaction is expired |
+| `updated_at` | `datetime`                               | Date and time when the transaction is updated |
+
+### `order`
+
+#### Description
+
+This table contains the information of the order.
+
+#### Columns
+
+| Column name     | Type                                                       | Description                             |
+| --------------- | ---------------------------------------------------------- | --------------------------------------- |
+| `id`            | `integer`                                                  | Unique identifier for the order         |
+| `guestId`       | `integer`                                                  | GuestId of the order                    |
+| `room_number`   | `integer`                                                  | Room number of the order                |
+| `subtotal`      | `float`                                                    | Subtotal of the order                   |
+| `total`         | `float`                                                    | Total of the order                      |
+| `ppn`           | `float`                                                    | PPN of the order                        |
+| `fees`          | `float`                                                    | Fees of the order                       |
+| `status`        | `enum('PENDING', 'PROCES', 'DELIVERED', 'DONE', 'CANCEL')` | Status of the order                     |
+| `transactionId` | `integer`                                                  | TransactionId of the order              |
+| `created_at`    | `datetime`                                                 | Date and time when the order is created |
+| `updated_at`    | `datetime`                                                 | Date and time when the order is updated |
+
+### `orderdetail`
+
+#### Description
+
+This table contains the information of the order detail.
+
+#### Columns
+
+| Column name  | Type       | Description                                    |
+| ------------ | ---------- | ---------------------------------------------- |
+| `id`         | `integer`  | Unique identifier for the order detail         |
+| `orderId`    | `integer`  | OrderId of the order detail                    |
+| `serviceId`  | `integer`  | ServiceId of the order detail                  |
+| `price`      | `float`    | Price of the order detail                      |
+| `qty`        | `integer`  | Qty of the order detail                        |
+| `created_at` | `datetime` | Date and time when the order detail is created |
+| `updated_at` | `datetime` | Date and time when the order detail is updated |
 
 <!-- Table End -->
