@@ -14,11 +14,9 @@ enum Gender {
 
 enum PaymentStatus {
   PENDING
-  PROCESS
-  DONE
-  CANCEL
+  SUCCEEDED
+  FAILED
 }
-
 
 enum OrderStatus {
   PENDING
@@ -31,132 +29,132 @@ enum OrderStatus {
 // Front Office Area
 
 model Guest {
-  id           Int      @id @default(autoincrement())
-  username     String
-  password     String   
+  id       Int     @id @default(autoincrement())
+  username String
+  password String
+  orders   Order[]
 }
-
-
 
 // This table is for admin & mitra (hotel)
 model Role {
-  id          Int      @id @default(autoincrement())
-  name        String
-  users       User[]
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String
+  users      User[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  gender      Gender
-  phone       String
-  picture     String
-  birthday    DateTime
-  nik         String
-  email       String  @unique
-  username    String  @unique
-  password    String
-  role        Role   @relation(fields: [roleId], references: [id])
-  roleId      Int
-  orders      Order[]
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  name       String
+  gender     Gender
+  phone      String
+  picture    String
+  birthday   DateTime
+  nik        String
+  email      String   @unique
+  username   String   @unique
+  password   String
+  role       Role     @relation(fields: [roleId], references: [id])
+  roleId     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 // End Front Office Area
 
-
-
 // In Room Service Area
 
 model ServiceType {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   name       String
   services   Service[]
   subTypes   SubType[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 }
 
 model SubType {
-  id         Int      @id @default(autoincrement())
-  name       String
-  serviceType ServiceType @relation(fields: [serviceTypeId], references: [id])
+  id            Int         @id @default(autoincrement())
+  name          String
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
 }
 
 model Service {
-  id          Int      @id @default(autoincrement())
-  name        String
-  price       Int
-  desc        String
-  picture     String
-  serviceType ServiceType @relation(fields: [serviceTypeId], references: [id])
+  id            Int           @id @default(autoincrement())
+  name          String
+  price         Int
+  desc          String
+  picture       String
+  serviceType   ServiceType   @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  orderDetails  OrderDetail[]
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
 }
-
 
 model PaymentMethod {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   name       String
-  QRIS       QRIS[]
-  BANK       BANK[]
-  transactions   Transaction[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  payments   Payment[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 }
 
-// if payment flow is manually from admin (not using payment gateway)
-model QRIS {
-  id         Int      @id @default(autoincrement())
-  name       String
-  source     String
-  qrCode     String
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
+model Payment {
+  id              Int           @id @default(autoincrement())
+  name            String
+  code            String
+  params          String?
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id])
   paymentMethodId Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  transactions    Transaction[]
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
 }
-
-model BANK {
-  id            Int      @id @default(autoincrement())
-  name          String
-  source        String
-  receiver      String
-  accountNumber String
-  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  paymentMethodId Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-}
-
 
 model Transaction {
-  id         Int      @id @default(autoincrement())
+  id         String        @id
   name       String
   status     PaymentStatus
-  paymentMethod    PaymentMethod @relation(fields: [paymentMethodId], references: [id])
-  paymentMethodId Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  payment    Payment       @relation(fields: [paymentId], references: [id])
+  paymentId  Int
+  order      Order?
+  created_at DateTime      @default(now())
+  expired_at DateTime?
+  updated_at DateTime      @updatedAt
 }
 
-
 model Order {
-  id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
-  room_number Int
-  subtotal    Float
-  total       Float
-  ppn         Float
-  fees        Float
+  id            String        @id
+  guest         Guest         @relation(fields: [guestId], references: [id])
+  guestId       Int
+  room_number   Int
+  subtotal      Float
+  total         Float
+  ppn           Float
+  fees          Float
+  status        OrderStatus
+  transaction   Transaction   @relation(fields: [transactionId], references: [id])
+  transactionId String        @unique
+  orderDetails  OrderDetail[]
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+}
+
+model OrderDetail {
+  id         Int      @id @default(autoincrement())
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    String
+  service    Service  @relation(fields: [serviceId], references: [id])
+  serviceId  Int
+  price      Float
+  qty        Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 // End In Room Service Area
