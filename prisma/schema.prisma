@@ -12,13 +12,6 @@ enum Gender {
   FEMALE
 }
 
-enum ProductReqType {
-  DRINK
-  FOOD
-  CLEANINGTOOL
-  MEDICINE
-}
-
 enum PaymentStatus {
   PENDING
   SUCCEEDED
@@ -115,12 +108,13 @@ model ServiceType {
 }
 
 model SubType {
-  id            Int         @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   name          String
-  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
+  serviceType   ServiceType  @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  productReqs   ProductReq[]
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 }
 
 model Service {
@@ -137,14 +131,15 @@ model Service {
 }
 
 model ProductReq {
-  id         Int            @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   title      String
-  type       ProductReqType
+  type       SubType  @relation(fields: [typeId], references: [id])
+  typeId     Int
   desc       String
   price      Int
   picture    String
-  created_at DateTime       @default(now())
-  updated_at DateTime       @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model PaymentMethod {
