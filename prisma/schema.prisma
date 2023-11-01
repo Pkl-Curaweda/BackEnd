@@ -12,6 +12,13 @@ enum Gender {
   FEMALE
 }
 
+enum ProductReqType {
+  DRINK
+  FOOD
+  CLEANINGTOOL
+  MEDICINE
+}
+
 enum PaymentStatus {
   PENDING
   SUCCEEDED
@@ -24,6 +31,12 @@ enum OrderStatus {
   DELIVERED
   DONE
   CANCEL
+}
+
+enum RoomType {
+  STANDARD
+  DELUXE
+  FAMILY
 }
 
 // Front Office Area
@@ -61,6 +74,33 @@ model User {
   updated_at DateTime @updatedAt
 }
 
+model Room {
+  id              Int            @id @default(autoincrement())
+  room_type       RoomType
+  room_image      String
+  room_code       Int
+  category        String
+  floor           Int
+  i               Int
+  occupied_status Boolean
+  overlook        String
+  description     String
+  bed_setup       String
+  connecting      String
+  capacity        Int
+  price           Float
+  room            RoomFacility[]
+}
+
+model RoomFacility {
+  id         Int      @id @default(autoincrement())
+  name       String
+  room       Room     @relation(fields: [roomId], references: [id])
+  roomId     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 // End Front Office Area
 
 // In Room Service Area
@@ -94,6 +134,17 @@ model Service {
   orderDetails  OrderDetail[]
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
+}
+
+model ProductReq {
+  id         Int            @id @default(autoincrement())
+  title      String
+  type       ProductReqType
+  desc       String
+  price      Int
+  picture    String
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
 }
 
 model PaymentMethod {
