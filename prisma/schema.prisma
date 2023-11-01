@@ -12,6 +12,13 @@ enum Gender {
   FEMALE
 }
 
+enum Type {
+  DRINK
+  FOOD
+  CLEANINGTOOL
+  MEDICINE
+}
+
 enum PaymentStatus {
   PENDING
   PROCESS
@@ -101,6 +108,15 @@ model Service {
   updated_at  DateTime @updatedAt
 }
 
+model ProductReq {
+  id          Int      @id @default(autoincrement())
+  title       String
+  desc        String
+  price       Int
+  picture     String          
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
 
 model PaymentMethod {
   id         Int      @id @default(autoincrement())
