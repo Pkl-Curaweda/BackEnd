@@ -12,7 +12,7 @@ This folder contains the database structure, database migrations and model to cr
     - [Windows](#windows)
   - [MySQL Client (MYSQL WORKBENCH)](#mysql-client-mysql-workbench)
     - [Windows](#windows-1)
-- [Migrations `(not ready yet)`](#migrations-not-ready-yet)
+- [Migrations](#migrations)
 - [How to contribute](#how-to-contribute)
   - [Requirements](#requirements-1)
   - [Installation](#installation-1)
@@ -81,7 +81,7 @@ This folder contains the database structure, database migrations and model to cr
 4. Create a new connection see .env_example for the credentials.
 5. Create a new database with the name `lingianhotel_db`.
 
-# Migrations `(not ready yet)`
+# Migrations
 
 1. Open the terminal.
 2. Navigate to the `database` folder.
@@ -91,13 +91,13 @@ This folder contains the database structure, database migrations and model to cr
 npm install
 ```
 
-1. Run the following command to create the database and its tables:
+4. Run the following command to push existing database migrations and its tables:
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma db push
 ```
 
-1. Run the following command to seed the database:
+5. Run the following command to seed the database `(not ready yet)`:
 
 ```bash
 npx prisma db seed
