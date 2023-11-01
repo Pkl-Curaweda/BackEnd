@@ -82,7 +82,7 @@ model Room {
   connecting      String
   capacity        Int
   price           Float
-  room            RoomFacility[]
+  roomFacilities  RoomFacility[]
 }
 
 model RoomFacility {
