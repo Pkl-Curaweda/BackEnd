@@ -2,37 +2,21 @@ const { prisma } = require("../../config");
 
 const rooms = [
   {
-    room_type: 'STANDARD',
-    room_image: "https://i.pravatar.cc/300",
-    room_status: 1,
-    room_code: 1,
+    roomType: "STANDARD",
+    roomImage: "https://i.pravatar.cc/300",
+    roomStatusId: 1,
+    roomCode: 1,
+    roomCapacityId: 1,
     category: "well",
     floor: 3,
     i: 2,
     occupied_status: true,
     overlook: "well",
     description: "kamar well",
-    bed_setup: "well",
+    bedSetup: "well",
     connecting: "well",
-    room_capacity_id: 2,
-    rate_code: 5.0
+    rateCodeId: 1,
   },
-  {
-    room_type: 'STANDARD',
-    room_image: "https://i.pravatar.cc/300",
-    room_status: 1,
-    room_code: 1,
-    category: "well",
-    floor: 3,
-    i: 2,
-    occupied_status: true,
-    overlook: "well",
-    description: "kamar well",
-    bed_setup: "well",
-    connecting: "well",
-    room_capacity_id: 2,
-    rate_code: 5.0
-  }
 ];
 
 async function roomSeed() {
