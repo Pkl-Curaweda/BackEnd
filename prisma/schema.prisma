@@ -55,20 +55,24 @@ model Role {
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  name       String
-  gender     Gender
-  phone      String
-  picture    String
-  birthday   DateTime
-  nik        String
-  email      String   @unique
-  username   String   @unique
-  password   String
-  role       Role     @relation(fields: [roleId], references: [id])
-  roleId     Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id             Int             @id @default(autoincrement())
+  name           String
+  gender         Gender
+  phone          String
+  picture        String
+  birthday       DateTime
+  nik            String
+  email          String          @unique
+  username       String          @unique
+  password       String
+  role           Role            @relation(fields: [roleId], references: [id])
+  roleId         Int
+  cleaningSheets CleaningSheet[]
+  cleanRooms     CleanRoom[]
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  DirtyRoom      DirtyRoom[]
+  OooRoom        OooRoom[]
 }
 
 model Room {
@@ -96,6 +100,10 @@ model Room {
   LogReservation      LogReservation[]
   CanceledReservation CanceledReservation[]
   Discrepancy         Discrepancy[]
+  cleaningSheets      CleaningSheet[]
+  cleanRooms          CleanRoom[]
+  DirtyRoom           DirtyRoom[]
+  OooRoom             OooRoom[]
 }
 
 model RoomFacility {
@@ -161,6 +169,10 @@ model Reservation {
   CanceledReservation CanceledReservation[]
   Voucher             Voucher[]
   Discrepancy         Discrepancy[]
+  cleaningSheets      CleaningSheet[]
+  cleanRooms          CleanRoom[]
+  DirtyRoom           DirtyRoom[]
+  OooRoom             OooRoom[]
 }
 
 model Reserver {
@@ -194,7 +206,7 @@ model ResvRoom {
   room          Room        @relation(fields: [roomId], references: [id])
   roomId        Int
   quantity      Int
-  note          String?      @db.Text
+  note          String?     @db.Text
   reservation   Reservation @relation(fields: [reservationId], references: [id])
   reservationId Int
   created_at    DateTime    @default(now())
@@ -221,6 +233,10 @@ model ResvStatus {
   updated_at          DateTime              @updatedAt
   LogReservation      LogReservation[]
   CanceledReservation CanceledReservation[]
+  cleaningSheets      CleaningSheet[]
+  cleanRooms          CleanRoom[]
+  DirtyRoom           DirtyRoom[]
+  OooRoom             OooRoom[]
 }
 
 model Voucher {
@@ -361,6 +377,69 @@ model Discrepancy {
 // End Front Office Area ======================================================
 
 // House Keeping Area =========================================================
+model CleaningSheet {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  no            String
+  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
+  resvStatusId  Int
+  remark        String
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model CleanRoom {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
+  resvStatusId  Int
+  description   String      @db.Text
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model DirtyRoom {
+  id            Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
+  resvStatusId  Int
+  description   String      @db.Text
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model OooRoom {
+  id            Int         @id @default(autoincrement())
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  reason        String      @db.Text
+  from          DateTime
+  until         DateTime
+  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
+  resvStatusId  Int
+  description   String      @db.Text
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
 
 // End House Keeping Area =====================================================
 
