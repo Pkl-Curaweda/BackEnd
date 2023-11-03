@@ -36,6 +36,9 @@ enum RoomType {
 
 model Guest {
   id       Int     @id @default(autoincrement())
+  name     String
+  contact  Int
+  email    String
   username String
   password String
   orders   Order[]
