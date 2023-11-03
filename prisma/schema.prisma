@@ -32,7 +32,7 @@ enum RoomType {
   FAMILY
 }
 
-// Front Office Area
+// Front Office Area ==========================================================
 
 model Guest {
   id       Int     @id @default(autoincrement())
@@ -71,23 +71,24 @@ model User {
 }
 
 model Room {
-  id                Int            @id @default(autoincrement())
-  room_type         RoomType
-  room_image        String
-  room_status       Int
-  room_code         Int
-  category          String
-  floor             Int
-  i                 Int
-  occupied_status   Boolean
-  overlook          String
-  description       String
-  bed_setup         String
-  connecting        String
-  room_capacity_id  Int
-  rate_code         Float
-  roomFacilities    RoomFacility[]
-  order             Order[]
+  id               Int            @id @default(autoincrement())
+  room_type        RoomType
+  room_image       String
+  room_status      Int
+  room_code        Int
+  category         String
+  floor            Int
+  i                Int
+  occupied_status  Boolean
+  overlook         String
+  description      String
+  bed_setup        String
+  connecting       String
+  room_capacity_id Int
+  rate_code        Float
+  roomFacilities   RoomFacility[]
+  order            Order[]
+  resvRooms        ResvRoom[]
 }
 
 model RoomFacility {
@@ -99,9 +100,98 @@ model RoomFacility {
   updated_at DateTime @updatedAt
 }
 
-// End Front Office Area
+model Reservation {
+  id                  Int          @id @default(autoincrement())
+  agencyName          String
+  resvQty             ResvQty      @relation(fields: [resvQtyId], references: [id])
+  resvQtyId           Int
+  resvStatus          ResvStatus   @relation(fields: [resvStatusId], references: [id])
+  resvStatusId        Int
+  groupReservation    Boolean
+  finishedReservation Boolean
+  currency            String
+  code                String
+  reserver            Reserver     @relation(fields: [reserverId], references: [id])
+  reserverId          Int
+  fixRate             Boolean
+  m                   String
+  l                   String
+  argtCode            String
+  day                 Int
+  night               Int
+  arrivalDate         DateTime
+  departureDate       DateTime
+  checkoutDate        DateTime
+  canceledDate        DateTime
+  resvFlights         ResvFlight[]
+  resvRooms           ResvRoom[]
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+}
 
-// In Room Service Area
+model Reserver {
+  id           Int           @id @default(autoincrement())
+  groupName    String
+  kCard        String
+  nation       String
+  purpose      String
+  resident     String
+  guestId      Int
+  reservations Reservation[]
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+}
+
+model ResvFlight {
+  id              Int         @id @default(autoincrement())
+  reservation     Reservation @relation(fields: [reservationId], references: [id])
+  reservationId   Int
+  arrivalFlight   DateTime
+  departureFlight DateTime
+  pickedUp        Boolean
+  drop            Boolean
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+}
+
+model ResvRoom {
+  id            Int         @id @default(autoincrement())
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  quantity      Int
+  note          String      @db.Text
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model ResvQty {
+  id          Int           @id @default(autoincrement())
+  manyAdult   Int
+  manyChild   Int
+  manyRoom    Int
+  reservation Reservation[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+}
+
+model ResvStatus {
+  id          Int           @id @default(autoincrement())
+  desc        String        @db.Text
+  hexCode     String
+  reservation Reservation[]
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+}
+
+// End Front Office Area ======================================================
+
+// House Keeping Area =========================================================
+
+// End House Keeping Area =====================================================
+
+// In Room Service Area =======================================================
 
 model ServiceType {
   id         Int       @id @default(autoincrement())
@@ -183,7 +273,7 @@ model Order {
   id            String        @id
   guest         Guest         @relation(fields: [guestId], references: [id])
   guestId       Int
-  room          Room         @relation(fields: [roomId], references: [id])
+  room          Room          @relation(fields: [roomId], references: [id])
   roomId        Int
   subtotal      Float
   total         Float
@@ -209,4 +299,4 @@ model OrderDetail {
   updated_at DateTime @updatedAt
 }
 
-// End In Room Service Area
+// End In Room Service Area ===================================================
