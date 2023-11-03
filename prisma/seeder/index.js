@@ -1,4 +1,5 @@
 const { prisma } = require("./config");
+const { frontOfficeBatchSeed } = require("./frontoffice");
 const { guestSeed } = require("./frontoffice/guest.seeder");
 const { roleSeed } = require("./global/role.seeder");
 const { userSeed } = require("./global/user.seeder");
@@ -7,6 +8,7 @@ const {
   paymentMethodSeed,
 } = require("./inroomservice/payment/paymentMethod.seeder");
 const { serviceBatchSeed } = require("./inroomservice/services");
+const { productReqSeed } = require("./inroomservice/services/productReq.seeder");
 
 async function main() {
   await guestSeed();
@@ -24,6 +26,15 @@ async function main() {
   await paymentMethodSeed(); // important to seed paymentMethod first before payment
   await paymentSeed();
   /* payment seeed end */
+
+  /* productReq seeed */
+  await productReqSeed();
+  /* productReq seeed end */
+
+  /* productReq seeed */
+  await frontOfficeBatchSeed();
+  /* productReq seeed end */
+
 }
 
 main()
