@@ -9,7 +9,6 @@ const {
 } = require("./inroomservice/payment/paymentMethod.seeder");
 const { serviceBatchSeed } = require("./inroomservice/services");
 const { productReqSeed } = require("./inroomservice/services/productReq.seeder");
-const { roomFacilitySeed } = require("./inroomservice/services/roomFacility.seeder");
 
 async function main() {
   await guestSeed();
@@ -27,6 +26,15 @@ async function main() {
   await paymentMethodSeed(); // important to seed paymentMethod first before payment
   await paymentSeed();
   /* payment seeed end */
+
+  /* productReq seeed */
+  await productReqSeed();
+  /* productReq seeed end */
+
+  /* productReq seeed */
+  await frontOfficeBatchSeed();
+  /* productReq seeed end */
+
 }
 
 main()
