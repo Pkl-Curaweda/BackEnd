@@ -3,24 +3,24 @@ const { prisma } = require("../../config");
 const roomFacilitys = [
   {
     name: "Family Room",
-    roomId: "1",
+    roomId: 1,
     created_at: new Date(),
     updated_at: new Date()
   },
   {
     name: "Deluxe Room",
-    roomId: "2",
+    roomId: 2,
     created_at: new Date(),
     updated_at: new Date()
   }
 ];
 
-async function roomSeed() {
+async function roomFacilitySeed() {
   for (let roomFacility of roomFacilitys) {
-    await prisma.room.create({
+    await prisma.roomFacility.create({
       data: roomFacility,
     });
   }
 }
 
-module.exports = { roomSeed };
+module.exports = { roomFacilitySeed };
