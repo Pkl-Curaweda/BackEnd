@@ -1,6 +1,6 @@
-const { prisma } = require("../../config");
+const { prisma } = require("../config");
 
-const roomFacilitys = [
+const roomFacilities = [
   {
     name: "Family Room",
     roomId: "1",
@@ -15,12 +15,12 @@ const roomFacilitys = [
   }
 ];
 
-async function roomSeed() {
-  for (let roomFacility of roomFacilitys) {
+async function roomFacilitySeed() {
+  for (let roomFacility of roomFacilities) {
     await prisma.room.create({
       data: roomFacility,
     });
   }
 }
 
-module.exports = { roomSeed };
+module.exports = { roomFacilitySeed };

@@ -1,4 +1,5 @@
 const { prisma } = require("./config");
+const { frontOfficeBatchSeed } = require("./frontoffice");
 const { guestSeed } = require("./frontoffice/guest.seeder");
 const { roleSeed } = require("./global/role.seeder");
 const { userSeed } = require("./global/user.seeder");
@@ -26,9 +27,9 @@ async function main() {
   await paymentSeed();
   /* payment seeed end */
 
-  /* productReq seed */
-  await productReqSeed();
-  /* productReq seed end */
+  /*frontoffice seed*/
+  await frontOfficeBatchSeed();
+  /*frontoffice seed*/
 }
 
 main()
