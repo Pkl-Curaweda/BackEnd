@@ -102,8 +102,12 @@ model Room {
   Discrepancy         Discrepancy[]
   cleaningSheets      CleaningSheet[]
   cleanRooms          CleanRoom[]
-  DirtyRoom           DirtyRoom[]
-  OooRoom             OooRoom[]
+  dirtyRooms          DirtyRoom[]
+  oooRooms            OooRoom[]
+  guestPreference     GuestPreference[]
+  tasks               Task[]
+  roomChangesFrom     RoomChange[]          @relation("RoomChangeFrom")
+  roomChangeTo        RoomChange[]          @relation("RoomChangeTo")
 }
 
 model RoomFacility {
@@ -171,8 +175,11 @@ model Reservation {
   Discrepancy         Discrepancy[]
   cleaningSheets      CleaningSheet[]
   cleanRooms          CleanRoom[]
-  DirtyRoom           DirtyRoom[]
-  OooRoom             OooRoom[]
+  dirtyRooms          DirtyRoom[]
+  oooRooms            OooRoom[]
+  guestPreference     GuestPreference[]
+  tasks               Task[]
+  roomChangesFrom     RoomChange[]
 }
 
 model Reserver {
@@ -439,6 +446,52 @@ model OooRoom {
   description   String      @db.Text
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
+}
+
+model GuestPreference {
+  id            Int         @id @default(autoincrement())
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  datetime      DateTime
+  remark        String
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model RoomChange {
+  id            Int         @id @default(autoincrement())
+  roomFrom      Room        @relation(name: "RoomChangeFrom", fields: [roomFromId], references: [id])
+  roomFromId    Int
+  roomTo        Room        @relation(name: "RoomChangeTo", fields: [roomToId], references: [id])
+  roomToId      Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model Task {
+  id            Int         @id @default(autoincrement())
+  room          Room        @relation(fields: [roomId], references: [id])
+  roomId        Int
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  departement   Departement @relation(fields: [departementId], references: [id])
+  departementId Int
+  from          DateTime
+  to            DateTime
+  done          Boolean
+  note          String      @db.Text
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model Departement {
+  id    Int    @id @default(autoincrement())
+  name  String
+  tasks Task[]
 }
 
 // End House Keeping Area =====================================================
