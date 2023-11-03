@@ -71,22 +71,23 @@ model User {
 }
 
 model Room {
-  id              Int            @id @default(autoincrement())
-  room_type       RoomType
-  room_image      String
-  room_code       Int
-  category        String
-  floor           Int
-  i               Int
-  occupied_status Boolean
-  overlook        String
-  description     String
-  bed_setup       String
-  connecting      String
-  capacity        Int
-  price           Float
-  roomFacilities  RoomFacility[]
-  order           Order[]
+  id                Int            @id @default(autoincrement())
+  room_type         RoomType
+  room_image        String
+  room_status       Int
+  room_code         Int
+  category          String
+  floor             Int
+  i                 Int
+  occupied_status   Boolean
+  overlook          String
+  description       String
+  bed_setup         String
+  connecting        String
+  room_capacity_id  Int
+  rate_code         Float
+  roomFacilities    RoomFacility[]
+  order             Order[]
 }
 
 model RoomFacility {
