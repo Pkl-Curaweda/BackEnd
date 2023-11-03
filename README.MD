@@ -100,7 +100,7 @@ npm install
 npx prisma db push
 ```
 
-7. Run the following command to seed the database `(not ready yet)`:
+7. Run the following command to seed the database:
 
 ```bash
 npx prisma db seed
