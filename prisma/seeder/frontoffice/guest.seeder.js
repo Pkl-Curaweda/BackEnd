@@ -4,7 +4,6 @@ const guests = [
   {
     username: "John Doe",
     password: "password",
-    email: "johndoe@gmail.com",
     name: "John Doe",
     contact: "08123456789",
   },

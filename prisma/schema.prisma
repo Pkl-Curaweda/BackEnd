@@ -38,7 +38,6 @@ model Guest {
   id                  Int                   @id @default(autoincrement())
   name                String
   contact             String
-  email               String
   username            String
   password            String
   orders              Order[]
@@ -450,6 +449,8 @@ model OooRoom {
 model ServiceType {
   id         Int       @id @default(autoincrement())
   name       String
+  open       String
+  close      String
   services   Service[]
   subTypes   SubType[]
   created_at DateTime  @default(now())
