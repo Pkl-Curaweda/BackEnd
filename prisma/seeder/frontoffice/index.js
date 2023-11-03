@@ -1,12 +1,9 @@
 const { guestSeed } = require("./guest.seeder");
-const { roomSeed } = require("./room/room.seeder");
-const { roomFacilitySeed } = require("./room/roomFacility.seeder");
+const { roomBatchSeed } = require("./room");
 
-async function frontOfficeBatchSeed(){
-    // the order of seeding is important
-    await guestSeed();
-    await roomSeed();
-    await roomFacilitySeed();
+async function frontOfficeBatchSeed() {
+  await guestSeed();
+  await roomBatchSeed();
 }
 
-module.exports = { frontOfficeBatchSeed }
+module.exports = { frontOfficeBatchSeed };

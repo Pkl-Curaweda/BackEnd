@@ -2,17 +2,17 @@ const { prisma } = require("../../config");
 
 const roomFacilities = [
   {
-    name: "Family Room",
+    name: "Savana Room",
     roomId: 1,
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
   },
   {
-    name: "Deluxe Room",
-    roomId: 2,
+    name: "Water Heater",
+    roomId: 1,
     created_at: new Date(),
-    updated_at: new Date()
-  }
+    updated_at: new Date(),
+  },
 ];
 
 async function roomFacilitySeed() {
