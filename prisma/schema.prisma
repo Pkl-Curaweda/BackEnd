@@ -40,6 +40,7 @@ model Guest {
   contact             String
   username            String
   password            String
+  reserves            Reserver[]
   orders              Order[]
   CanceledReservation CanceledReservation[]
 }
@@ -190,6 +191,7 @@ model Reserver {
   nation         String
   purpose        String?
   resident       String
+  guest          Guest       @relation(fields: [guestId], references: [id])
   guestId        Int
   reservations   Reservation[]
   created_at     DateTime         @default(now())
@@ -199,8 +201,10 @@ model Reserver {
 
 model ResvFlight {
   id              Int         @id @default(autoincrement())
-  reservation     Reservation @relation(fields: [reservationId], references: [id])
-  reservationId   Int
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  // reservation     Reservation @relation(fields: [reservationId], references: [id])
+  // reservationId   Int
   arrivalFlight   DateTime
   departureFlight DateTime
   pickedUp        Boolean
@@ -249,7 +253,6 @@ model ResvStatus {
 
 model Voucher {
   id             Int         @id @default(autoincrement())
-  reservation_id Reservation @relation(fields: [reservationId], references: [id])
   name           String
   number         Int
   source         String
@@ -260,6 +263,7 @@ model Voucher {
   expired_at     DateTime
   updated_at     DateTime    @updatedAt
   created_at     DateTime    @default(now())
+  reservation_id Reservation @relation(fields: [reservationId], references: [id])
   reservationId  Int
 }
 
