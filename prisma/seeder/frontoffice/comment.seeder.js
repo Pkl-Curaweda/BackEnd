@@ -2,6 +2,7 @@ const { prisma } = require("../config");
 
 const comment = [
 	{
+		commentId: "1CUR",
 		body: "Icikiwir awikwok",
 		createdAt: new Date(),
 		updatedAt: new Date(),

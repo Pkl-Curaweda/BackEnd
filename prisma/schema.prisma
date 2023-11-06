@@ -191,7 +191,7 @@ model Reserver {
   nation         String
   purpose        String?
   resident       String
-  guest          Guest       @relation(fields: [guestId], references: [id])
+  guest          Guest            @relation(fields: [guestId], references: [id])
   guestId        Int
   reservations   Reservation[]
   created_at     DateTime         @default(now())
@@ -201,8 +201,8 @@ model Reserver {
 
 model ResvFlight {
   id              Int         @id @default(autoincrement())
-  reservation Reservation @relation(fields: [reservationId], references: [id])
-  reservationId Int
+  reservation     Reservation @relation(fields: [reservationId], references: [id])
+  reservationId   Int
   // reservation     Reservation @relation(fields: [reservationId], references: [id])
   // reservationId   Int
   arrivalFlight   DateTime
@@ -302,12 +302,12 @@ model LogReservation {
   resvStatus      ResvStatus     @relation(fields: [resvStatusId], references: [id])
   resvStatusId    Int
   fixRate         Boolean
-  argtCode        Int
+  argtCode        String
   rate            Float
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @updatedAt
   PaymentMethod   PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   paymentMethodId Int?
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
 }
 
 model LogAvailability {
@@ -360,6 +360,7 @@ model CanceledReservation {
 
 model Comment {
   id          Int           @id @default(autoincrement())
+  commentId   String
   body        String
   createdAt   DateTime
   updatedAt   DateTime

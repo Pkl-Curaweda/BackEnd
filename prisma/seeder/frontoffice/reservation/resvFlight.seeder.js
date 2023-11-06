@@ -2,7 +2,7 @@ const { prisma } = require("../../config");
 
 const resvFlight = [
 	{
-		reservationId: 3,
+		reservationId: 1,
 		arrivalFlight: new Date(),
 		departureFlight: new Date(),
 		pickedUp: true,

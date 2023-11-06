@@ -15,6 +15,7 @@ const canceled = [
 		updatedAt: new Date(),
 	},
 ];
+
 async function CanceledSeed() {
 	for (let Canceled of canceled) {
 		await prisma.canceledReservation.create({

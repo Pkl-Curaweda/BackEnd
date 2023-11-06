@@ -5,7 +5,7 @@ const resvRoom = [
 		roomId: 1,
 		quantity: 1,
 		note: "overlook must streetview",
-		reservationId: 3,
+		reservationId: 1,
 		created_at: new Date(),
 		updated_at: new Date(),
 	},
