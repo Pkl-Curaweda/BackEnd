@@ -32,7 +32,6 @@ enum RoomType {
   FAMILY
 }
 
-
 // Front Office Area ==========================================================
 
 model Guest {
@@ -43,6 +42,7 @@ model Guest {
   password            String
   orders              Order[]
   CanceledReservation CanceledReservation[]
+  Reserver            Reserver[]
 }
 
 // This table is for admin & mitra (hotel)
@@ -76,13 +76,11 @@ model User {
 }
 
 model RoomCapacity {
-  id            Int      @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   adultCapacity Int
   childCapacity Int
   manyRoom      Int
   Room          Room[]
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
 }
 
 model RoomStatus {
@@ -191,6 +189,7 @@ model Reserver {
   nation         String
   purpose        String?
   resident       String
+  guest_id       Guest            @relation(fields: [guestId], references: [id])
   guestId        Int
   reservations   Reservation[]
   created_at     DateTime         @default(now())
@@ -251,6 +250,7 @@ model ResvStatus {
 model Voucher {
   id             Int         @id @default(autoincrement())
   reservation_id Reservation @relation(fields: [reservationId], references: [id])
+  reservationId  Int
   name           String
   number         Int
   source         String
@@ -261,7 +261,6 @@ model Voucher {
   expired_at     DateTime
   updated_at     DateTime    @updatedAt
   created_at     DateTime    @default(now())
-  reservationId  Int
 }
 
 model Deposit {
@@ -299,7 +298,7 @@ model LogReservation {
   resvStatus      ResvStatus     @relation(fields: [resvStatusId], references: [id])
   resvStatusId    Int
   fixRate         Boolean
-  argtCode        Int
+  argtCode        String
   rate            Float
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
@@ -357,6 +356,7 @@ model CanceledReservation {
 
 model Comment {
   id          Int           @id @default(autoincrement())
+  commentId   String
   body        String
   createdAt   DateTime
   updatedAt   DateTime
