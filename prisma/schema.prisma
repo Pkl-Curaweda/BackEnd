@@ -32,6 +32,7 @@ enum RoomType {
   FAMILY
 }
 
+
 // Front Office Area ==========================================================
 
 model Guest {
@@ -493,6 +494,53 @@ model Departement {
   id    Int    @id @default(autoincrement())
   name  String
   tasks Task[]
+}
+
+model vip {
+  id             Int    @id @default(autoincrement())
+  res_no         String
+  qty            Int
+  // category enum
+  //res status enum
+  argt_code      String
+  description    String @db.Text
+  a              String
+  co             String
+  room_id        Int
+  reservation_id Int
+}
+
+model purchase {
+  id          Int      @id @default(autoincrement())
+  stock_id    Int
+  number      String
+  issue       DateTime
+  art_no      String
+  user_id     Int
+  description String   @db.Text
+  qty         Int
+  date        DateTime
+  d_unit      String
+  cont        String
+  po          String
+}
+
+model stock {
+  id          Int    @id @default(autoincrement())
+  article     String @db.Text
+  description String @db.Text
+  unit        String
+  qty         Int
+  content     String
+  d_unit      String
+}
+
+model extrabed {
+  id      Int      @id @default(autoincrement())
+  room_id Int
+  date    DateTime
+  // used String
+  remain  Int
 }
 
 // End House Keeping Area =====================================================
