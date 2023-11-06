@@ -2,11 +2,13 @@ const { prisma } = require("../../config");
 
 const resvStatus = [
 	{
-		desc: "guarented",
-		hexCode: "#FFFFFF",
-		created_at: new Date(),
-		updated_at: new Date(),
+		desc: "Guaranted",
+		hexCode: "",
 	},
+	{
+		desc: "Canceled",
+		hexCode: "#fe0001",
+	}
 ];
 async function ResvStatusSeed() {
 	for (let ResvStatus of resvStatus) {

@@ -12,7 +12,7 @@ const voucher = [
 		expired_at: new Date(),
 		updated_at: new Date(),
 		created_at: new Date(),
-		reservationId: 3,
+		reservationId: 1,
 	},
 ];
 async function VoucherSeed() {
