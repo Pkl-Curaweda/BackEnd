@@ -2,7 +2,7 @@ const { prisma } = require("../../config");
 
 const canceled = [
 	{
-		reservationId: 3,
+		reservationId: 1,
 		guestId: 1,
 		resvStatusId: 1,
 		argtCode: 123,

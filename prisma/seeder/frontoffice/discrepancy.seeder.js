@@ -2,7 +2,7 @@ const { prisma } = require("../config");
 
 const discrepancy = [
 	{
-		reservationId: 3,
+		reservationId: 1,
 		roomId: 1,
 		foAdult: 1,
 		foChild: 1,

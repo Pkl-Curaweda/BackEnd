@@ -40,7 +40,6 @@ model Guest {
   contact             String
   username            String
   password            String
-  reserves            Reserver[]
   orders              Order[]
   CanceledReservation CanceledReservation[]
   Reserver            Reserver[]
