@@ -130,6 +130,7 @@ model Room {
   tasks               Task[]
   roomChangesFrom     RoomChange[]          @relation("RoomChangeFrom")
   roomChangeTo        RoomChange[]          @relation("RoomChangeTo")
+  lostFounds          lostfound[] 
 }
 
 model RoomFacility {
@@ -543,6 +544,18 @@ model extrabed {
   remain  Int
 }
 
+model lostfound {
+    id          Int         @id @default(autoincrement())
+    room        Room        @relation(fields: [roomId], references: [id])
+    roomId      Int
+    refences    String
+    time        DateTime
+    reported    DateTime
+    location    String
+    description String @db.Text
+
+
+}
 // End House Keeping Area =====================================================
 
 // In Room Service Area =======================================================
