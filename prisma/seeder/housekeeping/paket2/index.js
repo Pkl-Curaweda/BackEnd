@@ -1,5 +1,7 @@
+const { lostFoundSeed } = require("./lostFound.seeder.js");
+
 async function paketDuaSeed() {
-  // apa saja buat ntar import
+  await lostFoundSeed(); // #1
 }
 
 module.exports = { paketDuaSeed };
