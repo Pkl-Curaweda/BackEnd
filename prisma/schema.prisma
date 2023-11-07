@@ -521,7 +521,7 @@ model vip {
   res_no         String
   qty            Int
   // category enum
-  //res status enum
+  //res_status enum
   argt_code      String
   description    String @db.Text
   a              String
