@@ -2,7 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcrypt");
 const userClient = new PrismaClient().user
 
-const Login = async function(email, password){
+const UserLogin = async function(email, password){
     const user = await userClient.findUnique({
         where: {
             email: email
@@ -13,7 +13,9 @@ const Login = async function(email, password){
         if(auth){
             return user
         }
+        throw Error("incorect password");
     }
+    throw Error("incorect email");
     
 }
 
@@ -22,4 +24,4 @@ const GetAllUsers = async () => {
     return user;
 }
 
-module.exports = { Login, GetAllUsers }
+module.exports = { UserLogin, GetAllUsers }
