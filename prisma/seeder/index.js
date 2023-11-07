@@ -4,6 +4,7 @@ const { roleSeed } = require("./global/role.seeder");
 const { tokenSeed } = require("./global/token.seeder");
 const { userSeed } = require("./global/user.seeder");
 const { inRoomServiceBatchSeed } = require("./inroomservice");
+const { houseKeepingSeed } = require("./housekeeping");
 
 async function main() {
   /* front office seeed */
@@ -22,6 +23,9 @@ async function main() {
   /* in room service seeed */
   await inRoomServiceBatchSeed();
   /* in room service end */
+
+  /*House Keeping seed */
+  await houseKeepingSeed();
 }
 
 main()
