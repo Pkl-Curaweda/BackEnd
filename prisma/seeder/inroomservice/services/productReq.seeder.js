@@ -13,7 +13,6 @@ const productReqs = [
   },
   {
     userId: 1,
-
     title: "Nipis Madu",
     typeId: 1,
     desc: "Cairan berwarna hijau",
