@@ -10,7 +10,10 @@ const createToken = (id) => {
 const postLogin = async (req, res) => {
     const { email, password } = req.body;
     try{
-        Login(email, password);
+        const auth = await Login(email, password);
+        res.status(200).json({
+            auth
+        })
     }catch(err){
         console.log(err);
     }
@@ -18,9 +21,9 @@ const postLogin = async (req, res) => {
 
 const getUsers = async (req, res) => {
     try{
-        const data = GetAllUsers();
+        const data = await GetAllUsers();
         res.status(200).json({
-            user: data 
+            data 
         });
     }catch(err){
         console.log(err);

@@ -1,4 +1,5 @@
 const { prisma } = require("../config");
+const bcrypt = require("bcrypt");
 
 const users = [
 	{
@@ -26,10 +27,12 @@ async function userSeed() {
 		});
 
 		if (!existingUser) {
+			const salt = await bcrypt.genSalt();
+			user.password = await bcrypt.hash(user.password, salt);
 			await prisma.user.create({
 				data: user,
 			});
-		}
+		};
 	}
 }
 

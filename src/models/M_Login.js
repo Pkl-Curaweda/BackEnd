@@ -1,4 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
+const bcrypt = require("bcrypt");
 const userClient = new PrismaClient().user
 
 const Login = async function(email, password){
@@ -7,11 +8,17 @@ const Login = async function(email, password){
             email: email
         }
     })
-    console.log(user);
+    if(user){
+        const auth = await bcrypt.compare(password, user.password)
+        if(auth){
+            return user
+        }
+    }
+    
 }
 
 const GetAllUsers = async () => {
-    const user = await userClient.findMany();
+    const user = await userClient.findMany()
     return user;
 }
 
