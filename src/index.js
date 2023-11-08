@@ -1,13 +1,15 @@
 const express = require("express");
-const authRouter = require("./routes/R_Login");
+const R_auth = require("./routes/R_Login");
+const R_availRoom = require("./routes/R_availRoom");
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000;
 
-app.use(express.json()) //Used to convert json data
+app.use(express.json());
+
+app.use("/", R_auth);
+app.use("/avail-room", R_availRoom);
 
 app.listen(port, () => {
-    console.log("Listening to port "+port);
-})
-
-app.use('/', authRouter);
+  console.log(`Listening to port ${port}`);
+});
