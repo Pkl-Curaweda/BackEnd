@@ -43,7 +43,7 @@ CREATE TABLE `User` (
 -- CreateTable
 CREATE TABLE `UserToken` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `refreshToken` VARCHAR(191) NOT NULL,
+    `refreshToken` VARCHAR(355) NOT NULL,
     `userId` INTEGER NOT NULL,
     `expired_at` DATETIME(3) NOT NULL,
 
@@ -54,7 +54,7 @@ CREATE TABLE `UserToken` (
 -- CreateTable
 CREATE TABLE `GuestToken` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `refreshToken` VARCHAR(191) NOT NULL,
+    `refreshToken` VARCHAR(355) NOT NULL,
     `guestId` INTEGER NOT NULL,
     `expired_at` DATETIME(3) NOT NULL,
 
@@ -520,6 +520,21 @@ CREATE TABLE `extrabed` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `lostfound` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `roomId` INTEGER NOT NULL,
+    `reference` VARCHAR(191) NOT NULL,
+    `time` DATETIME(3) NOT NULL,
+    `reported` DATETIME(3) NOT NULL,
+    `location` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `ServiceType` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
@@ -799,6 +814,9 @@ ALTER TABLE `Task` ADD CONSTRAINT `Task_reservationId_fkey` FOREIGN KEY (`reserv
 
 -- AddForeignKey
 ALTER TABLE `Task` ADD CONSTRAINT `Task_departementId_fkey` FOREIGN KEY (`departementId`) REFERENCES `Departement`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `lostfound` ADD CONSTRAINT `lostfound_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `SubType` ADD CONSTRAINT `SubType_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
