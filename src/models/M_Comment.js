@@ -2,12 +2,16 @@ const { PrismaClient } = require("@prisma/client");
 const commentClient = new PrismaClient().comment;
 
 const getAllReservationComment = async () => {
-    const comments = await commentClient.findMany({
-        where: {
-            commentId: "1CUR"
-        }
-    })
-    return comments;
+    try{
+        const comments = await commentClient.findMany({
+            where: {
+                commentId: "1CUR"
+            }
+        })
+        return comments;
+    }catch(err){
+        console.log(err);
+    }
 }
 
 const getAllCommentWithId = async (commentId) => {

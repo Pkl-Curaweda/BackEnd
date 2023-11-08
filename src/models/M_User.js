@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const prisma = require("../db/index");
+const e = require("express");
 
 const UserLogin = async function (email, password) {
   const user = await prisma.user.findUnique({
@@ -18,7 +19,17 @@ const UserLogin = async function (email, password) {
 };
 
 const GetAllUsers = async () => {
-  const user = await prisma.user.findMany();
+  const user = await prisma.user.findMany({
+    select: {
+      username: true,
+      email: true,
+      role: {
+        select: {
+          name: true
+        }
+      }
+    }
+  });
   return user;
 };
 
