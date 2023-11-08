@@ -31,8 +31,8 @@ const handleError = function(err){
     return errors;
 }
 
-const createToken = (id) => {
-    return jwt.sign({ id }, process.env.SECRET_CODE, {
+const createToken = (email) => {
+    return jwt.sign({ email }, process.env.SECRET_CODE, {
         expiresIn: process.env.TOKEN_AGE || 3 * 24 * 60 * 60
     })
 }
@@ -42,7 +42,8 @@ const postLogin = async (req, res) => {
     try{
         const user = await UserLogin(email, password);
         const token = createToken(user.email);
-        res.cookie("CUR_TOKEN", token, {
+
+        res.cookie("curtoken", token, {
             httpOnly: true,
             maxAge: (process.env.TOKEN_AGE || 3 * 24 * 60 * 60) * 1000 //?3 Days
         })
@@ -53,7 +54,7 @@ const postLogin = async (req, res) => {
     }
 }
 
-const getUsers = async (req, res) => {
+const getUsers = async (res) => {
     try{
         const data = await GetAllUsers();
         res.status(200).json({

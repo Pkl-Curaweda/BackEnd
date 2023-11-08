@@ -1,4 +1,4 @@
-const { findAvailRooms } = require("../models/M_availRoom");
+const { findAvailRooms } = require("../models/M_AvailRoom");
 
 const getAvailRooms = async (req, res) => {
   const availRoom = await findAvailRooms();

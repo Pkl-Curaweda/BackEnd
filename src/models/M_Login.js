@@ -1,5 +1,4 @@
 const bcrypt = require("bcrypt");
-
 const prisma = require("../db/index");
 
 const UserLogin = async function (email, password) {
