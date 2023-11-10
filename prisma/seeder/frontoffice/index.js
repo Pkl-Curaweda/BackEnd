@@ -11,7 +11,6 @@ async function frontOfficeBatchSeed() {
 	await ReservationBatchSeed();
 	await LogBatchSeed();
 	await CommentSeed();
-	await DiscrepancySeed();
 }
 
 module.exports = { frontOfficeBatchSeed };
