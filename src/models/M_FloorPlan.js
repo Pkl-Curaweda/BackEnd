@@ -1,10 +1,8 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const prisma = require("../db/index");
 
 const getAllStatus = async () => {
-  const fp = await prisma.RoomStatus.findMany()
+  const fp = await prisma.RoomStatus.findMany();
   return fp;
 };
-
 
 module.exports = getAllStatus;
