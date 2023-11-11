@@ -1,7 +1,8 @@
-const prisma = require("../db/index");
+const roomClient = require("./config");
+
 
 const findAvailRooms = async () => {
-	const availRoom = await prisma.room.findMany();
+	const availRoom = await roomClient.findMany();
 	return availRoom;
 };
 

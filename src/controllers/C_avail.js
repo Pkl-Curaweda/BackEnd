@@ -1,4 +1,4 @@
-const { findAvail } = require("../models/M_avail");
+const { findAvail } = require("../models/Room/M_avail");
 
 const getAvail = async (req, res) => {
     const avail = await findAvail();
@@ -6,4 +6,4 @@ const getAvail = async (req, res) => {
     res.status(200).json({ avail });
 };
 
-module.exports = {getAvail};
+module.exports = { getAvail };
