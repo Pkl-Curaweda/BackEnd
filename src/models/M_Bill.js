@@ -1,13 +1,44 @@
 const { PrismaClient } = require("@prisma/client");
-const billClient = new PrismaClient().order;
+const orderClient = new PrismaClient().order;
+const reservationClient = new PrismaClient().reservation;
 
-const getAllBillFromReservationId = async (reservationId) => {
-    const bills = await billClient.findMany({
+const getAllOrderFromReservationId = async (reservationId) => {
+    const reserver = await reservationClient.findFirst({
         where: {
-            reservationId
+            id: parseInt(reservationId)
+        },
+        select: {
+            reserver: {
+                select: {
+                    guestId: true
+                }
+            }
         }
     })
-    return bills;
+    const orders = await getAllOrderFromGuestId(reserver.reserver.guestId);
+    return orders;
 }
 
-module.exports = { getAllBillFromReservationId };
+const getAllOrderFromGuestId = async (guestId) => {
+    const orders = orderClient.findMany({
+        where: {
+            guestId
+        },
+        select: {
+            orderDetails: {
+                select: {
+                    qty: true,
+                    service: {
+                        select: {
+                            name: true,
+                            price: true
+                        }
+                    }
+                }
+            }
+        }
+    })
+    return orders;
+}
+
+module.exports = { getAllOrderFromReservationId };

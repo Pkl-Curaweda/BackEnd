@@ -2,7 +2,7 @@ const { prisma } = require("../config");
 
 const userTokens = [
   {
-    refreshToken: "refreshToken1",
+    refreshToken: "refreshToken3",
     userId: 1,
     expired_at: new Date(),
   },
@@ -10,7 +10,7 @@ const userTokens = [
 
 const guestTokens = [
   {
-    refreshToken: "refreshToken2",
+    refreshToken: "refreshToken3",
     guestId: 1,
     expired_at: new Date(),
   },

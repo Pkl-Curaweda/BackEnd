@@ -1,13 +1,12 @@
-const { getAllBillFromReservationId } = require("../models/M_Bill");
+const { getAllOrderFromReservationId } = require("../models/M_Bill");
 const { getAllReservationComment } = require("../models/M_Comment");
 const { getAllReservation } = require("../models/M_Reservation");
 
-const getShowroom = async (req, res) => {
-	//Still not working because there's no data from orders table
-	const reservationId = req.params.id;
-	const bills = await getAllBillFromReservationId(reservationId);
-	res.status(200).json({ bills });
-};
+const getShowroom = async (req, res) => { 
+    const reservationId = req.params.id;
+    const orders = await getAllOrderFromReservationId(reservationId)
+    res.status(200).json({ orders });
+}
 
 const getCorrection = async (req, res) => {
 	const id = parseInt(req.params.id);
