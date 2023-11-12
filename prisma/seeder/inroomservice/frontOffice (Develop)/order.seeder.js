@@ -1,6 +1,6 @@
 const { prisma } = require("../../config");
 const { orderDetailSeeder } = require("./orderDetails.seeder");
-const { getCurrentTransactionId, generateUniqueOrderId, generateId } = require("./uniqueHandler");
+const { generateId } = require("./uniqueHandler");
 
 const orders = [{
     id: "OR-1",
@@ -17,20 +17,24 @@ const orders = [{
 }];
 
 const orderSeeder = async (transactionId) => {
-    for(let order in orders){
-        const alreadyExisted = await prisma.order.findUnique({
-            where: {
-                id: orders[order].id
+    try{
+        for(let order of orders){
+            const alreadyExisted = await prisma.order.findUnique({
+                where: {
+                    id: order.id
+                }
+            })
+            if(!alreadyExisted){
+                const orderId = order.id = generateId();
+                order.transactionId = transactionId;
+                await prisma.order.createMany({
+                    data: order
+                });
+                await orderDetailSeeder(orderId);
             }
-        })
-        if(alreadyExisted){
-            const orderId = orders[order].id = generateId();
-            orders[order].transactionId = transactionId;
-            await prisma.order.createMany({
-                data: orders[order]
-            });
-            await orderDetailSeeder(orderId);
         }
+    }catch(err){
+        console.log(err)
     }
 }
 

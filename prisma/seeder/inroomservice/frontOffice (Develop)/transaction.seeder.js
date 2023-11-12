@@ -1,6 +1,6 @@
 const { prisma } = require("../../config");
 const { orderSeeder } = require("./order.seeder");
-const { generateUniqueTransactionId, generateId } = require("./uniqueHandler");
+const { generateId } = require("./uniqueHandler");
 
 const transactions = [{
     id: "TR-01",
@@ -12,10 +12,10 @@ const transactions = [{
 }];
 
 const transactionSeeder = async () => {
-    for(let transaction in transactions){
-        const transactionId = transactions[transaction].id = generateId();
+    for (const transaction of transactions) {
+        const transactionId = transaction.id = generateId();
         await prisma.transaction.createMany({
-            data: transactions[transaction]
+            data: transaction
         });
         await orderSeeder(transactionId);
     }

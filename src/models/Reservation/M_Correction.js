@@ -1,4 +1,4 @@
-const reservationClient = require('../Helpers/Config/Front Office/ReservationConfig');
+const {reservationClient } = require('../Helpers/Config/Front Office/ReservationConfig');
 const { PrismaDisconnect } = require('../Helpers/DisconnectPrisma');
 const { ThrowError } = require('../Helpers/ThrowError');
 

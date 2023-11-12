@@ -1,5 +1,5 @@
 const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
-const commentClient = require("./Helpers/Config/Front Office/CommentConfig");
+const { commentClient } = require("./Helpers/Config/Front Office/CommentConfig");
 const { ThrowError } = require("./Helpers/ThrowError");
 
 const getAllReservationComment = async () => {

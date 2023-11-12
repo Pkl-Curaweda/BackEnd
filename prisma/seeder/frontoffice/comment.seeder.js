@@ -2,7 +2,7 @@ const { prisma } = require("../config");
 
 const comment = [
 	{
-		commentId: "1CUR",
+		commentId: process.env.DEFAULT_COMMENT_ID,
 		body: "Icikiwir awikwok",
 		createdAt: new Date(),
 		updatedAt: new Date(),

@@ -1,7 +1,8 @@
+const jwt = require("jsonwebtoken");
 const { guestTokenClient, userTokenClient } = require("./Helpers/Config/Global/TokenConfig");
 const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
 const { ThrowError } = require("./Helpers/ThrowError");
-
+const { da } = require("@faker-js/faker");
 
 const generateExpire = (currentDate) => {
     var expiredDate = new Date(currentDate);
@@ -9,28 +10,61 @@ const generateExpire = (currentDate) => {
     return expiredDate;
 }
 
-const AssigGuestToken = async (token, guestId) => {
-    const assignToken = await guestTokenClient.create({
-        data: {
-            refreshToken: token,
-            guestId,
-            expired_at: generateExpire(new Date())
-        }
-    });
-    if (assignToken) return assignToken;
-    throw Error("unasigned token");
+const createToken = async (storedData, client) => {
+    let existedToken;
+    try{
+        const generatedToken = jwt.sign({ storedData }, process.env.SECRET_CODE, {
+            expiresIn: process.env.TOKEN_AGE || 3 * 24 * 60 * 60
+        });
+        existedToken = await CheckExistedToken(generatedToken, client);
+        if(existedToken) await createToken(storedData, client);
+        return generatedToken;
+
+    }catch(err){
+        ThrowError(err);
+    }finally{
+        await PrismaDisconnect();
+    }
 }
 
-const AssignUserToken = async (token, userId) => {
-    const assignToken = await userTokenClient.create({
-        data: {
-            refreshToken: token,
-            userId,
-            expired_at: generateExpire(new Date())
-        }
-    });
-    if (assignToken) return assignToken;
-    throw Error("unasigned token");
+const CheckExistedToken = async (token, client) => {
+    try{
+        const existedToken = await client.findUnique({
+            where: {
+                refreshToken: token
+            }
+        });
+        return existedToken
+    }catch(err){
+        ThrowError(err);
+    }finally{
+        await PrismaDisconnect
+    }
+}
+
+const CreateAndAssignToken = async (type, data) => {
+    try {
+        console.log(data);
+        //?CREATE THE TOKEN
+        const client = type === "user" ? userTokenClient : guestTokenClient;
+        const generatedToken = await createToken(data.email || data.username, client);
+
+        //?ASSIGN THE TOKEN
+        const entity = type === "user" ? 'userId' : 'guestId';
+        const assignToken = await client.create({
+            data: {
+                refreshToken: generatedToken,
+                [entity]: data.id,
+                expired_at: generateExpire(new Date())
+            }
+        })
+        if (assignToken) return assignToken;
+        throw Error('unasigned token')
+    } catch (err) {
+        ThrowError(err);
+    } finally {
+        await PrismaDisconnect();
+    }
 }
 
 const checkToken = async (type, entityId) => {
@@ -58,3 +92,5 @@ const RemoveToken = async (type, entityId) => {
         await PrismaDisconnect();
     }
 }
+
+module.exports = { CreateAndAssignToken, RemoveToken };

@@ -1,5 +1,5 @@
 const ThrowError = (err) => {
-    console.log(err.message)
+    console.log(err)
     throw err;
 }
 

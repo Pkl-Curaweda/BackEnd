@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
-const userClient = require("./Helpers/Config/Front Office/UserConfig");
 const { ThrowError } = require("./Helpers/ThrowError");
 const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
+const { userClient } = require("./Helpers/Config/Front Office/UserConfig");
 
 const UserLogin = async function (email, password) {
   try{
@@ -42,7 +42,7 @@ const GetAllUsers = async () => {
   }catch(err){
     ThrowError(err);
   }finally{
-    await PrismaDisconnect();
+    
   }
 };
 

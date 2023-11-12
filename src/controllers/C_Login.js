@@ -1,19 +1,12 @@
-const jwt = require("jsonwebtoken");
 const { UserLogin, GetAllUsers } = require("../models/M_User");
 const handleError = require("./Helpers/ErrorHandler");
-
-const createToken = (email) => {
-    return jwt.sign({ email }, process.env.SECRET_CODE, {
-        expiresIn: process.env.TOKEN_AGE || 3 * 24 * 60 * 60
-    })
-}
+const { CreateAndAssignToken } = require("../models/M_Token");
 
 const postLogin = async (req, res) => {
     const { email, password } = req.body;
     try{
         const user = await UserLogin(email, password);
-        const token = createToken(user.email);
-
+        const token = await CreateAndAssignToken("user", user);
         res.cookie("curtoken", token, {
             httpOnly: true,
             maxAge: (process.env.TOKEN_AGE || 3 * 24 * 60 * 60) * 1000 //?3 Days
@@ -21,7 +14,7 @@ const postLogin = async (req, res) => {
         res.status(201).json({ email: user.email })
     }catch(err){
         const errors = handleError(err);
-        res.status(404).json({ errors });
+        res.status(500).json({ errors });
     }
 }
 

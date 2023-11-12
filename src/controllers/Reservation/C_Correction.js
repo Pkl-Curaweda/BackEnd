@@ -1,14 +1,19 @@
-const { getAllReservation, addReservation } = require("../../models/Reservation/M_Correction");
+const { getAllReservationComment } = require("../../models/M_Comment");
+const { addReservation, getAllReservation, getReservationById } = require("../../models/Reservation/M_Correction");
 
 const getCorrection = async (req, res) => {
-    const id = parseInt(req.params.id);
-    const comment = req.params.comment;
+    let reservations, comments;
+    const reservationId = req.query.id || "";
+    const includeComment = req.query.incCom;
+    console.log({
+        reservationId,
+        includeComment
+    })
 
-    const reservation = await getAllReservation();
-    const comments = await getAllReservationComment();
+    comments = includeComment === "true" ? await getAllReservationComment() : "";
+    reservations = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : await getAllReservation();
     res.status(200).json({
-        reservations: reservation,
-        comments: comments,
+        reservations, comments
     });
 };
 

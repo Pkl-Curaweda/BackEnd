@@ -1,10 +1,18 @@
 
-const roomClient = require("../Helpers/Config/Front Office/RoomConfig");
-const roomStatusClient = require("../Helpers/Config/Front Office/RoomStatusConfig");
+const { roomClient } = require("../Helpers/Config/Front Office/RoomConfig");
+const { roomStatusClient } = require("../Helpers/Config/Front Office/RoomStatusConfig");
+const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
+const { ThrowError } = require("../Helpers/ThrowError");
 
 const getAllStatus = async () => {
-  const floorplan = await roomStatusClient.findMany();
-  return floorplan;
+  try{
+    const floorplan = await roomStatusClient.findMany();
+    return floorplan;
+  }catch(err){
+    ThrowError(err);
+  }finally{
+    await PrismaDisconnect();
+  }
 };
 
 const getAvailabilityRoom = async (occ) => {
