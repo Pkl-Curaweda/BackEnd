@@ -1,8 +1,7 @@
-const { findAvail } = require("../models/Room/M_avail");
+const { findAvail } = require("../../models/Check In/M_avail");
 
 const getAvail = async (req, res) => {
     const avail = await findAvail();
-
     res.status(200).json({ avail });
 };
 

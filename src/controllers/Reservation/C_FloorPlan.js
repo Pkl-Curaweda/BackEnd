@@ -1,4 +1,4 @@
-const {getAllStatus,getAvaibilityRoom} = require("../models/M_FloorPlan.js");
+const { getAllStatus, getAvaibilityRoom } = require("../../models/Reservation/M_FloorPlan.js");
 
 
 const getStatus = async (req, res) => {
@@ -13,17 +13,17 @@ const getStatus = async (req, res) => {
 };
 const getAvailable = async (req, res) => {
   let availableroom = req.query.avail;
-  if(availableroom == "true"){
-    availableroom=true
-  }else{
-    availableroom=false
+  if (availableroom == "true") {
+    availableroom = true
+  } else {
+    availableroom = false
   }
   try {
     const data = await getAvaibilityRoom(availableroom);
-    res.json({data})
+    res.json({ data })
 
   } catch (err) {
     console.log(err);
   }
 };
-module.exports = {getStatus,getAvailable};
+module.exports = { getStatus, getAvailable };

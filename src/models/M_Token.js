@@ -1,6 +1,7 @@
-const { PrismaClient } = require("@prisma/client");
-const guestTokenClient = new PrismaClient().guestToken;
-const userTokenClient = new PrismaClient().userToken;
+const { guestTokenClient, userTokenClient } = require("./Helpers/Config/Global/TokenConfig");
+const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
+const { ThrowError } = require("./Helpers/ThrowError");
+
 
 const generateExpire = (currentDate) => {
     var expiredDate = new Date(currentDate);
@@ -8,22 +9,52 @@ const generateExpire = (currentDate) => {
     return expiredDate;
 }
 
-const AssigGuestToken = async (id, token) => {
+const AssigGuestToken = async (token, guestId) => {
     const assignToken = await guestTokenClient.create({
-        data: { id, token, expired_at: generateExpire(new Date()) }
+        data: {
+            refreshToken: token,
+            guestId,
+            expired_at: generateExpire(new Date())
+        }
     });
-    if(assignToken) return assignToken;
+    if (assignToken) return assignToken;
     throw Error("unasigned token");
 }
 
-const AssignUserToken = async (id, token) => {
+const AssignUserToken = async (token, userId) => {
     const assignToken = await userTokenClient.create({
-        data: { id, token, expired_at: generateExpire(new Date()) }
+        data: {
+            refreshToken: token,
+            userId,
+            expired_at: generateExpire(new Date())
+        }
     });
-    if(assignToken) return assignToken;
+    if (assignToken) return assignToken;
     throw Error("unasigned token");
 }
 
-const RemoveToken = async () => {
+const checkToken = async (type, entityId) => {
+    let token;
+    try {
+        const tokenClient = type === 'user' ? userTokenClient : guestTokenClient;
+        token = await tokenClient.findFirst({ where: { id: entityId } });
+        return token;
+    } catch (err) {
+        ThrowError(err);
+    } finally {
+        await PrismaDisconnect();
+    }
+}
 
+const RemoveToken = async (type, entityId) => {
+    const tokenExist = await checkToken(type, entityId);
+    if (!tokenExist) return deletedToken = 'Token is not existed';
+    try {
+        const tokenClient = type === 'user' ? userTokenClient : guestTokenClient;
+        await tokenClient.delete({ where: { id: entityId } });
+    } catch (err) {
+        ThrowError(err);
+    } finally {
+        await PrismaDisconnect();
+    }
 }

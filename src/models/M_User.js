@@ -1,36 +1,49 @@
 const bcrypt = require("bcrypt");
-const prisma = require("../db/index");
-const e = require("express");
+const userClient = require("./Helpers/Config/Front Office/UserConfig");
+const { ThrowError } = require("./Helpers/ThrowError");
+const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
 
 const UserLogin = async function (email, password) {
-  const user = await prisma.user.findUnique({
-    where: {
-      email: email,
-    },
-  });
-  if (user) {
-    const auth = await bcrypt.compare(password, user.password);
-    if (auth) {
-      return user;
+  try{
+    const user = await userClient.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (user) {
+      const auth = await bcrypt.compare(password, user.password);
+      if (auth) {
+        return user;
+      }
+      throw Error("incorect password");
     }
-    throw Error("incorect password");
+    throw Error("incorect email");
+  }catch(err){
+    ThrowError(err);
+  }finally{
+    await PrismaDisconnect();
   }
-  throw Error("incorect email");
 };
 
 const GetAllUsers = async () => {
-  const user = await prisma.user.findMany({
-    select: {
-      username: true,
-      email: true,
-      role: {
-        select: {
-          name: true
+  try{
+    const user = await userClient.findMany({
+      select: {
+        username: true,
+        email: true,
+        role: {
+          select: {
+            name: true
+          }
         }
       }
-    }
-  });
-  return user;
+    });
+    return user;
+  }catch(err){
+    ThrowError(err);
+  }finally{
+    await PrismaDisconnect();
+  }
 };
 
 module.exports = { UserLogin, GetAllUsers };

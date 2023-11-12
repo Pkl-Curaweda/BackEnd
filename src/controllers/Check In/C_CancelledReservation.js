@@ -1,4 +1,4 @@
-const getAllCancelled = require("../models/M_CancelledReservation");
+const getAllCancelled = require("../../models/Check In/M_CancelledReservation");
 
 const getCancelledReservation = async (req, res) => {
   try {

@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { UserLogin, GetAllUsers } = require("../models/M_User");
-const handleError = require("./helper");
+const handleError = require("./Helpers/ErrorHandler");
 
 const createToken = (email) => {
     return jwt.sign({ email }, process.env.SECRET_CODE, {

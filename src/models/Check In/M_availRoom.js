@@ -1,5 +1,4 @@
-const roomClient = require("./config");
-
+const roomClient = require("../Helpers/Config/Front Office/RoomConfig");
 
 const findAvailRooms = async () => {
 	const availRoom = await roomClient.findMany();

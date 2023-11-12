@@ -26,4 +26,4 @@ const handleError = function(err){
     return errors;
 }
 
-module.exports = handleError
+module.exports = handleError;
