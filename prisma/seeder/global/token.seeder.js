@@ -1,8 +1,9 @@
 const { prisma } = require("../config");
+const { generateId } = require("../inroomservice/frontOffice (Develop)/uniqueHandler");
 
 const userTokens = [
 	{
-		refreshToken: "refreshToken3",
+		refreshToken: generateId(),
 		userId: 1,
 		expired_at: new Date(),
 	},
@@ -10,7 +11,7 @@ const userTokens = [
 
 const guestTokens = [
 	{
-		refreshToken: "refreshToken3",
+		refreshToken: generateId(),
 		guestId: 1,
 		expired_at: new Date(),
 	},
@@ -18,15 +19,13 @@ const guestTokens = [
 
 async function tokenSeed() {
 	for (let userToken of userTokens) {
-		await prisma.userToken.update({
-			where: { refreshToken: "refreshToken1" },
+		await prisma.userToken.create({
 			data: userToken,
 		});
 	}
 
 	for (let guestToken of guestTokens) {
-		await prisma.guestToken.update({
-			where: { refreshToken: "refreshToken2" },
+		await prisma.guestToken.create({
 			data: guestToken,
 		});
 	}

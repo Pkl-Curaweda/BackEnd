@@ -1,5 +1,6 @@
 const { prisma } = require("../config");
 const bcrypt = require("bcrypt");
+const { faker } = require('@faker-js/faker');
 
 const users = [
 	{
@@ -7,10 +8,10 @@ const users = [
 		gender: "MALE",
 		phone: "08123456789",
 		picture: "https://i.pravatar.cc/300",
-		email: "admindummy@gmail.com",
+		email: faker.internet.email(),
 		nik: "1234567890123456",
 		birthday: new Date("1990-01-01"),
-		username: "admin",
+		username: faker.internet.userName(),
 		password: "password",
 		roleId: 2,
 		created_at: new Date(),

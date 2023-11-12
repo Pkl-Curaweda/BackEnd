@@ -3,10 +3,7 @@ const { orderDetailSeeder } = require("./orderDetails.seeder")
 const { transactionSeeder } = require("./transaction.seeder")
 
 const frontOfficeDevelopBatchSeed = async () => {
-    await transactionSeeder(),
-    await orderSeeder(),
-    await orderDetailSeeder()
-
+    await transactionSeeder()
 }
 
 module.exports = { frontOfficeDevelopBatchSeed }

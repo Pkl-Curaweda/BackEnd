@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "npx prisma migrate dev",
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "seeder": "npx prisma db seed"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +19,7 @@
     "seed": "node prisma/seeder/index.js"
   },
   "dependencies": {
+    "@faker-js/faker": "^8.2.0",
     "@prisma/client": "^5.5.2",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
