@@ -1,4 +1,4 @@
-const { getAllStatus, getAvaibilityRoom } = require("../../models/Reservation/M_FloorPlan.js");
+const { getAllStatus, getAvaibilityRoom, getAvailabilityRoom } = require("../../models/Reservation/M_FloorPlan.js");
 
 
 const getStatus = async (req, res) => {
@@ -7,7 +7,7 @@ const getStatus = async (req, res) => {
     res.status(200).json({
       data,
     });
-  } catch (err) {
+  }catch(err) {
     console.log(err);
   }
 };
@@ -19,9 +19,8 @@ const getAvailable = async (req, res) => {
     availableroom = false
   }
   try {
-    const data = await getAvaibilityRoom(availableroom);
+    const data = await getAvailabilityRoom(availableroom);
     res.json({ data })
-
   } catch (err) {
     console.log(err);
   }
