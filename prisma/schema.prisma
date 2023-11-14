@@ -672,12 +672,24 @@ model Order {
   total         Float
   ppn           Float
   fees          Float
-  status        OrderStatus
   transaction   Transaction   @relation(fields: [transactionId], references: [id])
   transactionId String        @unique
   orderDetails  OrderDetail[]
+  orderTracks   OrderTrack[]
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
+}
+
+model OrderTrack {
+  id         Int         @id @default(autoincrement())
+  order      Order       @relation(fields: [orderId], references: [id])
+  orderId    String
+  status     OrderStatus @default(PENDING)
+  time       DateTime    @default(now())
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+
+  @@unique([orderId, status])
 }
 
 model OrderDetail {
