@@ -4,6 +4,8 @@ const { getAvailRooms } = require("../controllers/Check In/C_availRoom");
 const getCancelledReservation = require("../controllers/Check In/C_CancelledReservation");
 const R_CheckIn = Router();
 
+//?CHEKIN
+
 //?AVAIL
 R_CheckIn.get('/avail', getAvail);
 
