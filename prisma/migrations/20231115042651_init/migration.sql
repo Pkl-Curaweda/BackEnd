@@ -580,7 +580,8 @@ CREATE TABLE `ProductReq` (
     `desc` VARCHAR(191) NOT NULL,
     `price` INTEGER NOT NULL,
     `picture` VARCHAR(191) NOT NULL,
-    `status` ENUM('PENDING', 'REJECTED', 'ACCEPTED') NOT NULL DEFAULT 'PENDING',
+    `statusProductReq` ENUM('PENDING', 'REJECTED', 'ACCEPTED') NOT NULL DEFAULT 'PENDING',
+    `serviceTypeId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -842,6 +843,9 @@ ALTER TABLE `ProductReq` ADD CONSTRAINT `ProductReq_userId_fkey` FOREIGN KEY (`u
 
 -- AddForeignKey
 ALTER TABLE `ProductReq` ADD CONSTRAINT `ProductReq_typeId_fkey` FOREIGN KEY (`typeId`) REFERENCES `SubType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ProductReq` ADD CONSTRAINT `ProductReq_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Payment` ADD CONSTRAINT `Payment_paymentMethodId_fkey` FOREIGN KEY (`paymentMethodId`) REFERENCES `PaymentMethod`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
