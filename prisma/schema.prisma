@@ -32,6 +32,12 @@ enum RoomType {
   FAMILY
 }
 
+enum Status {
+  PENDING
+  REJECTED
+  ACCEPTED
+}
+
 // Front Office Area ==========================================================
 
 model Guest {
@@ -624,6 +630,7 @@ model ProductReq {
   desc       String
   price      Int
   picture    String
+  status     Status   @default(PENDING)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
