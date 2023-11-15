@@ -3,8 +3,7 @@ const { prisma } = require("../../config");
 const lostFounds = [
   {
     roomId: 1,
-    reference:
-      "Test reference",
+    reference: "Test reference",
     time: new Date(),
     reported: new Date(),
     location: "Lobby",
