@@ -2,6 +2,7 @@ const { Router } = require("express");
 const {
 	getCorrection,
 	postNewReservation,
+	updateReservation
 } = require("../controllers/Reservation/C_Correction");
 const { deleteReservation } = require("../models/Reservation/M_Correction");
 const { getShowroom } = require("../controllers/Reservation/C_ShowRoom");
@@ -25,5 +26,6 @@ R_Reservation.get("/floorplan/available", getAvailable);
 //? NON SPECIFIC ROUTE
 R_Reservation.delete("/delete/:id", deleteReservation);
 R_Reservation.post("/create", postNewReservation);
+R_Reservation.put("/edit/:id", updateReservation);
 
 module.exports = R_Reservation;

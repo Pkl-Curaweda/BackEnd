@@ -1,5 +1,5 @@
 const { getAllReservationComment } = require("../../models/M_Comment");
-const { addReservation, getAllReservation, getReservationById } = require("../../models/Reservation/M_Correction");
+const { addReservation, getAllReservation, getReservationById, editReservation } = require("../../models/Reservation/M_Correction");
 
 const getCorrection = async (req, res) => {
     let reservations, comments;
@@ -46,4 +46,28 @@ const postNewReservation = async (req, res) => {
     }
 }
 
-module.exports = { getCorrection, deleteReservation, postNewReservation };
+const updateReservation = async (req, res) => {
+	const reservationId = parseInt(req.params.id);
+	const updatedData = req.body;
+
+	try {
+		const updatedReservation = await editReservation(
+			reservationId,
+			updatedData
+		);
+
+		if (!updatedReservation) {
+			return res.status(404).json({ error: "Reservation not found" });
+		}
+
+		res.status(200).json({
+			message: "Reservation updated successfully",
+			updatedReservation,
+		});
+	} catch (error) {
+		console.error("Error updating reservation:", error);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};
+
+module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation };
