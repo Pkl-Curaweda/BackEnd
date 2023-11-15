@@ -32,7 +32,7 @@ enum RoomType {
   FAMILY
 }
 
-enum Status {
+enum StatusProductReq {
   PENDING
   REJECTED
   ACCEPTED
@@ -621,18 +621,18 @@ model Service {
 }
 
 model ProductReq {
-  id         Int      @id @default(autoincrement())
-  title      String
-  user       User     @relation(fields: [userId], references: [id])
-  userId     Int
-  type       SubType  @relation(fields: [typeId], references: [id])
-  typeId     Int
-  desc       String
-  price      Int
-  picture    String
-  status     Status   @default(PENDING)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id               Int              @id @default(autoincrement())
+  title            String
+  user             User             @relation(fields: [userId], references: [id])
+  userId           Int
+  type             SubType          @relation(fields: [typeId], references: [id])
+  typeId           Int
+  desc             String
+  price            Int
+  picture          String
+  statusProductReq StatusProductReq @default(PENDING)
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
 }
 
 model PaymentMethod {
