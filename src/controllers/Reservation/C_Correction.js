@@ -1,21 +1,16 @@
 const { ThrowError } = require("../../models/Helpers/ThrowError");
 const { getAllReservationComment } = require("../../models/M_Comment");
-const {
-  addReservation,
-  getAllReservation,
-  getReservationById,
-  editReservation,
-} = require("../../models/Reservation/M_Correction");
+const {addReservation,getAllReservation,getReservationById,editReservation} = require("../../models/Reservation/M_Correction");
 
 const getCorrection = async (req, res) => {
   let reservations, comments;
   const reservationId = req.query.id || "";
   const includeComment = req.query.incCom;
-  const orderBy = req.query.orderBy;
+  const orderBy = req.query.or;
 
 
   comments =
-    includeComment === "true" ? await getAllReservationComment(searchTerm) : "";
+    includeComment === "true" ? await getAllReservationComment() : "";
   reservations =
     reservationId != "" || undefined
       ? await getReservationById(parseInt(reservationId))

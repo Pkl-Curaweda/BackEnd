@@ -1,6 +1,4 @@
-const {
-  canceledReservationClient,
-} = require("../Helpers/Config/Front Office/CanceledReservationConfig");
+const {canceledReservationClient} = require("../Helpers/Config/Front Office/CanceledReservationConfig");
 
 const getAllCancelled = async () => {
   const cancelled = await canceledReservationClient.findMany({

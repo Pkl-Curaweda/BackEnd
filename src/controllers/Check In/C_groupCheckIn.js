@@ -1,9 +1,5 @@
-const {
-  reservationClient,
-} = require("../../models/Helpers/Config/Front Office/ReservationConfig");
-const {
-  reserverClient,
-} = require("../../models/Helpers/Config/Front Office/ReserverConfig");
+const {reservationClient} = require("../../models/Helpers/Config/Front Office/ReservationConfig");
+const {reserverClient} = require("../../models/Helpers/Config/Front Office/ReserverConfig");
 
 const getAllGroupCheckIn = async (req, res) => {
   try {

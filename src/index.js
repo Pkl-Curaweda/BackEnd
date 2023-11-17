@@ -1,5 +1,5 @@
 const express = require("express");
-const { requireAuth, checkUser } = require("./middlewares/AuthMiddleware");
+// const { requireAuth, checkUser } = require("./middlewares/AuthMiddleware");
 const cookieParser = require("cookie-parser");
 const R_Login = require("./routes/R_Login");
 const R_Reservation = require("./routes/R_Reservation");

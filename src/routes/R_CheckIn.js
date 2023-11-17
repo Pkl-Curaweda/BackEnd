@@ -5,9 +5,7 @@ const { getAvail } = require("../controllers/Check In/C_avail");
 const { getAvailRooms } = require("../controllers/Check In/C_availRoom");
 const {getCancelledReservation} = require("../controllers/Check In/C_CancelledReservation");
 const getReactiveReservation = require("../controllers/Check In/C_ReactiveReservation");
-const {
-  getAllGroupCheckIn,
-} = require("../controllers/Check In/C_groupCheckIn");
+const { getAllGroupCheckIn} = require("../controllers/Check In/C_groupCheckIn");
 const R_CheckIn = Router();
 
 //?CHEKIN

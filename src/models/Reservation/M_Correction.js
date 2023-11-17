@@ -5,85 +5,44 @@ const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
 //? SORTING LANDPAGE
-const getAllReservation = async (orderBy) => {
-  let order = {};
-
-  switch (orderBy.split(",")[0]) {
-    case "GuestName":
-      order = {
-        reserver: {
-          guest_id: {
-            select: {
-              name: orderBy.split(",")[1],
-            },
-          },
-        },
-      };
+const getAllReservation = async (or) => {
+	let order = {};
+  switch (or) {
+    case "gn"://guestname
+      order = { reserver: { guest_id: { name: "asc" } } };
       break;
-    case "ReservationNo":
-      order = {
-        id: orderBy.split(",")[1],
-      };
-
+    case "reno"://reservationnumber
+      order = { id: "asc" };
       break;
-
-    case "ReserveName":
-      order = {
-        reserver: {
-          groupName: orderBy.split(",")[1],
-        },
-      };
+    case "rn"://resourcename
+      order = { reserver: { resourceName: "asc" } };
       break;
-    case "ReserveName":
-      order = {
-        reserver: {
-          groupName: orderBy.split(",")[1],
-        },
-      };
+    case "cid"://checkindate
+      order = { checkInDate: "asc" };
       break;
-  
+    case "ron"://roomno
+      order = { resvRooms: { select: { room: { id: "asc" } } } };
+      break;
+    default:
+      break;
   }
-
   const reservations = await reservationClient.findMany({
     select: {
       id: true,
-      agencyName: true,
-      resvQty: {
-        select: {
-          manyAdult: true,
-          manyChild: true,
-          manyRoom: true,
-        },
-      },
       reserver: {
         select: {
-          groupName: true,
+          resourceName: true,
           guest_id: {
             select: {
               name: true,
             },
           },
-          kCard: true,
-          nation: true,
-          resident: true,
         },
       },
-      currency: true,
-      code: true,
-      fixRate: true,
-      argtCode: true,
-      day: true,
-      night: true,
       arrivalDate: true,
       departureDate: true,
       checkoutDate: true,
-      canceledDate: true,
-      resvFlights: {
-        select: {
-          arrivalFlight: true,
-          departureFlight: true,
-        },
-      },
+	  checkInDate:true,
       resvRooms: {
         select: {
           roomId: true,
@@ -273,23 +232,29 @@ const addReservation = async (data) => {
 
 //? EDIT DATA
 const editReservation = async (reservationId, updatedData) => {
-	try {
-		if (!updatedData) {
-			throw new Error("No data provided for update");
-		}
-		const update = await reservationClient.update({
-			where: {
-				id: reservationId,
-			},
-			data: updatedData,
-		});
+  try {
+    if (!updatedData) {
+      throw new Error("No data provided for update");
+    }
+    const update = await reservationClient.update({
+      where: {
+        id: reservationId,
+      },
+      data: updatedData,
+    });
 
-		return update;
-	} catch (error) {
-		console.error("Error updating reservation:", error);
-		// You might want to handle the error or throw it further
-		throw error;
-	}
+    return update;
+  } catch (error) {
+    console.error("Error updating reservation:", error);
+    // You might want to handle the error or throw it further
+    throw error;
+  }
 };
 
-module.exports = { getAllReservation, getReservationById, deleteReservation, addReservation, editReservation };
+module.exports = {
+  getAllReservation,
+  getReservationById,
+  deleteReservation,
+  addReservation,
+  editReservation,
+};
