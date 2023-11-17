@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { getCorrection, postNewReservation } = require("../controllers/reservation/C_Correction");
+const { getCorrection, postNewReservation } = require("../controllers/reservation/C_Correction.js");
 const { deleteReservation } = require("../models/Reservation/M_Correction");
 const { getShowroom } = require("../controllers/Reservation/C_ShowRoom");
 const { getStatus, getAvailable } = require("../controllers/Reservation/C_FloorPlan");
@@ -14,7 +14,6 @@ R_Reservation.get("/showroom/:id", getShowroom);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getStatus);
-R_Reservation.get("/floorplan/available", getAvailable);
 
 //? NON SPECIFIC ROUTE
 R_Reservation.delete("/delete/:id", deleteReservation);

@@ -15,6 +15,7 @@ const getAllStatus = async () => {
   }
 };
 
+
 const getAvailabilityRoom = async (occ) => {
   const data = await roomClient.findMany({
     where: {
