@@ -54,23 +54,23 @@ const CreateAndAssignToken = async (type, data) => {
       client
     );
 
-    //?ASSIGN THE TOKEN
-    const entity = type === "user" ? "userId" : "guestId";
-    const assignToken = await client.create({
-      data: {
-        refreshToken: generatedToken,
-        [entity]: data.id,
-        expired_at: generateExpire(new Date()),
-      },
-    });
-    if (assignToken) return assignToken;
-    throw Error("unasigned token");
-  } catch (err) {
-    ThrowError(err);
-  } finally {
-    await PrismaDisconnect();
-  }
-};
+        //?ASSIGN THE TOKEN
+        const entity = type === "user" ? 'userId' : 'guestId';
+        const assignToken = await client.create({
+            data: {
+                refreshToken: generatedToken,
+                [entity]: data.id,
+                expired_at: generateExpire(new Date())
+            }
+        })
+        if (assignToken) return generatedToken;
+        throw Error('unasigned token')
+    } catch (err) {
+        ThrowError(err);
+    } finally {
+        await PrismaDisconnect();
+    }
+}
 
 const checkToken = async (type, entityId) => {
   let token;

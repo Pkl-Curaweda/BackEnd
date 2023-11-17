@@ -25,6 +25,14 @@ const UserLogin = async function (email, password) {
   }
 };
 
+const UserLogout = async (id) => {
+  try{
+ }catch(err){
+    ThrowError(err);
+  }finally{
+    await PrismaDisconnect();
+  }
+}
 const GetAllUsers = async () => {
   try{
     const user = await userClient.findMany({
@@ -46,4 +54,20 @@ const GetAllUsers = async () => {
   }
 };
 
-module.exports = { UserLogin, GetAllUsers };
+const GetUserByEmail = async (email) => {
+  try{
+    const user = await userClient.findUnique({
+      where: {
+        email
+      }
+    })
+    return user;
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect();
+  }
+}
+
+
+module.exports = { UserLogin, GetAllUsers, GetUserByEmail };
