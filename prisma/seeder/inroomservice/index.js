@@ -2,7 +2,6 @@ const { serviceBatchSeed } = require("./services");
 const { paymentMethodSeed } = require("./payment/paymentMethod.seeder");
 const { paymentSeed } = require("./payment/payment.seeder");
 const { productReqSeed } = require("./services/productReq.seeder");
-const { frontOfficeDevelopBatchSeed } = require("./frontOffice (Develop)");
 async function inRoomServiceBatchSeed() {
   /* service seeed */
   await serviceBatchSeed();
@@ -13,7 +12,6 @@ async function inRoomServiceBatchSeed() {
   await paymentSeed();
   /* payment seeed end */
 
-  await frontOfficeDevelopBatchSeed();
 }
 
 module.exports = { inRoomServiceBatchSeed };

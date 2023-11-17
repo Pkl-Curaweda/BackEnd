@@ -272,10 +272,24 @@ const addReservation = async (data) => {
 };
 
 //? EDIT DATA
+const editReservation = async (reservationId, updatedData) => {
+	try {
+		if (!updatedData) {
+			throw new Error("No data provided for update");
+		}
+		const update = await reservationClient.update({
+			where: {
+				id: reservationId,
+			},
+			data: updatedData,
+		});
 
-module.exports = {
-  getAllReservation,
-  getReservationById,
-  deleteReservation,
-  addReservation,
+		return update;
+	} catch (error) {
+		console.error("Error updating reservation:", error);
+		// You might want to handle the error or throw it further
+		throw error;
+	}
 };
+
+module.exports = { getAllReservation, getReservationById, deleteReservation, addReservation, editReservation };

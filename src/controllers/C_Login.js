@@ -29,4 +29,18 @@ const getUsers = async (req, res) => {
     }
 }
 
-module.exports = { postLogin, getUsers }
+const postLogout = async (req, res) => {
+    try{
+        res.cookie("curtoken", "", {
+            maxAge: 1,
+            httpOnly: true
+        })
+        res.status(200).json({
+            success: "User Log Out"
+        })
+    }catch(err){
+        console.log(err);
+    }
+}
+
+module.exports = { postLogin, getUsers, postLogout }
