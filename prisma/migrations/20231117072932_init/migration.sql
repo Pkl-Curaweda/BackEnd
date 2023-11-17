@@ -123,6 +123,7 @@ CREATE TABLE `Reservation` (
     `inHouseIndicator` BOOLEAN NOT NULL,
     `arrivalDate` DATE NOT NULL,
     `departureDate` DATE NOT NULL,
+    `checkInDate` DATE NULL,
     `checkoutDate` DATE NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
@@ -396,6 +397,7 @@ CREATE TABLE `Service` (
     `desc` VARCHAR(191) NOT NULL,
     `picture` VARCHAR(191) NOT NULL,
     `serviceTypeId` INTEGER NOT NULL,
+    `subTypeId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -614,6 +616,9 @@ ALTER TABLE `SubType` ADD CONSTRAINT `SubType_serviceTypeId_fkey` FOREIGN KEY (`
 
 -- AddForeignKey
 ALTER TABLE `Service` ADD CONSTRAINT `Service_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Service` ADD CONSTRAINT `Service_subTypeId_fkey` FOREIGN KEY (`subTypeId`) REFERENCES `SubType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ProductReq` ADD CONSTRAINT `ProductReq_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

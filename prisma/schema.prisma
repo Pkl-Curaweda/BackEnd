@@ -442,6 +442,7 @@ model SubType {
   name          String
   serviceType   ServiceType  @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
+  services      Service[]
   productReqs   ProductReq[]
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -455,6 +456,8 @@ model Service {
   picture       String
   serviceType   ServiceType   @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
+  subType       SubType       @relation(fields: [subTypeId], references: [id])
+  subTypeId     Int
   orderDetails  OrderDetail[]
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
