@@ -24,10 +24,10 @@ function generateRandomString(length) {
 const generateRefreshToken = async (client) => {
   try {
     let generatedToken, tokenExist;
-    do{
+    do {
       generatedToken = generateRandomString(100);
-      tokenExist = await client.findUnique({where: { refreshToken: generatedToken }});
-    }while(tokenExist)
+      tokenExist = await client.findUnique({ where: { refreshToken: generatedToken } });
+    } while (tokenExist)
     return generatedToken;
   } catch (err) {
     ThrowError(err);
@@ -46,7 +46,7 @@ const CreateAndAssignToken = async (type, data) => {
     const assignToken = await tokenClient.create({
       data: {
         refreshToken: generatedRefreshToken,
-       [entity]: data.id,
+        [entity]: data.id,
         expired_at: generateExpire(new Date())
       }
     })
@@ -63,9 +63,9 @@ const checkToken = async (type, refreshToken) => {
   let token;
   try {
     const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
-    token = await tokenClient.findUniqueOrThrow({where: { refreshToken }});
-    if(!token) throw Error('Invalid refresh token')
-    if(Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
+    token = await tokenClient.findUniqueOrThrow({ where: { refreshToken } });
+    if (!token) throw Error('Invalid refresh token')
+    if (Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
     return token;
   } catch (err) {
     ThrowError(err);
@@ -74,15 +74,16 @@ const checkToken = async (type, refreshToken) => {
   }
 };
 
-const RefreshToken = async (type, refreshToken) => {
+const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
     const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
     const deletedToken = await tokenClient.delete({ where: { refreshToken } });
+    const generatedRefreshToken = await generateRefreshToken(tokenClient)
     const newRefreshToken = await tokenClient.create({
       data: {
         userId: deletedToken.userId,
-        refreshToken: generateRefreshToken(tokenClient),
-        expired_at: generateExpire(new Date())
+        refreshToken: generatedRefreshToken,
+        expired_at
       }
     })
     return newRefreshToken;
@@ -94,12 +95,13 @@ const RefreshToken = async (type, refreshToken) => {
 };
 
 const RemoveToken = async (type, refreshToken) => {
-  try{
+  try {
     const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
-    await tokenClient.delete({ where: { refreshToken }});
-  }catch(err){
+    const deletedToken = await tokenClient.delete({ where: { refreshToken } });
+    return deletedToken;
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect();
   }
 }

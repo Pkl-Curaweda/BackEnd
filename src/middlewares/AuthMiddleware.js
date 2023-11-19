@@ -1,45 +1,30 @@
 const jwt = require("jsonwebtoken");
 const { GetUserByEmail } = require("../models/M_User");
+const { prisma } = require("../../prisma/seeder/config");
+const { error } = require("../utils/response");
 
-const auth = (roles) => async(req, res, next) => {
-    const { refreshToken } = req.cookies;
-    if (!refreshToken) {
-        return errorResponse(res, 'Forbidden, refresh token is not found', null, 403);
-    }
-
-    const { authorization } = req.headers;
-    if (!authorization) {
-        return errorResponse(res, 'Forbidden authorization token is not found', null, 403);
-    }
-
-    const accessToken = authorization.split(' ')[1];
-    const decoded = verifyToken(accessToken);
-    const user = await prisma.user.findUnique({
-        where: {
-            id: decoded.id,
-        },
-        select: {
-            role: {
-                select: {
-                    name: true,
-                },
+/**
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
+ */
+const auth = async (req, res, next) => {
+    try{
+        const accessToken = req.header('Authorization').split(' ')[1];
+        const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
+        req.user = await prisma.user.findUniqueOrThrow({
+            where: {
+                id: parseInt(decoded.sub)
             },
-        },
-    });
-
-    if (!user) {
-        return errorResponse(res, 'Forbidden, you are not allowed access this resource', null, 403);
-    }
-    if (decoded instanceof Error) {
-        return errorResponse(res, 'Unauthenticated, you are not logged in', null, 401);
+            include: {
+                role: true
+            }
+        })
+    }catch(err){
+        return error(res, 'Unaunthenticated', 401);
     }
 
-    if (roles !== undefined) {
-        const isAllowed = roles.some((role) => role === user.role.name);
-        if (!isAllowed) {
-            return errorResponse(res, 'Forbidden, you are not allowed access this resource', null, 403);
-        }
-    }
-
-    return next();
+    next();
 }
+
+module.exports = { auth };
