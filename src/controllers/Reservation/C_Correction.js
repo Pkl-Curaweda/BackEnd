@@ -6,11 +6,15 @@ const getCorrection = async (req, res) => {
   let reservations, comments, reservationDetail;
   const reservationId = req.query.id || "";
   const includeComment = req.query.incCom;
-  const orderBy = req.query.orderBy;
+  const orderBy = req.query.or;
 
-  comments = includeComment === "true" ? await getAllReservationComment(searchTerm) : "";
-  reservations = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : await getAllReservation(orderBy);
-  reservationDetail = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : null;
+
+  comments =
+    includeComment === "true" ? await getAllReservationComment() : "";
+  reservations =
+    reservationId != "" || undefined
+      ? await getReservationById(parseInt(reservationId))
+      : await getAllReservation(orderBy);
   res.status(200).json({
     reservations,
     reservationDetail,
