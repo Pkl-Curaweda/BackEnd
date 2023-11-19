@@ -2,39 +2,39 @@ const bcrypt = require("bcrypt");
 const { ThrowError } = require("./Helpers/ThrowError");
 const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
 const { userClient } = require("./Helpers/Config/Front Office/UserConfig");
+const { RemoveToken, CreateAndAssignToken } = require("./M_UserToken");
 
-const UserLogin = async function (email, password) {
-  try{
-    const user = await userClient.findUnique({
-      where: {
-        email: email,
-      },
-    });
-    if (user) {
-      const auth = await bcrypt.compare(password, user.password);
-      if (auth) {
-        return user;
-      }
-      throw Error("incorect password");
+const UserLogin = async (email, password) => {
+  try {
+    const user = await userClient.findUniqueOrThrow({ where: { email } });
+    if (!user) throw Error("User Not Found");
+    const auth = await bcrypt.compare(password, user.password);
+    if (!auth) throw Error("Wrong Password");
+    const createdToken = await CreateAndAssignToken("user", user);
+    return {
+      user, createdToken
     }
-    throw Error("incorect email");
-  }catch(err){
+  } catch (err) {
     ThrowError(err);
-  }finally{
+  } finally {
     await PrismaDisconnect();
   }
 };
 
-const UserLogout = async (id) => {
-  try{
- }catch(err){
-    ThrowError(err);
-  }finally{
+const UserLogout = async (RefreshToken) => {
+  try {
+    const removeToken = await RemoveToken("user", RefreshToken);
+    if (!removeToken) throw Error('Unsuccess Logout')
+    return removeToken
+  } catch (err) {
+    ThrowError(err)
+  } finally {
     await PrismaDisconnect();
   }
 }
+
 const GetAllUsers = async () => {
-  try{
+  try {
     const user = await userClient.findMany({
       select: {
         username: true,
@@ -47,27 +47,11 @@ const GetAllUsers = async () => {
       }
     });
     return user;
-  }catch(err){
+  } catch (err) {
     ThrowError(err);
-  }finally{
-    
+  } finally {
+    await PrismaDisconnect();
   }
 };
 
-const GetUserByEmail = async (email) => {
-  try{
-    const user = await userClient.findUnique({
-      where: {
-        email
-      }
-    })
-    return user;
-  }catch(err){
-    ThrowError(err)
-  }finally{
-    await PrismaDisconnect();
-  }
-}
-
-
-module.exports = { UserLogin, GetAllUsers, GetUserByEmail };
+module.exports = { UserLogin, UserLogout, GetAllUsers };

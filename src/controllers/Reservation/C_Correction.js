@@ -1,27 +1,19 @@
 const { ThrowError } = require("../../models/Helpers/ThrowError");
 const { getAllReservationComment } = require("../../models/M_Comment");
-const {
-  addReservation,
-  getAllReservation,
-  getReservationById,
-  editReservation,
-} = require("../../models/Reservation/M_Correction");
+const {addReservation, getAllReservation, getReservationById, editReservation } = require("../../models/Reservation/M_Correction");
 
 const getCorrection = async (req, res) => {
-  let reservations, comments;
+  let reservations, comments, reservationDetail;
   const reservationId = req.query.id || "";
   const includeComment = req.query.incCom;
   const orderBy = req.query.orderBy;
 
-
-  comments =
-    includeComment === "true" ? await getAllReservationComment(searchTerm) : "";
-  reservations =
-    reservationId != "" || undefined
-      ? await getReservationById(parseInt(reservationId))
-      : await getAllReservation(orderBy);
+  comments = includeComment === "true" ? await getAllReservationComment(searchTerm) : "";
+  reservations = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : await getAllReservation(orderBy);
+  reservationDetail = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : null;
   res.status(200).json({
     reservations,
+    reservationDetail,
     comments,
   });
 };

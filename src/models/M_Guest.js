@@ -1,6 +1,7 @@
 const { guestClient } = require("./Helpers/Config/Front Office/GuestConfig");
 const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
 const { ThrowError } = require("./Helpers/ThrowError")
+const qr = require("qrcode");
 
 const CreateNewGuest = async (data) => {
     try{
@@ -11,6 +12,20 @@ const CreateNewGuest = async (data) => {
     }finally{
         await PrismaDisconnect();
     }
+}
+
+const GenerateGuestQrCode = async (guestData) => {
+    console.log(guestData);
+    const storedData = {
+        "id": guestData.id,
+        "username": guestData.username,
+        "password": guestData.password
+    };
+    const stringifyData = JSON.stringify(storedData)
+    qr.toFile("./src/image/qr.png", stringifyData, (err) => {
+        if(err) console.log(err);
+    })
+    return "QR Code is generated"
 }
 
 const GetGuestById = async (id) => {
@@ -39,4 +54,4 @@ const DeleteGuestById = async (guestId) => {
     }
 }
 
-module.exports = { CreateNewGuest, GetGuestById, DeleteGuestById };
+module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById };

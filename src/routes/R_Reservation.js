@@ -1,23 +1,12 @@
 const { Router } = require("express");
-const {
-	getCorrection,
-	postNewReservation,
-	updateReservation
-} = require("../controllers/Reservation/C_Correction");
+const { getCorrection, postNewReservation, updateReservation } = require("../controllers/Reservation/C_Correction");
 const { deleteReservation } = require("../models/Reservation/M_Correction");
-const { getShowroom } = require("../controllers/Reservation/C_ShowRoom");
-const {
-	getStatus,
-	getAvailable,
-} = require("../controllers/Reservation/C_FloorPlan");
+const { getStatus, } = require("../controllers/Reservation/C_FloorPlan");
 
 const R_Reservation = new Router();
 
 //?CORRECTION
 R_Reservation.get("/correction", getCorrection);
-
-//?SHOWROOM REV
-R_Reservation.get("/showroom/:id", getShowroom);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getStatus);

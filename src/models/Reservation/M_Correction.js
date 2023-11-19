@@ -5,159 +5,136 @@ const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
 //? SORTING LANDPAGE
-const getAllReservation = async (orderBy) => {
-  let order = {};
+// const getAllReservation = async (orderBy) => {
+//   let orderBy;
+//   switch (orderBy.split(",")[0]) {
+//     case "GuestName":
+//       orderBy = {
+//         reserver: {
+//           guest_id: {
+//             select: {
+//               name: orderBy.split(",")[1],
+//             },
+//           },
+//         },
+//       };
+//       break;
 
-  switch (orderBy.split(",")[0]) {
-    case "GuestName":
-      order = {
-        reserver: {
-          guest_id: {
-            select: {
-              name: orderBy.split(",")[1],
-            },
-          },
-        },
-      };
-      break;
-    case "ReservationNo":
-      order = {
-        id: orderBy.split(",")[1],
-      };
+//     case "ReservationNo":
+//       order = {
+//         id: orderBy.split(",")[1],
+//       };
+//       break;
 
-      break;
+//     case "ReserveName":
+//       order = {
+//         reserver: {
+//           groupName: orderBy.split(",")[1],
+//         },
+//       };
+//       break;
 
-    case "ReserveName":
-      order = {
-        reserver: {
-          groupName: orderBy.split(",")[1],
-        },
-      };
-      break;
-    case "ReserveName":
-      order = {
-        reserver: {
-          groupName: orderBy.split(",")[1],
-        },
-      };
-      break;
-  
-  }
+//     case "ReserveName":
+//       order = {
+//         reserver: {
+//           groupName: orderBy.split(",")[1],
+//         },
+//       };
+//       break;
+//     default: 
+//       order = {}
+//   }
 
-  const reservations = await reservationClient.findMany({
-    select: {
-      id: true,
-      agencyName: true,
-      resvQty: {
-        select: {
-          manyAdult: true,
-          manyChild: true,
-          manyRoom: true,
-        },
-      },
-      reserver: {
-        select: {
-          groupName: true,
-          guest_id: {
-            select: {
-              name: true,
-            },
-          },
-          kCard: true,
-          nation: true,
-          resident: true,
-        },
-      },
-      currency: true,
-      code: true,
-      fixRate: true,
-      argtCode: true,
-      day: true,
-      night: true,
-      arrivalDate: true,
-      departureDate: true,
-      checkoutDate: true,
-      canceledDate: true,
-      resvFlights: {
-        select: {
-          arrivalFlight: true,
-          departureFlight: true,
-        },
-      },
-      resvRooms: {
-        select: {
-          roomId: true,
-          room: {
-            select: {
-              roomType: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: [order],
-  });
+//   const reservations = await reservationClient.findMany({
+//     select: {
+//       id: true,
+//       reserver: {
+//         select: {
+//           guestIdentifier: true,
+//           resourceName: true
+//         }
+//       },
+//       resvRooms: {
+//         select: {
+//           roomId: true,
+//           roomMaidId: true,
+//           room: {
+//             select: {
+//               roomType: true,
+//               bedSetup: true,
+//               rate: true
+//             }
+//           }
+//         }
+//       },
+//       arrangmentCode: true,
+//       arrivalDate: true,
+//       departureDate: true,
+//       created_at: true
+//     },
+//     orderBy: [order],
+//   });
 
-  return reservations;
-};
+//   return reservations;
+// };
 
-const getReservationById = async (reservationId) => {
-  try {
-    const reservation = await reservationClient.findFirst({
-      where: {
-        id: reservationId,
-      },
-      select: {
-        agencyName: true,
-        resvQty: {
-          select: {
-            manyAdult: true,
-            manyChild: true,
-            manyRoom: true,
-          },
-        },
-        reserver: {
-          select: {
-            groupName: true,
-            kCard: true,
-            nation: true,
-            resident: true,
-          },
-        },
-        currency: true,
-        code: true,
-        fixRate: true,
-        argtCode: true,
-        day: true,
-        night: true,
-        arrivalDate: true,
-        departureDate: true,
-        checkoutDate: true,
-        canceledDate: true,
-        resvFlights: {
-          select: {
-            arrivalFlight: true,
-            departureFlight: true,
-          },
-        },
-        resvRooms: {
-          select: {
-            roomId: true,
-            room: {
-              select: {
-                roomType: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    return reservation;
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-};
+// const getReservationById = async (reservationId) => {
+//   try {
+//     const reservation = await reservationClient.findFirst({
+//       where: {
+//         id: reservationId,
+//       },
+//       select: {
+//         agencyName: true,
+//         resvQty: {
+//           select: {
+//             manyAdult: true,
+//             manyChild: true,
+//             manyRoom: true,
+//           },
+//         },
+//         reserver: {
+//           select: {
+//             groupName: true,
+//             kCard: true,
+//             nation: true,
+//             resident: true,
+//           },
+//         },
+//         currency: true,
+//         code: true,
+//         fixRate: true,
+//         argtCode: true,
+//         day: true,
+//         night: true,
+//         arrivalDate: true,
+//         departureDate: true,
+//         checkoutDate: true,
+//         canceledDate: true,
+//         resvFlights: {
+//           select: {
+//             arrivalFlight: true,
+//             departureFlight: true,
+//           },
+//         },
+//         resvRooms: {
+//           select: {
+//             roomId: true,
+//             room: {
+//               select: {
+//                 roomType: true,
+//               },
+//             },
+//           },
+//         },
+//       },
+//     });
+//     return reservation;
+//   } catch (err) {
+//     console.log(err);
+//     throw err;
+//   }
+// };
 
 const deleteReservation = async (reservationId) => {
   try {
@@ -273,23 +250,23 @@ const addReservation = async (data) => {
 
 //? EDIT DATA
 const editReservation = async (reservationId, updatedData) => {
-	try {
-		if (!updatedData) {
-			throw new Error("No data provided for update");
-		}
-		const update = await reservationClient.update({
-			where: {
-				id: reservationId,
-			},
-			data: updatedData,
-		});
+  try {
+    if (!updatedData) {
+      throw new Error("No data provided for update");
+    }
+    const update = await reservationClient.update({
+      where: {
+        id: reservationId,
+      },
+      data: updatedData,
+    });
 
-		return update;
-	} catch (error) {
-		console.error("Error updating reservation:", error);
-		// You might want to handle the error or throw it further
-		throw error;
-	}
+    return update;
+  } catch (error) {
+    console.error("Error updating reservation:", error);
+    // You might want to handle the error or throw it further
+    throw error;
+  }
 };
 
-module.exports = { getAllReservation, getReservationById, deleteReservation, addReservation, editReservation };
+module.exports = { deleteReservation, addReservation, editReservation };
