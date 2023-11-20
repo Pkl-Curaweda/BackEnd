@@ -1,5 +1,5 @@
-const { UserLogout, UserLogin, GetAllUsers } = require("../models/M_User");
-const { RefreshToken } = require("../models/M_UserToken");
+const { UserLogout, UserLogin, GetAllUsers } = require("../models/Authorization/M_User");
+const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken")
 
@@ -34,6 +34,15 @@ const postLogout = async (req, res) => {
     }
 }
 
+const getAllUsers = async (req, res) => {
+    const users = await GetAllUsers();
+    return success(res, 'Succes', users);
+}
+
+const getCurrentUser = async (req, res) => {
+    return success(res, 'Operation Success', req.user);
+}
+
 const getNewUserRefreshToken = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token;
@@ -53,15 +62,6 @@ const getNewUserRefreshToken = async (req, res) => {
     } catch (err) {
         return error(res, err, 401)
     }
-}
-
-const getAllUsers = async (req, res) => {
-    const users = await GetAllUsers();
-    return success(res, 'Succes', users);
-}
-
-const getCurrentUser = async (req, res) => {
-    return success(res, 'Me success', req.user);
 }
 
 module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }

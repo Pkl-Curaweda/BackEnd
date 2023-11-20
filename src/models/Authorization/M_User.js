@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
-const { ThrowError } = require("./Helpers/ThrowError");
-const { PrismaDisconnect } = require("./Helpers/DisconnectPrisma");
-const { userClient } = require("./Helpers/Config/Front Office/UserConfig");
-const { RemoveToken, CreateAndAssignToken } = require("./M_UserToken");
+const { ThrowError } = require("../Helpers/ThrowError");
+const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
+const { userClient } = require("../Helpers/Config/Front Office/UserConfig");
+const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
   try {

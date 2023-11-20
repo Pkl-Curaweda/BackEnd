@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser } = require("../controllers/C_UserLogin");
-const { GetQRCode, PostNewGuest } = require("../controllers/C_GuestLogin");
+const { GetQRCode, PostNewGuest, PostLoginQR } = require("../controllers/C_GuestLogin");
 const { auth } = require("../middlewares/AuthMiddleware");
 const R_Login = Router();
 
@@ -11,7 +11,8 @@ R_Login.get("/user/refresh", getNewUserRefreshToken);
 R_Login.get('/user/me', auth , getCurrentUser);
 
 //Guest Login
-R_Login.get("/guest/login/:id", GetQRCode);
+R_Login.get("/guest/qr/:id", GetQRCode);
 R_Login.post("/guest/create", PostNewGuest);
+R_Login.post("/guest/login/qr", PostLoginQR);
 
 module.exports = R_Login;

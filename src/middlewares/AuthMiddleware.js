@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { GetUserByEmail } = require("../models/M_User");
+const { GetUserByEmail } = require("../models/Authorization/M_User");
 const { prisma } = require("../../prisma/seeder/config");
 const { error } = require("../utils/response");
 
