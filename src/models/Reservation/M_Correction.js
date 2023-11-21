@@ -1,4 +1,7 @@
-const {reservationClient} = require("../Helpers/Config/Front Office/ReservationConfig");
+const { prisma } = require("../../../prisma/seeder/config");
+const {
+  reservationClient,
+} = require("../Helpers/Config/Front Office/ReservationConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
@@ -125,6 +128,8 @@ const getReservationById = async (reservationId) => {
     throw err;
   }
 };
+
+
 
 const deleteReservation = async (reservationId) => {
   try {
@@ -259,10 +264,81 @@ const editReservation = async (reservationId, updatedData) => {
   }
 };
 
+
+//? SEARCH BY NAME
+const searchByName = async (searchTerm) => {
+  const guests = await prisma.reservation.findMany({
+    where: {
+      reserver: {
+        guest_id:{
+          name:{
+            contains: searchTerm,
+          }
+        }
+      }
+    },
+    select: {
+      id: true,
+      reserver: {
+        select:{
+          resourceName: true,
+          guest_id:{
+            select: {
+              name: true,
+            }
+          }
+        }
+      },
+
+      resvRooms:{
+        select:{
+          room:{
+            select:{
+              id: true,
+              roomType: true,
+              bedSetup: true,
+              rate: true,
+            }
+          }
+        }
+      },
+
+      arrangmentCode: true,
+      arrivalDate: true,
+      departureDate: true,
+
+      created_at: true,
+
+      //(user) -> resvRoom -> roomMaidId(underworking)
+
+      
+      
+      
+    },
+  });
+
+  const guestsWithNight = guests.map((guest) => {
+    const arrivalDate = new Date(guest.arrivalDate);
+    const departureDate = new Date(guest.departureDate);
+    const night = Math.floor((departureDate - arrivalDate) / (1000 * 60 * 60 * 24));
+
+    return {
+      ...guest,
+      night,
+    };
+  });
+
+  return guestsWithNight
+};
+
+
+
+
 module.exports = {
   getAllReservation,
   getReservationById,
   deleteReservation,
   addReservation,
   editReservation,
+  searchByName,
 };

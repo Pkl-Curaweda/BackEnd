@@ -1,6 +1,7 @@
 const { ThrowError } = require("../../models/Helpers/ThrowError");
+const prisma = require ('prisma')
 const { getAllReservationComment } = require("../../models/M_Comment");
-const {addReservation, getAllReservation, getReservationById, editReservation } = require("../../models/Reservation/M_Correction");
+const {addReservation, getAllReservation, getReservationById, editReservation, searchByName } = require("../../models/Reservation/M_Correction");
 
 const getCorrection = async (req, res) => {
   let reservations, comments, reservationDetail;
@@ -72,4 +73,21 @@ const updateReservation = async (req, res) => {
 	}
 };
 
-module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation };
+
+//? SEARCH
+const searchName = async (req, res) => {
+  const { name } = req.query;
+
+  try {
+    const reservations = await searchByName(name)
+    if(reservations.length == 0){
+      return res.status(404).json("Guest Reservation Not Found");
+    }
+    res.json(reservations);
+  } catch (error) {
+    console.error('Error searching reservations:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, searchName, };
