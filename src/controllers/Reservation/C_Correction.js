@@ -6,6 +6,7 @@ const getCorrection = async (req, res) => {
   let reservations, comments, reservationDetail;
   const reservationId = req.query.id || "";
   const includeComment = req.query.incCom;
+  const sort = req.query.sort|| "asc";
   const orderBy = req.query.or;
 
 
@@ -14,7 +15,7 @@ const getCorrection = async (req, res) => {
   reservations =
     reservationId != "" || undefined
       ? await getReservationById(parseInt(reservationId))
-      : await getAllReservation(orderBy);
+      : await getAllReservation(orderBy, sort);
   res.status(200).json({
     reservations,
     reservationDetail,

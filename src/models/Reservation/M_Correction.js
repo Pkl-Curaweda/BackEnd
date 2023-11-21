@@ -1,28 +1,34 @@
-const {
-  reservationClient,
-} = require("../Helpers/Config/Front Office/ReservationConfig");
+const {reservationClient} = require("../Helpers/Config/Front Office/ReservationConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
 //? SORTING LANDPAGE
-const getAllReservation = async (or) => {
-	let order = {};
+const getAllReservation = async (or, sort) => {
+  let order = {};
+
   switch (or) {
-    case "gn"://guestname
-      order = { reserver: { guest_id: { name: "asc" } } };
+    case "gn": //guestname
+      order = { reserver: { guest_id: { name: sort } } };
       break;
-    case "reno"://reservationnumber
-      order = { id: "asc" };
+    case "rvno": //reservationnumber
+      order = { id: sort };
       break;
-    case "rn"://resourcename
-      order = { reserver: { resourceName: "asc" } };
+    case "rn": //resourcename
+      order = { reserver: { resourceName: sort } };
       break;
-    case "cid"://checkindate
-      order = { checkInDate: "asc" };
+    case "ad": //arrivaldate
+      order = { arrivalDate: sort };
       break;
-    case "ron"://roomno
-      order = { resvRooms: { select: { room: { id: "asc" } } } };
+    case "dd": //departdate
+      order = { departureDate: sort };
       break;
+    case "ca": //created at
+      order = { created_at: sort };
+      break;
+    case "agc": //arrangmentcode
+      order = { arrangmentCode: sort };
+      break;
+
     default:
       break;
   }
@@ -41,8 +47,8 @@ const getAllReservation = async (or) => {
       },
       arrivalDate: true,
       departureDate: true,
-      checkoutDate: true,
-	  checkInDate:true,
+      checkInDate: true,
+      arrangmentCode:true,
       resvRooms: {
         select: {
           roomId: true,
@@ -53,6 +59,8 @@ const getAllReservation = async (or) => {
           },
         },
       },
+      created_at:true,
+      manyNight:true,
     },
     orderBy: [order],
   });

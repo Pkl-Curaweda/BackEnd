@@ -1,17 +1,24 @@
 
 const { roomClient } = require("../Helpers/Config/Front Office/RoomConfig");
-const { roomStatusClient } = require("../Helpers/Config/Front Office/RoomStatusConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
 const getAllStatus = async () => {
   try{
-    const floorplan = await roomStatusClient.findMany({
+    const floorplan = await roomClient.findMany({
       select:{
         id:true,
-        shortDescription:true,
-        rowColor:true,
-        textColor:true
+        floor:true,
+       roomStatus:{
+        select:{
+          id:true,
+          shortDescription:true,
+          longDescription:true,
+          rowColor:true,
+          textColor:true,
+        }
+        
+       }
      }
     });
     return floorplan;
