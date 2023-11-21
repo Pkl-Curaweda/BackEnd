@@ -1,12 +1,12 @@
 const jwt = require('jsonwebtoken')
 const path = require('path');
-const { CreateNewGuest, GenerateGuestQrCode, GetGuestById, GuestLogin } = require("../models/Authorization/M_Guest");
+const { CreateNewGuest, GenerateGuestQrCode, GetGuestById, GuestLogin, GetAllGuests } = require("../models/Authorization/M_Guest");
 const { success } = require("../utils/response");
 
 const PostNewGuest = async (req, res) => {
     const body = req.body;
-    const createGuest = await CreateNewGuest(body); 
-    return createGuest;
+    const createGuest = await CreateNewGuest(body);
+    return success(res, 'User Created', createGuest)
 }
 
 const GetQRCode = async (req, res) => {
@@ -18,15 +18,26 @@ const GetQRCode = async (req, res) => {
     }, 100)
 }
 
-const PostLoginQR = async (req, res) => {
-    const encryptedData = req.query.encryptedData;
-    const guestAndGeneratedToken = await GuestLogin(encryptedData);
+const GetAllGuest = async (req, res) => {
+    const guests = await GetAllGuests();
+    return success(res, 'Operation Success', guests)
+}
+
+const GetCurrentGuest = async (req, res) => {
+    return success(res, 'Operation Success', req.user);
+}
+
+const PostLogin = async (req, res) => {
+    const loginMethod = req.params.method;
+    const loginData = loginMethod === "qr" ? req.query.encryptedData : req.body;
+
+    const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 day
+    const guestAndGeneratedToken = await GuestLogin(loginMethod, loginData);
     const storedCookie = {
         refreshToken: guestAndGeneratedToken.createdToken,
-        roomId: guestAndGeneratedToken.guest
+        roomId: guestAndGeneratedToken.reservedRoom
     }
-    const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
-    res.cookie('refresh_token', guestAndGeneratedToken.createdToken, {
+    res.cookie('refresh_token', storedCookie, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -41,4 +52,4 @@ const PostLoginQR = async (req, res) => {
     return success(res, 'Login Success', { user: guestAndGeneratedToken.user, accessToken });
 }
 
-module.exports = { PostNewGuest, GetQRCode, PostLoginQR };
+module.exports = { PostNewGuest, GetQRCode, PostLogin, GetCurrentGuest, GetAllGuest };

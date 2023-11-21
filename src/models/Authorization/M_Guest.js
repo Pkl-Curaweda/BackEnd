@@ -1,12 +1,12 @@
 const qr = require("qrcode");
 const fs = require('fs');
 const bcrypt = require("bcrypt")
-const { encrypt, decrypt } = require("../../utils/encryption");
 const { guestClient } = require("../Helpers/Config/Front Office/GuestConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError")
+const { encrypt, decrypt } = require("../../utils/encryption");
 const { CreateAndAssignToken } = require("./M_Token");
-const { getAllRoomReservedById } = require("../Reservation/M_ResvRoom");
+const { getAllRoomIdReservedByReserverId } = require("../Reservation/M_ResvRoom");
 
 const CreateNewGuest = async (data) => {
     try {
@@ -14,12 +14,7 @@ const CreateNewGuest = async (data) => {
         data.password = await bcrypt.hash(data.password, salt)
         const userExist = await guestClient.findUnique({ where: { username: data.username } });
         if (!userExist) {
-            const guest = await guestClient.create({
-                data: {
-                    username: data.username,
-                    password: data.password
-                }
-            });
+            const guest = await guestClient.create({ data })           
             return guest;
         }
         throw Error("Username already taken");
@@ -30,33 +25,23 @@ const CreateNewGuest = async (data) => {
     }
 }
 
-const UpdateGuestById = async (id, data) => {
+const GuestLogin = async (method, data) => {
     try {
-        const update = await guestClient.update({ where: { id } }, data)
-        return update;
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
-
-const GuestLogin = async (encryptedData) => {
-    try {
-        let decryptedData;
-        decryptedData = decrypt(encryptedData);
-        decryptedData = JSON.parse(decryptedData);
+        if(method === "qr"){
+            data = decrypt(data);
+            data = JSON.parse(data);
+        }
         const guest = await guestClient.findFirst({
-            where: { username: decryptedData.username },
+            where: { username: data.username },
             include: { Reserver: true }
         })
-        // const reservedRoom = await getAllRoomReservedById(guest.Reserver.reservations)
         if (!guest) throw Error("Guest Not Found");
-        const auth = await bcrypt.compare(decryptedData.password, guest.password);
+        const auth = await bcrypt.compare(data.password, guest.password);
         if (!auth) throw Error("Wrong Password");
+        const reservedRoom = await getAllRoomIdReservedByReserverId(guest.Reserver.id);
         const createdToken = await CreateAndAssignToken("guest", guest);
         return {
-            guest, createdToken
+            guest, createdToken, reservedRoom
         }
     } catch (err) {
         ThrowError(err)
@@ -93,6 +78,17 @@ const GetGuestById = async (id) => {
     }
 }
 
+const GetAllGuests = async () => {
+    try{
+        const guests = await guestClient.findMany({ select: { username: true, name: true, contact: true }});
+        return guests;
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
 const DeleteGuestById = async (id) => {
     try {
         const deletedGuest = await guestClient.delete({ where: { id } });
@@ -104,4 +100,4 @@ const DeleteGuestById = async (id) => {
     }
 }
 
-module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, UpdateGuestById };
+module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, GetAllGuests  };

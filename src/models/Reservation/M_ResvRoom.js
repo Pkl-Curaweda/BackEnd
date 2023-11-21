@@ -151,13 +151,19 @@ const getAllOrderWithFilter = async (filter, guestId, searchedFilter) => {
     }
 }
 
-const getAllRoomReservedById = async (reservationId) => {
+const getAllRoomIdReservedByReserverId = async (reserverId) => {
     let reservedRoom = [];
     try{
-        const rooms = await ResvRoomClient.findMany({where: { reservationId }});
-        for(let room in rooms){
-            reservedRoom.push(room);
-        }
+        const reservation = reservationClient.findFirst({ where: { reserverId }});
+        if(!reservation) return Error('Invalid Reserver Id')
+        const rooms = await ResvRoomClient.findMany({
+            where: { reservationId: reservation.id },
+            select: { roomId: true }
+        });
+        rooms.forEach((room) => {
+            reservedRoom.push(room.roomId);
+        });
+        return reservedRoom;
     }catch(err){
         ThrowError(err)
     }finally{
@@ -165,4 +171,4 @@ const getAllRoomReservedById = async (reservationId) => {
     }
 }
 
-module.exports = {  getAllOrderFromReservationId, getAllRoomReservedById };
+module.exports = {  getAllOrderFromReservationId, getAllRoomIdReservedByReserverId };
