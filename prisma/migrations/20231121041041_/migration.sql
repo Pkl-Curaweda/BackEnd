@@ -1,11 +1,12 @@
 -- CreateTable
 CREATE TABLE `Guest` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(191) NOT NULL,
-    `contact` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NULL,
+    `contact` VARCHAR(191) NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `Guest_username_key`(`username`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -119,14 +120,27 @@ CREATE TABLE `Reservation` (
     `reserverId` INTEGER NOT NULL,
     `manyAdult` INTEGER NOT NULL,
     `manyChild` INTEGER NOT NULL,
+    `manyBaby` INTEGER NOT NULL,
+    `manyNight` INTEGER NOT NULL,
     `reservationRemarks` TEXT NULL,
     `inHouseIndicator` BOOLEAN NOT NULL,
     `arrivalDate` DATE NOT NULL,
     `departureDate` DATE NOT NULL,
     `checkInDate` DATE NULL,
-    `checkoutDate` DATE NULL,
+    `checkOutDate` DATE NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ReservationBill` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `price` DOUBLE NOT NULL,
+    `arrangmentCode` ENUM('RB', 'RO') NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -167,7 +181,6 @@ CREATE TABLE `ResvRoom` (
 -- CreateTable
 CREATE TABLE `Reserver` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `guestIdentifier` VARCHAR(191) NOT NULL,
     `resourceName` VARCHAR(191) NOT NULL,
     `guestId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

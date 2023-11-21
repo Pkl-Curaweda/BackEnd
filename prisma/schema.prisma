@@ -44,11 +44,6 @@ enum BedType {
   SINGLE
 }
 
-enum GuestResouce {
-  WHATSAPP
-  WALK_IN
-}
-
 enum ArrangmentCode {
   RB
   RO
@@ -58,9 +53,9 @@ enum ArrangmentCode {
 
 model Guest {
   id       Int          @id @default(autoincrement())
-  name     String
-  contact  String
-  username String
+  name     String?
+  contact  String?
+  username String       @unique
   password String
   Tokens   GuestToken[]
   orders   Order[]
@@ -144,7 +139,7 @@ model Room {
   roomCapacity    RoomCapacity      @relation(fields: [roomCapacityId], references: [id])
   roomCapacityId  Int
   occupied_status Boolean
-  rate            Float
+  rate            Float //?In FO it's called Room Rate
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
@@ -179,12 +174,14 @@ model Reservation {
   reserverId         Int
   manyAdult          Int
   manyChild          Int
+  manyBaby           Int
+  manyNight          Int
   reservationRemarks String?           @db.Text
   inHouseIndicator   Boolean
   arrivalDate        DateTime          @db.Date
   departureDate      DateTime          @db.Date
   checkInDate        DateTime?         @db.Date
-  checkoutDate       DateTime?         @db.Date
+  checkOutDate       DateTime?         @db.Date
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
   resvRooms          ResvRoom[]
@@ -195,6 +192,14 @@ model Reservation {
   guestPreference    GuestPreference[]
   tasks              Task[]
   roomChangesFrom    RoomChange[]
+}
+
+model ReservationBill { //!STILL IS UNDER WORKING BECAUSE FUCKING REVISI 
+  id             Int            @id @default(autoincrement())
+  price          Float
+  arrangmentCode ArrangmentCode
+  updated_at     DateTime       @updatedAt
+  created_at     DateTime       @default(now())
 }
 
 model SpecialTreatment {
@@ -224,7 +229,7 @@ model ResvRoom {
   room          Room        @relation(fields: [roomId], references: [id])
   roomId        Int
   //!Room Maid Relation (underworking) please finish
-  roomMaidId    Int
+  roomMaidId    Int //?In FO it's called room boy
   addedPrice    Float?      @default(0)
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
@@ -232,7 +237,7 @@ model ResvRoom {
 
 model Reserver {
   id              Int           @id @default(autoincrement())
-  guestIdentifier String
+  //?Still Unsure, maybe for now the guest name and phone will be stored in guest so in room can use it
   resourceName    String
   guest_id        Guest         @relation(fields: [guestId], references: [id])
   guestId         Int
@@ -327,7 +332,7 @@ model GuestPreference {
   updated_at    DateTime    @updatedAt
 }
 
-model RoomChange {
+model RoomChange { //!THERE WILL BE CHANGES IN HERE, TAKE A NOTE!!!
   id            Int         @id @default(autoincrement())
   roomFrom      Room        @relation(name: "RoomChangeFrom", fields: [roomFromId], references: [id])
   roomFromId    Int

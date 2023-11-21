@@ -2,7 +2,6 @@ const { prisma } = require("../../config");
 
 const reserver = [
 	{
-		guestIdentifier: "John Doe",
 		resourceName: "Whatsapp",
 		guestId: 1,
 		created_at: new Date(),

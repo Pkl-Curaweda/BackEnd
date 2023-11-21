@@ -1,4 +1,5 @@
 const { reservationClient } = require("../Helpers/Config/Front Office/ReservationConfig");
+const { ResvRoomClient } = require("../Helpers/Config/Front Office/ResvRoomConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
@@ -150,4 +151,18 @@ const getAllOrderWithFilter = async (filter, guestId, searchedFilter) => {
     }
 }
 
-module.exports = {  getAllOrderFromReservationId };
+const getAllRoomReservedById = async (reservationId) => {
+    let reservedRoom = [];
+    try{
+        const rooms = await ResvRoomClient.findMany({where: { reservationId }});
+        for(let room in rooms){
+            reservedRoom.push(room);
+        }
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect();
+    }
+}
+
+module.exports = {  getAllOrderFromReservationId, getAllRoomReservedById };
