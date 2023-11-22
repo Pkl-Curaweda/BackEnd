@@ -220,8 +220,6 @@ model ResvRoom {
   reservationId Int
   room          Room        @relation(fields: [roomId], references: [id])
   roomId        Int
-  //!Room Maid Relation (underworking) please finish
-  roomMaidId    Int //?In FO it's called room boy
   addedPrice    Float?      @default(0)
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
@@ -232,7 +230,7 @@ model Reserver {
   id           Int           @id @default(autoincrement())
   //?Still Unsure, maybe for now the guest name and phone will be stored in guest so in room can use it
   resourceName String
-  guest_id     Guest         @relation(fields: [guestId], references: [id])
+  guest     Guest         @relation(fields: [guestId], references: [id])
   guestId      Int
   reservations Reservation[]
   created_at   DateTime      @default(now())
@@ -249,6 +247,7 @@ model LogAvailability {
 // End Front Office Area ======================================================
 
 // House Keeping Area =========================================================
+
 model RoomMaid {
   id           Int        @id @default(autoincrement())
   user         User       @relation(fields: [userId], references: [id])
@@ -366,6 +365,7 @@ model SubType {
   name          String
   serviceType   ServiceType  @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
+  services      Service[]
   productReqs   ProductReq[]
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -373,12 +373,15 @@ model SubType {
 
 model Service {
   id            Int           @id @default(autoincrement())
+  userId        Int           
   name          String
   price         Int
   desc          String
   picture       String
   serviceType   ServiceType   @relation(fields: [serviceTypeId], references: [id])
   serviceTypeId Int
+  subType       SubType       @relation(fields: [subTypeId], references: [id])
+  subTypeId     Int
   orderDetails  OrderDetail[]
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt

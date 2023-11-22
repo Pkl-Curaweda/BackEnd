@@ -170,7 +170,6 @@ CREATE TABLE `ResvRoom` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `reservationId` INTEGER NOT NULL,
     `roomId` INTEGER NOT NULL,
-    `roomMaidId` INTEGER NOT NULL,
     `addedPrice` DOUBLE NULL DEFAULT 0,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,

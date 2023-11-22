@@ -58,7 +58,6 @@ const getAllOrderBasedOnFilter = async (filterContext, reservationData) => {
         const guestId = reservationData.reserver.guestId;
         const orders = [];
         let searchedFilter;
-        // if (filterContext != "day" || filterContext != "month" || filterContext != "year") return null;
 
         if (filterContext === "day") {
             searchedFilter = getDatesBetween(reservationData.arrivalDate, reservationData.departureDate);

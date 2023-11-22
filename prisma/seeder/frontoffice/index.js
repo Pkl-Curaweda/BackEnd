@@ -8,6 +8,7 @@ async function frontOfficeBatchSeed() {
 	await roomBatchSeed();
 	await ReservationBatchSeed();
 	await LogAvailability();
+	await specialTreatmentSeed();
 }
 
 module.exports = { frontOfficeBatchSeed };

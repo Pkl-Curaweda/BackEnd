@@ -33,19 +33,22 @@ const PostLogin = async (req, res) => {
 
     const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 day
     const guestAndGeneratedToken = await GuestLogin(loginMethod, loginData);
-    const storedCookie = {
-        refreshToken: guestAndGeneratedToken.createdToken,
-        roomId: guestAndGeneratedToken.reservedRoom
-    }
-    res.cookie('refresh_token', storedCookie, {
+    res.cookie('refresh_token', guestAndGeneratedToken.createdToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
         expires
     });
+
+    const storedSubject = {
+        id : guestAndGeneratedToken.guest.id.toString(),
+        username: guestAndGeneratedToken.guest.username.toString(), 
+        name: guestAndGeneratedToken.guest.name.toString(),
+        roomId: guestAndGeneratedToken.reservedRoom
+    }
     const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
         expiresIn: '15m',
-        subject: guestAndGeneratedToken.guest.id.toString()
+        subject: storedSubject
     });
 
     delete guestAndGeneratedToken.guest.password;

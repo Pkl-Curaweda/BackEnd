@@ -11,8 +11,7 @@ app.use(express.json());
 
 // app.get("*", checkUser)
 app.use("/auth", R_Login);
-app.use("/reservation", R_Reservation);
-app.use("/checkin", R_Checkin);
+app.use("/page", R_Reservation);
 
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);
