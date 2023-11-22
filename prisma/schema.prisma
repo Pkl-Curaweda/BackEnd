@@ -58,9 +58,9 @@ enum ArrangmentCode {
 
 model Guest {
   id       Int          @id @default(autoincrement())
-  name     String
-  contact  String
-  username String
+  name     String?
+  contact  String?
+  username String       @unique
   password String
   Tokens   GuestToken[]
   orders   Order[]
@@ -191,8 +191,10 @@ model Reservation {
   reserverId         Int
   manyAdult          Int
   manyChild          Int
+  manyBaby           Int
+  manyNight          Int
   reservationRemarks String?           @db.Text
-  inHouseIndicator   Boolean
+  inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime          @db.Date
   departureDate      DateTime          @db.Date
   checkInDate        DateTime?         @db.Date
@@ -238,14 +240,13 @@ model ResvRoom {
 }
 
 model Reserver {
-  id              Int           @id @default(autoincrement())
-  guestIdentifier String
-  resourceName    String
-  guest           Guest         @relation(fields: [guestId], references: [id])
-  guestId         Int
-  reservations    Reservation[]
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @updatedAt
+  id           Int           @id @default(autoincrement())
+  guest        Guest         @relation(fields: [guestId], references: [id])
+  guestId      Int
+  resourceName String
+  reservations Reservation[]
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
 }
 
 model LogAvailability {
@@ -384,7 +385,7 @@ model SubType {
 
 model Service {
   id            Int           @id @default(autoincrement())
-  userId        Int           
+  userId        Int
   name          String
   price         Int
   desc          String
