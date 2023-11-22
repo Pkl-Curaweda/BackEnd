@@ -228,10 +228,9 @@ model ResvRoom {
 
 model Reserver {
   id           Int           @id @default(autoincrement())
-  //?Still Unsure, maybe for now the guest name and phone will be stored in guest so in room can use it
-  resourceName String
-  guest     Guest         @relation(fields: [guestId], references: [id])
+  guest        Guest         @relation(fields: [guestId], references: [id])
   guestId      Int
+  resourceName String
   reservations Reservation[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
@@ -373,7 +372,7 @@ model SubType {
 
 model Service {
   id            Int           @id @default(autoincrement())
-  userId        Int           
+  userId        Int
   name          String
   price         Int
   desc          String
