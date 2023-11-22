@@ -1,11 +1,9 @@
-const {
-  getReservationInhouse,
-} = require("../../models/Reservation/M_Reservation");
+const { getInhouseGuest } = require("../../models/Reservation/M_Reservation");
 const { error } = require("../../utils/response");
 
-const inHouseResevation = async (req, res) => {
+const inHouseGuest = async (req, res) => {
   try {
-    const inHouse = await getReservationInhouse();
+    const inHouse = await getInhouseGuest();
 
     if (!inHouse) {
       return error(res, "In-House status not found", 404);
@@ -19,4 +17,4 @@ const inHouseResevation = async (req, res) => {
   }
 };
 
-module.exports = { inHouseResevation };
+module.exports = { inHouseGuest };

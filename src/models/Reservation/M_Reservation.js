@@ -363,7 +363,7 @@ const getReservationToday = async () => {
   }
 };
 
-const getReservationInhouse = async () => {
+const getInhouseGuest = async () => {
   try {
     const inHouseStatus = await reservationClient.findMany({
       where: {
@@ -420,6 +420,132 @@ const getReservationInhouse = async () => {
   }
 };
 
+const getArrivalToday = async () => {
+  try {
+    const today = new Date();
+    const date = today.toISOString().split("T")[0];
+
+    const arrivalToday = await reservationClient.findMany({
+      where: {
+        arrivalDate: {
+          gte: `${date}T00:00:00.000Z`,
+          lte: `${date}T23:59:59.999Z`,
+        },
+      },
+
+      select: {
+        id: true,
+        arrangmentCode: true,
+        arrivalDate: true,
+        departureDate: true,
+        manyNight: true,
+
+        reserver: {
+          select: {
+            id: true,
+            resourceName: true,
+            guest: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        resvRooms: {
+          select: {
+            room: {
+              select: {
+                id: true,
+                roomType: true,
+                bedSetup: true,
+                rate: true,
+              },
+            },
+            RoomMaid: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        created_at: true,
+      },
+    });
+    return arrivalToday;
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
+
+const getDepartToday = async () => {
+  try {
+    const today = new Date();
+    const date = today.toISOString().split("T")[0];
+
+    const departToday = await reservationClient.findMany({
+      where: {
+        departureDate: {
+          gte: `${date}T00:00:00.000Z`,
+          lte: `${date}T23:59:59.999Z`,
+        },
+      },
+
+      select: {
+        id: true,
+        arrangmentCode: true,
+        arrivalDate: true,
+        departureDate: true,
+        manyNight: true,
+
+        reserver: {
+          select: {
+            id: true,
+            resourceName: true,
+            guest: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        resvRooms: {
+          select: {
+            room: {
+              select: {
+                id: true,
+                roomType: true,
+                bedSetup: true,
+                rate: true,
+              },
+            },
+            RoomMaid: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        created_at: true,
+      },
+    });
+    return departToday;
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
+
 module.exports = {
   getAllReservation,
   getReservationById,
@@ -427,5 +553,7 @@ module.exports = {
   addReservation,
   editReservation,
   getReservationToday,
-  getReservationInhouse,
+  getInhouseGuest,
+  getArrivalToday,
+  getDepartToday,
 };

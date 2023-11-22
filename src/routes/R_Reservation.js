@@ -8,9 +8,9 @@ const { deleteReservation } = require("../models/Reservation/M_Reservation");
 const { getStatus } = require("../controllers/Reservation/C_FloorPlan");
 const { searchName } = require("../controllers/Reservation/C_Correction");
 const { todayReservation } = require("../controllers/Reservation/C_ResToday");
-const {
-  inHouseResevation,
-} = require("../controllers/Reservation/C_ResInHouse");
+const { inHouseGuest } = require("../controllers/Reservation/C_InHouseGuest");
+const { arrivalToday } = require("../controllers/Reservation/C_ArrivalToday");
+const { departToday } = require("../controllers/Reservation/C_DepartToday");
 
 const R_Reservation = new Router();
 
@@ -24,14 +24,14 @@ R_Reservation.get("/floorplan", getStatus);
 //?RESERVATION TODAY
 R_Reservation.get("/today", todayReservation);
 
-//?RESERVATION IN-HOUSE
-R_Reservation.get("/in-house", inHouseResevation);
+//?IN-HOUSE GUEST
+R_Reservation.get("/in-house", inHouseGuest);
 
-//?RESERVATION TODAY
-R_Reservation.get("/today", todayReservation);
+//?ARRIVAL TODAY
+R_Reservation.get("/arrival-today", arrivalToday);
 
-//?RESERVATION IN-HOUSE
-R_Reservation.get("/in-house", inHouseResevation);
+//?DEPART TODAY
+R_Reservation.get("/depart-today", departToday);
 
 //? NON SPECIFIC ROUTE
 R_Reservation.delete("/delete/:id", deleteReservation);
