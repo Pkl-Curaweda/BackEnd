@@ -5,11 +5,11 @@ const { LogAvailability } = require("./logAvailability.seeder");
 const { specialTreatmentSeed } = require("./specialTreatment.seeder");
 
 async function frontOfficeBatchSeed() {
-	await guestSeed();
-	await roomBatchSeed();
-	await ReservationBatchSeed();
-	await LogAvailability();
-	await specialTreatmentSeed();
+  await guestSeed();
+  await roomBatchSeed();
+  await ReservationBatchSeed();
+  await LogAvailability();
+  await specialTreatmentSeed();
 }
 
 module.exports = { frontOfficeBatchSeed };

@@ -1,4 +1,6 @@
-const { reservationClient } = require("../Helpers/Config/Front Office/ReservationConfig");
+const {
+  reservationClient,
+} = require("../Helpers/Config/Front Office/ReservationConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
@@ -6,16 +8,16 @@ const { ThrowError } = require("../Helpers/ThrowError");
 
 const orderByIdentifier = (sortAndOrder) => {
   let orderQuery;
-  const sortIdentifier = sortAndOrder.split(' ')[0]
-  console.log(sortIdentifier)
-  const sortBy = sortAndOrder.split(' ')[1];
-  const orderBy = sortAndOrder.split(' ')[2];
-  
+  const sortIdentifier = sortAndOrder.split(" ")[0];
+  console.log(sortIdentifier);
+  const sortBy = sortAndOrder.split(" ")[1];
+  const orderBy = sortAndOrder.split(" ")[2];
+
   //?Reservation Number //?Arrival Date //?Departure Date //?Night //?Created Date
   if (sortIdentifier === "resv") {
     orderQuery = {
-      [sortBy] : orderBy
-    }
+      [sortBy]: orderBy,
+    };
   } else if (sortIdentifier === "rese") {
     //?Reservation Resource
     switch (sortBy) {
@@ -24,65 +26,64 @@ const orderByIdentifier = (sortAndOrder) => {
           reserver: {
             //?Guest Name
             guest: {
-              [sortBy] : orderBy
-            }
-          }
-        }
+              [sortBy]: orderBy,
+            },
+          },
+        };
         break;
 
       default:
         orderQuery = {
           reserver: {
-            [sortBy] : orderBy
-          }
-        }
+            [sortBy]: orderBy,
+          },
+        };
         break;
     }
   } else if (sortIdentifier === "room") {
     //?Room Number //?Room Type //?Bed Type //?Room Rate
     switch (sortBy) {
       case "name":
-      //?Room Boy Code?
-      orderQuery = {
-        resvRoom: {
-          RoomMaid: {
-            [sortBy] : orderBy
-          }
-        }
-      }
-      break;
+        //?Room Boy Code?
+        orderQuery = {
+          resvRoom: {
+            RoomMaid: {
+              [sortBy]: orderBy,
+            },
+          },
+        };
+        break;
 
       default:
         orderQuery = {
           resvRoom: {
             room: {
-              [sortBy] : orderBy
-            }
-          }
-        }
-      break;
+              [sortBy]: orderBy,
+            },
+          },
+        };
+        break;
     }
   }
-  console.log(orderQuery)
-  return orderQuery
-}
-
+  console.log(orderQuery);
+  return orderQuery;
+};
 
 const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
-  try{
+  try {
     let orderBy, name, arrivalDate, departureDate;
     name = nameQuery || "";
-    if(dateQuery){
-      arrivalDate = dateQuery.split(' ')[0] || "";
-      departureDate = dateQuery.split(' ')[1] || "";
+    if (dateQuery) {
+      arrivalDate = dateQuery.split(" ")[0] || "";
+      departureDate = dateQuery.split(" ")[1] || "";
     }
-    if(sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
+    if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
     const reservations = await reservationClient.findMany({
       where: {
         //? SEARCH BY NAME
-        reserver: { guest: { name: { contains: name } }},
+        reserver: { guest: { name: { contains: name } } },
         ...(dateQuery && { arrivalDate }),
-        ...(dateQuery && { departureDate })
+        ...(dateQuery && { departureDate }),
       },
       select: {
         id: true,
@@ -113,12 +114,12 @@ const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
         created_at: true,
         manyNight: true,
       },
-      orderBy
+      orderBy,
     });
     return reservations;
-  }catch(err){
-    ThrowError(err)
-  }finally{
+  } catch (err) {
+    ThrowError(err);
+  } finally {
     await PrismaDisconnect();
   }
 };
@@ -127,7 +128,7 @@ const getReservationById = async (id) => {
   try {
     const reservation = await reservationClient.findFirst({
       where: {
-        id
+        id,
       },
       select: {
         id: true,
@@ -298,8 +299,126 @@ const editReservation = async (reservationId, updatedData) => {
     throw error;
   }
 };
+const getReservationToday = async () => {
+  try {
+    const today = new Date();
+    const date = today.toISOString().split("T")[0];
 
+    const reservationsToday = await reservationClient.findMany({
+      where: {
+        arrivalDate: {
+          gte: `${date}T00:00:00.000Z`,
+          lte: `${date}T23:59:59.999Z`,
+        },
+      },
 
+      select: {
+        id: true,
+        arrangmentCode: true,
+        arrivalDate: true,
+        departureDate: true,
+        manyNight: true,
+
+        reserver: {
+          select: {
+            id: true,
+            resourceName: true,
+            guest: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        resvRooms: {
+          select: {
+            room: {
+              select: {
+                id: true,
+                roomType: true,
+                bedSetup: true,
+                rate: true,
+              },
+            },
+            RoomMaid: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        created_at: true,
+      },
+    });
+
+    return reservationsToday;
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
+
+const getReservationInhouse = async () => {
+  try {
+    const inHouseStatus = await reservationClient.findMany({
+      where: {
+        inHouseIndicator: true,
+      },
+
+      select: {
+        id: true,
+        arrangmentCode: true,
+        arrivalDate: true,
+        departureDate: true,
+        manyNight: true,
+
+        reserver: {
+          select: {
+            id: true,
+            resourceName: true,
+            guest: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        resvRooms: {
+          select: {
+            room: {
+              select: {
+                id: true,
+                roomType: true,
+                bedSetup: true,
+                rate: true,
+              },
+            },
+            RoomMaid: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        created_at: true,
+      },
+    });
+    return inHouseStatus;
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
 
 module.exports = {
   getAllReservation,
@@ -307,4 +426,6 @@ module.exports = {
   deleteReservation,
   addReservation,
   editReservation,
+  getReservationToday,
+  getReservationInhouse,
 };
