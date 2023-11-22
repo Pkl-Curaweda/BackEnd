@@ -99,20 +99,31 @@ const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
         },
         arrivalDate: true,
         departureDate: true,
-        checkInDate: true,
         arrangmentCode: true,
+        manyNight: true,
         resvRooms: {
           select: {
             roomId: true,
             room: {
               select: {
                 roomType: true,
+                bedSetup: true,
+                rate: true,
+              },
+            },
+            RoomMaid: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
           },
         },
         created_at: true,
-        manyNight: true,
       },
       orderBy,
     });
@@ -132,6 +143,26 @@ const getReservationById = async (id) => {
       },
       select: {
         id: true,
+        arrangmentCode: true,
+        resvRooms: {
+          select: {
+            roomId:true,
+            room: {
+              select: 
+              {
+                roomType: true,
+                bedSetup: true,
+                roomImage: true,
+                rate: true,
+              },
+            },
+          },
+        },
+        resvStatus: {
+          select: {
+            description: true,
+          },
+        },
         reserver: {
           select: {
             resourceName: true,
@@ -142,22 +173,10 @@ const getReservationById = async (id) => {
             },
           },
         },
-        arrivalDate: true,
-        departureDate: true,
-        checkInDate: true,
-        arrangmentCode: true,
-        resvRooms: {
-          select: {
-            roomId: true,
-            room: {
-              select: {
-                roomType: true,
-              },
-            },
-          },
-        },
-        created_at: true,
         manyNight: true,
+        manyAdult: true,
+        manyBaby: true,
+        manyChild: true,
       },
     });
     return reservation;
