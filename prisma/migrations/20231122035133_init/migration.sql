@@ -322,6 +322,7 @@ CREATE TABLE `SubType` (
 -- CreateTable
 CREATE TABLE `Service` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `price` INTEGER NOT NULL,
     `desc` VARCHAR(191) NOT NULL,
