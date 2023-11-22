@@ -2,6 +2,7 @@ const { guestSeed } = require("./guest.seeder");
 const { roomBatchSeed } = require("./room");
 const { ReservationBatchSeed } = require("./reservation");
 const { LogAvailability } = require("./logAvailability.seeder");
+const { specialTreatmentSeed } = require("./specialTreatment.seeder");
 
 async function frontOfficeBatchSeed() {
 	await guestSeed();
