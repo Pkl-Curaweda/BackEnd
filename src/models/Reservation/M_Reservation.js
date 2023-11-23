@@ -1,6 +1,11 @@
+const { CreateNewGuest } = require("../Authorization/M_Guest");
+const { CreateAndAssignToken } = require("../Authorization/M_Token");
 const { reservationClient } = require("../Helpers/Config/Front Office/ReservationConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
+const { countNight } = require("../Helpers/generateFunction");
+const { CreateNewReserver } = require("./M_Reserver");
+const { createNewResvRoom } = require("./M_ResvRoom");
 
 //? SORTING LANDPAGE
 
@@ -10,11 +15,11 @@ const orderByIdentifier = (sortAndOrder) => {
   console.log(sortIdentifier)
   const sortBy = sortAndOrder.split(' ')[1];
   const orderBy = sortAndOrder.split(' ')[2];
-  
+
   //?Reservation Number //?Arrival Date //?Departure Date //?Night //?Created Date
   if (sortIdentifier === "resv") {
     orderQuery = {
-      [sortBy] : orderBy
+      [sortBy]: orderBy
     }
   } else if (sortIdentifier === "rese") {
     //?Reservation Resource
@@ -24,7 +29,7 @@ const orderByIdentifier = (sortAndOrder) => {
           reserver: {
             //?Guest Name
             guest: {
-              [sortBy] : orderBy
+              [sortBy]: orderBy
             }
           }
         }
@@ -33,7 +38,7 @@ const orderByIdentifier = (sortAndOrder) => {
       default:
         orderQuery = {
           reserver: {
-            [sortBy] : orderBy
+            [sortBy]: orderBy
           }
         }
         break;
@@ -42,25 +47,25 @@ const orderByIdentifier = (sortAndOrder) => {
     //?Room Number //?Room Type //?Bed Type //?Room Rate
     switch (sortBy) {
       case "name":
-      //?Room Boy Code?
-      orderQuery = {
-        resvRoom: {
-          RoomMaid: {
-            [sortBy] : orderBy
+        //?Room Boy Code?
+        orderQuery = {
+          resvRoom: {
+            RoomMaid: {
+              [sortBy]: orderBy
+            }
           }
         }
-      }
-      break;
+        break;
 
       default:
         orderQuery = {
           resvRoom: {
             room: {
-              [sortBy] : orderBy
+              [sortBy]: orderBy
             }
           }
         }
-      break;
+        break;
     }
   }
   console.log(orderQuery)
@@ -69,18 +74,18 @@ const orderByIdentifier = (sortAndOrder) => {
 
 
 const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
-  try{
+  try {
     let orderBy, name, arrivalDate, departureDate;
     name = nameQuery || "";
-    if(dateQuery){
+    if (dateQuery) {
       arrivalDate = dateQuery.split(' ')[0] || "";
       departureDate = dateQuery.split(' ')[1] || "";
     }
-    if(sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
+    if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
     const reservations = await reservationClient.findMany({
       where: {
         //? SEARCH BY NAME
-        reserver: { guest: { name: { contains: name } }},
+        reserver: { guest: { name: { contains: name } } },
         ...(dateQuery && { arrivalDate }),
         ...(dateQuery && { departureDate })
       },
@@ -116,9 +121,9 @@ const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
       orderBy
     });
     return reservations;
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect();
   }
 };
@@ -267,10 +272,49 @@ const deleteReservation = async (reservationId) => {
 };
 
 //? DATA MODIFY / ADD MODIFY
-const addReservation = async (data) => {
+const CreateNewReservation = async (data) => {
   try {
-    const reservation = await reservationClient.create({ data });
-    return reservation;
+    let arrivalDate, departureDate, manyNight;
+    arrivalDate = new Date(data.arrivalDate).toISOString();
+    departureDate = new Date(data.departureDate).toISOString();
+    manyNight = countNight(arrivalDate, departureDate);
+    console.log(manyNight)
+
+    const guestName = data.nameContact.split('-')[0];
+    const guestContact = data.nameContact.split('-')[1];
+    const createdGuest = await CreateNewGuest(guestName, guestContact);
+    const createdReserver = await CreateNewReserver(createdGuest.guest.id, data);
+
+    const createdReservation = await reservationClient.create({
+      data: {
+        reserver: {
+          connect: {
+            id: createdReserver.id
+          }
+        },
+        arrivalDate,
+        departureDate,
+        manyAdult: data.manyAdult,
+        manyChild: data.manyChild,
+        manyBaby: data.manyBaby,
+        manyNight,
+        resvStatus: {
+          connect: {
+            id: 1
+          }
+        },
+        arrangmentCode: data.arrangmentCode,
+        reservationRemarks: data.reservationRemarks
+      }
+    })
+    const createdResvRoom = await createNewResvRoom(createdReservation.arrangmentCode, createdReservation.id, data);
+
+    return {
+      createdGuest,
+      createdReserver, 
+      createdReservation,
+      createdResvRoom
+    }
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -305,6 +349,6 @@ module.exports = {
   getAllReservation,
   getReservationById,
   deleteReservation,
-  addReservation,
+  CreateNewReservation,
   editReservation,
 };

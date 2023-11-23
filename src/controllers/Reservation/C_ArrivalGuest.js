@@ -1,7 +1,7 @@
 const { ThrowError } = require("../../models/Helpers/ThrowError");
 const { getAllReservationComment } = require("../../models/M_Comment");
-const { addReservation, getAllReservation, getReservationById, editReservation } = require("../../models/Reservation/M_Reservation");
-const { success } = require("../../utils/response");
+const { addReservation, getAllReservation, getReservationById, editReservation, CreateNewReservation } = require("../../models/Reservation/M_Reservation");
+const { success, error } = require("../../utils/response");
 
 const getCorrection = async (req, res) => {
   let reservations, reservationDetail;
@@ -37,11 +37,10 @@ const deleteReservation = async (req, res) => {
 const postNewReservation = async (req, res) => {
   const body = req.body;
   try {
-    const reservation = await addReservation(body);
-    res.status(201).json(reservation);
+    const reservation = await CreateNewReservation(body);
+    return success(res, 'Reservation Created', reservation);
   } catch (err) {
-    console.log(err);
-    res.status(500).json(err.message)
+    return error(res, 'Unsuccess Create Reservation', 500, err);
   }
 }
 

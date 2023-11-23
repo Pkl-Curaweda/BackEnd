@@ -4,8 +4,9 @@ const { CreateNewGuest, GenerateGuestQrCode, GetGuestById, GuestLogin, GetAllGue
 const { success } = require("../utils/response");
 
 const PostNewGuest = async (req, res) => {
-    const body = req.body;
-    const createGuest = await CreateNewGuest(body);
+    const name = req.body.name;
+    const contact = req.body.contact;
+    const createGuest = await CreateNewGuest(name, contact);
     return success(res, 'User Created', createGuest)
 }
 
@@ -46,9 +47,8 @@ const PostLogin = async (req, res) => {
         name: guestAndGeneratedToken.guest.name.toString(),
         roomId: guestAndGeneratedToken.reservedRoom
     }
-    const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
+    const accessToken = jwt.sign(storedSubject, process.env.SECRET_CODE, {
         expiresIn: '15m',
-        subject: storedSubject
     });
 
     delete guestAndGeneratedToken.guest.password;

@@ -44,6 +44,11 @@ enum BedType {
   SINGLE
 }
 
+enum GuestResouce {
+  WHATSAPP
+  WALK_IN
+}
+
 enum ArrangmentCode {
   RB
   RO
@@ -89,9 +94,9 @@ model User {
   Tokens      UserToken[]
   DirtyRoom   DirtyRoom[]
   OooRoom     OooRoom[]
+  roomMaids   RoomMaid[]
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
-  RoomMaid    RoomMaid[]
 }
 
 model UserToken {
@@ -125,7 +130,7 @@ model RoomStatus {
   rowColor         String
   textColor        String
   Room             Room[]
-  RoomMaid         RoomMaid[]
+  roomMaids        RoomMaid[]
 }
 
 model Room {
@@ -140,15 +145,17 @@ model Room {
   roomCapacity    RoomCapacity   @relation(fields: [roomCapacityId], references: [id])
   roomCapacityId  Int
   occupied_status Boolean
-  rate            Float //?In FO it's called Room Rate
+  rate            Float
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
   cleanRooms      CleanRoom[]
   dirtyRooms      DirtyRoom[]
   oooRooms        OooRoom[]
-  ExtraBed        ExtraBed[]
-  LostFound       LostFound[]
+  lostFounds      LostFound[]
+  extraBeds       ExtraBed[]
+  roomChangesFrom RoomChange[]   @relation("RoomChangeFrom")
+  roomChangesTo   RoomChange[]   @relation("RoomChangeTo")
 }
 
 model RoomFacility {
@@ -156,6 +163,19 @@ model RoomFacility {
   name       String
   room       Room     @relation(fields: [roomId], references: [id])
   roomId     Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model RoomChange {
+  id         Int      @id @default(autoincrement())
+  roomFrom   Room     @relation(name: "RoomChangeFrom", fields: [roomFromId], references: [id])
+  roomFromId Int
+  roomTo     Room     @relation(name: "RoomChangeTo", fields: [roomToId], references: [id])
+  roomToId   Int
+  resvRoom   ResvRoom @relation(fields: [resvRoomId], references: [id])
+  resvRoomId Int
+  note       String   @db.Text
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
@@ -174,25 +194,17 @@ model Reservation {
   manyBaby           Int
   manyNight          Int
   reservationRemarks String?           @db.Text
-  inHouseIndicator   Boolean
+  inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime          @db.Date
   departureDate      DateTime          @db.Date
   checkInDate        DateTime?         @db.Date
-  checkOutDate       DateTime?         @db.Date
+  checkoutDate       DateTime?         @db.Date
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
   resvRooms          ResvRoom[]
   cleanRooms         CleanRoom[]
   dirtyRooms         DirtyRoom[]
   oooRooms           OooRoom[]
-}
-
-model ReservationBill {
-  id             Int            @id @default(autoincrement())
-  price          Float
-  arrangmentCode ArrangmentCode
-  updated_at     DateTime       @updatedAt
-  created_at     DateTime       @default(now())
 }
 
 model SpecialTreatment {
@@ -215,15 +227,16 @@ model ResvStatus {
 }
 
 model ResvRoom {
-  id            Int         @id @default(autoincrement())
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  id            Int          @id @default(autoincrement())
+  reservation   Reservation  @relation(fields: [reservationId], references: [id])
   reservationId Int
-  room          Room        @relation(fields: [roomId], references: [id])
+  room          Room         @relation(fields: [roomId], references: [id])
   roomId        Int
-  addedPrice    Float?      @default(0)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  RoomMaid      RoomMaid[]
+  addedPrice    Float?       @default(0)
+  roomMaids     RoomMaid[]
+  roomChanges   RoomChange[]
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 }
 
 model Reserver {
@@ -353,21 +366,18 @@ model ServiceType {
   open       String
   close      String
   services   Service[]
-  subTypes   SubType[]
   created_at DateTime     @default(now())
   updated_at DateTime     @updatedAt
   ProductReq ProductReq[]
 }
 
 model SubType {
-  id            Int          @id @default(autoincrement())
-  name          String
-  serviceType   ServiceType  @relation(fields: [serviceTypeId], references: [id])
-  serviceTypeId Int
-  services      Service[]
-  productReqs   ProductReq[]
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  id          Int          @id @default(autoincrement())
+  name        String
+  services    Service[]
+  productReqs ProductReq[]
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
 }
 
 model Service {

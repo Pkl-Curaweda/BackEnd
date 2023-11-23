@@ -8,6 +8,7 @@ const R_Reservation = new Router();
 
 //?CORRECTION
 R_Reservation.get("/arrival", getCorrection);
+R_Reservation.post("/reservation/create", postNewReservation);
 R_Reservation.get("/search-reservations", searchName);
 
 //?FLOOR PLAN
@@ -15,7 +16,6 @@ R_Reservation.get("/floorplan", getStatus);
 
 //? NON SPECIFIC ROUTE
 R_Reservation.delete("/delete/:id", deleteReservation);
-R_Reservation.post("/create", postNewReservation);
 R_Reservation.put("/edit/:id", updateReservation);
 
 module.exports = R_Reservation;

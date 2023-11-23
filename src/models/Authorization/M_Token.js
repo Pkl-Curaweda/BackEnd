@@ -1,27 +1,7 @@
-const jwt = require("jsonwebtoken");
 const { guestTokenClient, userTokenClient } = require("../Helpers/Config/Global/TokenConfig");
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
-
-//?HELPER FUNCTION
-
-function generateExpire(currentDate) {
-  var expiredDate = new Date(currentDate);
-  expiredDate.setDate(currentDate.getDate() + 3); //3 days from now
-  return expiredDate;
-};
-
-function generateRandomString(length) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    result += characters.charAt(randomIndex);
-  }
-  return result;
-}
-
-//?MAIN FUNCTION
+const { generateRandomString, generateExpire } = require("../Helpers/generateFunction");
 
 const generateRefreshToken = async (client) => {
   try {

@@ -7,15 +7,46 @@ const { ThrowError } = require("../Helpers/ThrowError")
 const { encrypt, decrypt } = require("../../utils/encryption");
 const { CreateAndAssignToken } = require("./M_Token");
 const { getAllRoomIdReservedByReserverId } = require("../Reservation/M_ResvRoom");
+const { generateRandomString, generateStringRandomizer } = require("../Helpers/generateFunction");
 
-const CreateNewGuest = async (data) => {
+const generateUsernameAndPassword = async (guestName) => {
+    try{
+        let username, tokenExist;
+        console.log(guestName)
+        guestName = guestName.split(' ')[0];
+        do{
+            username = generateStringRandomizer(guestName)
+            usernameExist = await guestClient.findUnique({ where: { username }})
+        }while(usernameExist)
+        const password = generateRandomString(8);
+        return { username, password } 
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect();
+    }
+}
+
+const CreateNewGuest = async (name, contact) => {
     try {
+        const usernameAndPassword = await generateUsernameAndPassword(name);
+        console.log(usernameAndPassword)
         const salt = await bcrypt.genSalt();
-        data.password = await bcrypt.hash(data.password, salt)
-        const userExist = await guestClient.findUnique({ where: { username: data.username } });
+        const realPassword = usernameAndPassword.password
+        usernameAndPassword.password = await bcrypt.hash(usernameAndPassword.password, salt)
+        const userExist = await guestClient.findUnique({ where: { username: usernameAndPassword.username } });
         if (!userExist) {
-            const guest = await guestClient.create({ data })           
-            return guest;
+            const guest = await guestClient.create({ 
+                data: {
+                    name,
+                    contact,
+                    username: usernameAndPassword.username,
+                    password: usernameAndPassword.password
+                } 
+            })
+            return {
+                guest, realPassword
+            };
         }
         throw Error("Username already taken");
     } catch (err) {
@@ -27,7 +58,7 @@ const CreateNewGuest = async (data) => {
 
 const GuestLogin = async (method, data) => {
     try {
-        if(method === "qr"){
+        if (method === "qr") {
             data = decrypt(data);
             data = JSON.parse(data);
         }
@@ -79,12 +110,12 @@ const GetGuestById = async (id) => {
 }
 
 const GetAllGuests = async () => {
-    try{
-        const guests = await guestClient.findMany({ select: { username: true, name: true, contact: true }});
+    try {
+        const guests = await guestClient.findMany({ select: { username: true, name: true, contact: true } });
         return guests;
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -100,4 +131,4 @@ const DeleteGuestById = async (id) => {
     }
 }
 
-module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, GetAllGuests  };
+module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, GetAllGuests };

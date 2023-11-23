@@ -3,32 +3,32 @@ const { ResvRoomClient } = require("../Helpers/Config/Front Office/ResvRoomConfi
 const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
-function getTotalPrice(orders) {
-    const flattenedOrders = orders.flatMap(order => order.orderDetails);
-    const totalPrice = flattenedOrders.reduce((acc, curr) => {
-        const servicePrice = curr.service ? curr.service.price : 0;
-        return acc + curr.qty * servicePrice;
-    }, 0);
-    return totalPrice;
-}
+// function getTotalPrice(orders) {
+//     const flattenedOrders = orders.flatMap(order => order.orderDetails);
+//     const totalPrice = flattenedOrders.reduce((acc, curr) => {
+//         const servicePrice = curr.service ? curr.service.price : 0;
+//         return acc + curr.qty * servicePrice;
+//     }, 0);
+//     return totalPrice;
+// }
 
-function getDatesBetween(startDate, endDate){
-    const dates = [];
-    let currentDate = startDate;
+// function getDatesBetween(startDate, endDate){
+//     const dates = [];
+//     let currentDate = startDate;
 
-    while (currentDate <= endDate) {
-        const day = currentDate.getDate();
-        const month = currentDate.getMonth() + 1; // Months are zero-based
-        const year = currentDate.getFullYear();
+//     while (currentDate <= endDate) {
+//         const day = currentDate.getDate();
+//         const month = currentDate.getMonth() + 1; // Months are zero-based
+//         const year = currentDate.getFullYear();
 
-        const formattedDate = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
-        dates.push(formattedDate);
+//         const formattedDate = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
+//         dates.push(formattedDate);
 
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
+//         currentDate.setDate(currentDate.getDate() + 1);
+//     }
 
-    return dates;
-}
+//     return dates;
+// }
 
 const getAllOrderFromReservationId = async (reservationId, filter) => {
     try{
@@ -83,72 +83,72 @@ const getAllOrderBasedOnFilter = async (filterContext, reservationData) => {
     }
 }
 
-const getAllOrderWithFilter = async (filter, guestId, searchedFilter) => {
-    try{
-        let orderData;
-        let createdFilter;
-        let currentYear;
-        if (filter === "month") currentYear = new Date().getFullYear();
-        switch (filter) {
-            case 'year':
-                createdFilter = {
-                    lte: '${searchedFilter}-1-1T23:59:59.999Z',
-                    gte: '${searchedFilter}-12-31T00:00:00.000Z'
-                }
-                break;
-            case 'month':
-                createdFilter = {
-                    lte: '${currentYear}-${searchedFilter}-1T23:59:59.999Z',
-                    gte: '${currentYear}-${searchedFilter}-31T00:00:00.000Z'
-                }
-                break;
-            case 'date':
-                createdFilter = {
-                    lte: '${searchedFilter}T23:59:59.999Z',
-                    gte: '${searchedFilter}T00:00:00.000Z'
-                }
-                break;
-            default:
-                console.log("Invalid filter type");
-                return null;
-        }
+// const getAllOrderWithFilter = async (filter, guestId, searchedFilter) => {
+//     try{
+//         let orderData;
+//         let createdFilter;
+//         let currentYear;
+//         if (filter === "month") currentYear = new Date().getFullYear();
+//         switch (filter) {
+//             case 'year':
+//                 createdFilter = {
+//                     lte: '${searchedFilter}-1-1T23:59:59.999Z',
+//                     gte: '${searchedFilter}-12-31T00:00:00.000Z'
+//                 }
+//                 break;
+//             case 'month':
+//                 createdFilter = {
+//                     lte: '${currentYear}-${searchedFilter}-1T23:59:59.999Z',
+//                     gte: '${currentYear}-${searchedFilter}-31T00:00:00.000Z'
+//                 }
+//                 break;
+//             case 'date':
+//                 createdFilter = {
+//                     lte: '${searchedFilter}T23:59:59.999Z',
+//                     gte: '${searchedFilter}T00:00:00.000Z'
+//                 }
+//                 break;
+//             default:
+//                 console.log("Invalid filter type");
+//                 return null;
+//         }
 
-        let orders = await orderClient.findMany({
-            where: {
-                guestId,
-                created_at: createdFilter
-            },
-            select: {
-                orderDetails: {
-                    select: {
-                        qty: true,
-                        service: {
-                            select: {
-                                name: true,
-                                price: true
-                            }
-                        }
-                    }
-                }
-            }
-        })
+//         let orders = await orderClient.findMany({
+//             where: {
+//                 guestId,
+//                 created_at: createdFilter
+//             },
+//             select: {
+//                 orderDetails: {
+//                     select: {
+//                         qty: true,
+//                         service: {
+//                             select: {
+//                                 name: true,
+//                                 price: true
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         })
 
-        total = getTotalPrice(orders);
+//         total = getTotalPrice(orders);
 
-        orderData = {
-            year: searchedYear,
-            orders, total
-        }
+//         orderData = {
+//             year: searchedYear,
+//             orders, total
+//         }
 
-        console.log(orderData)
+//         console.log(orderData)
 
-        return orderData;
-    }catch(err){
-        ThrowError(err);
-    }finally{
-        await PrismaDisconnect();
-    }
-}
+//         return orderData;
+//     }catch(err){
+//         ThrowError(err);
+//     }finally{
+//         await PrismaDisconnect();
+//     }
+// }
 
 const getAllRoomIdReservedByReserverId = async (reserverId) => {
     let reservedRoom = [];
@@ -170,4 +170,35 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
     }
 }
 
-module.exports = {  getAllOrderFromReservationId, getAllRoomIdReservedByReserverId };
+const createNewResvRoom = async (arrangmentCode, reservationId, data) => {
+    try{
+        let resvRooms = [], addedPrice;
+        addedPrice = arrangmentCode === "RB" ? 30000 : 0;
+        for(room of data.rooms) {
+            console.log(room)
+            const resvRoom = await ResvRoomClient.create({
+                data: {
+                    reservation: {
+                        connect: {
+                            id: reservationId
+                        }
+                    },
+                    room: {
+                        connect: {
+                            id: room.roomId
+                        }
+                    },
+                    addedPrice,
+                }
+            })
+            resvRooms.push(resvRoom)
+        }
+        return resvRooms;
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId };
