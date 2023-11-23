@@ -78,48 +78,58 @@ const getReservationById = async (reservationId) => {
         id: reservationId,
       },
       select: {
-        agencyName: true,
-        resvQty: {
-          select: {
-            manyAdult: true,
-            manyChild: true,
-            manyRoom: true,
-          },
-        },
-        reserver: {
-          select: {
-            groupName: true,
-            kCard: true,
-            nation: true,
-            resident: true,
-          },
-        },
-        currency: true,
-        code: true,
-        fixRate: true,
-        argtCode: true,
-        day: true,
-        night: true,
-        arrivalDate: true,
-        departureDate: true,
-        checkoutDate: true,
-        canceledDate: true,
-        resvFlights: {
-          select: {
-            arrivalFlight: true,
-            departureFlight: true,
-          },
-        },
+        id: true,
+        arrangmentCode:true,
         resvRooms: {
           select: {
             roomId: true,
             room: {
               select: {
                 roomType: true,
+                bedSetup:true,
+                roomImage:true,
+                rate:true,
+      
+
               },
+            },
+            RoomMaid:{
+              select:{
+                id:true,
+                user:{
+                  select:{
+                    name:true,
+                  }
+                }
+
+              }
+            }
+          },
+        },
+        resvStatus:{
+          select:{
+            description:true,
+          }
+        },
+        reserver: {
+          select: {
+            resourceName: true,
+            guest_id:{
+              select:{
+                name:true,
+              }
             },
           },
         },
+        arrivalDate: true,
+        departureDate: true,
+        manyNight:true,
+        manyAdult:true,
+        manyBaby:true,
+        manyChild:true,
+        
+        
+
       },
     });
     return reservation;
