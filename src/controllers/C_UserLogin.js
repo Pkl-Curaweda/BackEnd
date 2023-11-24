@@ -5,7 +5,12 @@ const jwt = require("jsonwebtoken")
 
 const postLogin = async (req, res) => {
     const body = req.body;
-    const userAndGeneratedToken = await UserLogin(body.email, body.password);
+    let userAndGeneratedToken
+    try{
+        userAndGeneratedToken = await UserLogin(body.email, body.password);
+    }catch(err){
+        return error(res, err.message, 404);
+    }
     const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
     res.cookie('refresh_token', userAndGeneratedToken.createdToken, {
         httpOnly: true,

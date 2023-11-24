@@ -7,20 +7,14 @@ const { countNight } = require("../Helpers/generateFunction");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom } = require("./M_ResvRoom");
 
-//? SORTING LANDPAGE
-
 const orderByIdentifier = (sortAndOrder) => {
   let orderQuery;
   const sortIdentifier = sortAndOrder.split(' ')[0]
-  console.log(sortIdentifier)
   const sortBy = sortAndOrder.split(' ')[1];
   const orderBy = sortAndOrder.split(' ')[2];
 
   //?Reservation Number //?Arrival Date //?Departure Date //?Night //?Created Date
-  if (sortIdentifier === "resv") {
-    orderQuery = {
-      [sortBy]: orderBy
-    }
+  if (sortIdentifier === "resv") { orderQuery = { [sortBy]: orderBy }
   } else if (sortIdentifier === "rese") {
     //?Reservation Resource
     switch (sortBy) {
@@ -28,19 +22,13 @@ const orderByIdentifier = (sortAndOrder) => {
         orderQuery = {
           reserver: {
             //?Guest Name
-            guest: {
-              [sortBy]: orderBy
-            }
+            guest: { [sortBy]: orderBy }
           }
         }
         break;
 
       default:
-        orderQuery = {
-          reserver: {
-            [sortBy]: orderBy
-          }
-        }
+        orderQuery = { reserver: { [sortBy]: orderBy } }
         break;
     }
   } else if (sortIdentifier === "room") {
@@ -49,43 +37,60 @@ const orderByIdentifier = (sortAndOrder) => {
       case "name":
         //?Room Boy Code?
         orderQuery = {
-          resvRoom: {
-            RoomMaid: {
-              [sortBy]: orderBy
-            }
+          resvRooms: {
+            RoomMaid: { [sortBy]: orderBy }
           }
         }
         break;
 
       default:
-        orderQuery = {
-          resvRoom: {
-            room: {
-              [sortBy]: orderBy
-            }
-          }
-        }
+        orderQuery = { resvRoomS: { room: { [sortBy]: orderBy } } }
         break;
     }
   }
-  console.log(orderQuery);
   return orderQuery;
 };
 
-const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
-  try {
-    let orderBy, name, arrivalDate, departureDate;
-    name = nameQuery || "";
-    if (dateQuery) {
-      arrivalDate = dateQuery.split(' ')[0] || "";
-      departureDate = dateQuery.split(' ')[1] || "";
+const displayByIdentifier = (displayOption) => {
+  try{
+    let whereQuery, gteLte;
+    const today = new Date();
+    const date = today.toISOString().split("T")[0];
+    gteLte = {
+      gte: `${date}T00:00:00.000Z`,
+      lte: `${date}T23:59:59.999Z`,
     }
-    if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
+    if(displayOption != 'inhouse'){
+      displayOption = displayOption+"Date"
+      whereQuery = [displayOption] = gteLte
+    }else{
+      displayOption = "InHouseIndicator"
+      whereQuery = [displayOption] = true 
+    }
+    return whereQuery;
+  }catch(err){
+    ThrowError(err)
+  }
+}
+
+const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery) => {
+  try {
+    let orderBy, name, whereQuery, arrivalDate, departureDate;
+    name = nameQuery || ""; //?Used for querying a name
+
+    if(displayOption != ""){
+      const displayQuery = displayByIdentifier(displayOption);
+      console.log(arrivalAndDeparture)
+    }else{
+      if (dateQuery) {
+        arrivalDate = dateQuery.split(' ')[0] || "";
+        departureDate = dateQuery.split(' ')[1] || "";
+      }
+    }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
     const reservations = await reservationClient.findMany({
       where: {
         //? SEARCH BY NAME
-        reserver: { guest: { name: { contains: name } } },
         reserver: { guest: { name: { contains: name } } },
         ...(dateQuery && { arrivalDate }),
         ...(dateQuery && { departureDate }),
@@ -116,16 +121,15 @@ const getAllReservation = async (sortAndOrder, nameQuery, dateQuery) => {
                 rate: true,
               },
             },
-            RoomMaid: {
+            roomMaids: {
               select: {
-                id: true,
                 user: {
                   select: {
-                    name: true,
-                  },
-                },
-              },
-            },
+                    name: true
+                  }
+                }
+              }
+            }
           },
         },
         created_at: true,
@@ -151,9 +155,9 @@ const getReservationById = async (id) => {
         arrangmentCode: true,
         resvRooms: {
           select: {
-            roomId:true,
+            roomId: true,
             room: {
-              select: 
+              select:
               {
                 roomType: true,
                 bedSetup: true,
@@ -186,8 +190,9 @@ const getReservationById = async (id) => {
     });
     return reservation;
   } catch (err) {
-    console.log(err);
-    throw err;
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect();
   }
 };
 
@@ -328,10 +333,9 @@ const CreateNewReservation = async (data) => {
       }
     })
     const createdResvRoom = await createNewResvRoom(createdReservation.arrangmentCode, createdReservation.id, data);
-
     return {
       createdGuest,
-      createdReserver, 
+      createdReserver,
       createdReservation,
       createdResvRoom
     }
@@ -358,10 +362,10 @@ const editReservation = async (reservationId, updatedData) => {
     return update;
   } catch (error) {
     console.error("Error updating reservation:", error);
-    // You might want to handle the error or throw it further
     throw error;
   }
 };
+
 const getReservationToday = async () => {
   try {
     const today = new Date();

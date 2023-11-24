@@ -8,18 +8,24 @@ const { error } = require("../utils/response");
    * @param {import('express').NextFunction} next
  */
 const auth = async (req, res, next) => {
-    try{
+    try {
         const accessToken = req.header('Authorization').split(' ')[1];
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
-        req.user = await prisma.user.findUniqueOrThrow({
+        const userData = await prisma.user.findUniqueOrThrow({
             where: {
                 id: parseInt(decoded.sub)
             },
-            include: {
+            select: {
+                username: true,
+                email: true,
+                name: true,
+                picture: true,
                 role: true
             }
         })
-    }catch(err){
+        req.user = userData
+    } catch (err) {
+        console.log(err)
         return error(res, 'Unaunthenticated', 401);
     }
     next();

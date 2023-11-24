@@ -7,10 +7,11 @@ const getCorrection = async (req, res) => {
   let reservations, reservationDetail;
   const reservationId = req.query.id || "";
   const sortAndOrder = req.query.sortOrder || "";
+  const displayOption = req.query.disOpt || "";
   const nameQuery = req.query.name || "";
   const dateQuery = req.query.date || "";
 
-  reservations = await getAllReservation(sortAndOrder, nameQuery, dateQuery);
+  reservations = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery);
   reservationDetail =  reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : "";
   return success( res, 'Operation Success', {
     reservations,

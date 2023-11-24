@@ -1,7 +1,6 @@
 const { getAllStatus } = require("../../models/Reservation/M_FloorPlan.js");
 
-
-const getStatus = async (req, res) => {
+const getFloorPlan  = async (req, res) => {
   try {
     const data = await getAllStatus();
     res.status(200).json({
@@ -12,4 +11,4 @@ const getStatus = async (req, res) => {
   }
 };
 
-module.exports = { getStatus };
+module.exports = { getFloorPlan };

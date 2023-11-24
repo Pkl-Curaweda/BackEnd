@@ -2,7 +2,6 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const R_Login = require("./routes/R_Login");
 const R_Reservation = require("./routes/R_Reservation");
-const R_Checkin = require("./routes/R_CheckIn");
 
 const app = express();
 const port = process.env.PORT || 4000;

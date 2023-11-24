@@ -1,4 +1,4 @@
 const { PrismaClient } = require('@prisma/client');
-const logAvail = new PrismaClient().logAvailability;
+const logAvailabilityClient = new PrismaClient().logAvailability;
 
-module.exports = {logAvail};
+module.exports = { logAvailabilityClient };
