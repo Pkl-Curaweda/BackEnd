@@ -7,8 +7,8 @@ const { ThrowError } = require("../Helpers/ThrowError");
 
 const getAllStatus = async () => {
   try {
-    const statusDescription = await roomStatusClient.findMany({select: { shortDescription: true, longDescription: true, rowColor: true, textColor: true }});
-    const specialStatusDescription = await specialTreatmentClient.findMany({select: { description: true, rowColor: true, textColor: true }});
+    const statusDescription = await roomStatusClient.findMany({ select: { shortDescription: true, longDescription: true, rowColor: true, textColor: true } });
+    const specialStatusDescription = await specialTreatmentClient.findMany({ select: { description: true, rowColor: true, textColor: true } });
     const floorplan = await roomClient.findMany({
       select: {
         id: true,
@@ -18,7 +18,6 @@ const getAllStatus = async () => {
             rowColor: true,
             textColor: true,
           }
-
         }
       }
     });

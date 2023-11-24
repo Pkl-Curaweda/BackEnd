@@ -1,5 +1,4 @@
 const { ThrowError } = require("../../models/Helpers/ThrowError");
-const { getAllReservationComment } = require("../../models/M_Comment");
 const { addReservation, getAllReservation, getReservationById, editReservation, CreateNewReservation } = require("../../models/Reservation/M_Reservation");
 const { success, error } = require("../../utils/response");
 
@@ -18,8 +17,6 @@ const getCorrection = async (req, res) => {
     reservationDetail,
   })
 };
-
-
 
 const deleteReservation = async (req, res) => {
   const reservationId = parseInt(req.params.id);
@@ -68,16 +65,5 @@ const updateReservation = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-//? SEARCH
-const searchName = async (req, res) => {
-  const { name } = req.query;
-
-  try {
-  } catch (error) {
-    console.error('Error searching reservations:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
 
 module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation };
