@@ -235,7 +235,6 @@ const CreateNewReservation = async (data) => {
   }
 };
 
-
 //! UNDER CONSTUCTIONS
 const deleteReservation = async (reservationId) => {
   try {

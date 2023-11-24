@@ -5,15 +5,18 @@ const { ThrowError } = require("../Helpers/ThrowError");
 
 const getLogAvailabilityData = async () => {
     try {
-        let logData = [], searchedDate, longHistory, lte, gte, today;
+        let logData = [], today;
         today = new Date();
         longSearchedDate = 3; //? 3 Days from now
         for (let i = 0; i <= longSearchedDate; i++) {
-            currentDate = today;
-            const searchedDate = new Date(currentDate.setDate(currentDate.getDate() - i))
-            console.log(searchedDate)
+            const searchedDate = new Date(today);
+            searchedDate.setDate(today.getDate() - i);
+            const searchDate = searchedDate.toISOString().split("T")[0];
             const logAvailability = await logAvailabilityClient.findMany({
-                where: { created_at: { lte, gte } }
+                where: { created_at: {
+                    gte: `${searchDate}T00:00:00.000Z`,
+                    lte: `${searchDate}T23:59:59.999Z`
+                 } }
             })
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
