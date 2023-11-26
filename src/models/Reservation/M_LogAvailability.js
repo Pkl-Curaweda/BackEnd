@@ -13,10 +13,12 @@ const getLogAvailabilityData = async () => {
             searchedDate.setDate(today.getDate() - i);
             const searchDate = searchedDate.toISOString().split("T")[0];
             const logAvailability = await logAvailabilityClient.findMany({
-                where: { created_at: {
-                    gte: `${searchDate}T00:00:00.000Z`,
-                    lte: `${searchDate}T23:59:59.999Z`
-                 } }
+                where: {
+                    created_at: {
+                        gte: `${searchDate}T00:00:00.000Z`,
+                        lte: `${searchDate}T23:59:59.999Z`
+                    }
+                }
             })
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
