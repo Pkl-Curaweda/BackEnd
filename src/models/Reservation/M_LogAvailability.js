@@ -3,7 +3,7 @@ const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
 const { ThrowError } = require("../Helpers/ThrowError");
 
 
-const getLogAvailabilityData = async () => {
+const getLogAvailabilityData = async (skip,limit) => {
     try {
         let logData = [], today;
         today = new Date();
@@ -18,7 +18,9 @@ const getLogAvailabilityData = async () => {
                         gte: `${searchDate}T00:00:00.000Z`,
                         lte: `${searchDate}T23:59:59.999Z`
                     }
-                }
+                },
+                take: limit,
+                skip:skip,
             })
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],

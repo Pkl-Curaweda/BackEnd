@@ -62,9 +62,12 @@ const displayByIdentifier = (disOpt) => {
   return {
     displayOption, whereQuery
   }
-}
+} 
 
-const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery) => {
+
+
+const getAllReservation = async (sortAndOrder,displayOption,nameQuery,dateQuery,limit,skip,
+) => {
   try {
     let orderBy, name, whereQuery, arrivalDate, departureDate;
     name = nameQuery || ""; //?Used for querying a name
@@ -74,8 +77,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       whereQuery = displayOptionAndQuery.whereQuery;
     } else {
       if (dateQuery != "") {
-        arrivalDate = dateQuery.split(' ')[0] || "";
-        departureDate = dateQuery.split(' ')[1] || "";
+        arrivalDate = dateQuery.split(" ")[0] || "";
+        departureDate = dateQuery.split(" ")[1] || "";
       }
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
@@ -113,24 +116,17 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
                 rate: true,
               },
             },
-            roomMaids: {
-              select: {
-                user: {
-                  select: {
-                    name: true
-                  }
-                }
-              }
-            }
           },
         },
         created_at: true,
       },
       orderBy,
+      take: limit,
+      skip:skip,
     });
     return reservations;
   } catch (err) {
-    ThrowError(err)
+    ThrowError(err);
   } finally {
     await PrismaDisconnect();
   }
