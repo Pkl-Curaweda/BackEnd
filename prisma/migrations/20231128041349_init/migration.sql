@@ -1,11 +1,12 @@
 -- CreateTable
 CREATE TABLE `Guest` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `name` VARCHAR(191) NOT NULL,
-    `contact` VARCHAR(191) NOT NULL,
+    `name` VARCHAR(191) NULL,
+    `contact` VARCHAR(191) NULL,
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `Guest_username_key`(`username`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -32,7 +33,7 @@ CREATE TABLE `User` (
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `roleId` INTEGER NOT NULL,
-    `created_at` DATE NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `User_email_key`(`email`),
@@ -132,8 +133,10 @@ CREATE TABLE `Reservation` (
     `reserverId` INTEGER NOT NULL,
     `manyAdult` INTEGER NOT NULL,
     `manyChild` INTEGER NOT NULL,
+    `manyBaby` INTEGER NOT NULL,
+    `manyNight` INTEGER NOT NULL,
     `reservationRemarks` TEXT NULL,
-    `inHouseIndicator` BOOLEAN NOT NULL,
+    `inHouseIndicator` BOOLEAN NULL DEFAULT false,
     `arrivalDate` DATE NOT NULL,
     `departureDate` DATE NOT NULL,
     `checkInDate` DATE NULL,
@@ -179,9 +182,8 @@ CREATE TABLE `ResvRoom` (
 -- CreateTable
 CREATE TABLE `Reserver` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `guestIdentifier` VARCHAR(191) NOT NULL,
-    `resourceName` VARCHAR(191) NOT NULL,
     `guestId` INTEGER NOT NULL,
+    `resourceName` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -312,7 +314,6 @@ CREATE TABLE `ServiceType` (
 CREATE TABLE `SubType` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
-    `serviceTypeId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -529,9 +530,6 @@ ALTER TABLE `ExtraBed` ADD CONSTRAINT `ExtraBed_roomId_fkey` FOREIGN KEY (`roomI
 
 -- AddForeignKey
 ALTER TABLE `LostFound` ADD CONSTRAINT `LostFound_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `SubType` ADD CONSTRAINT `SubType_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Service` ADD CONSTRAINT `Service_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
