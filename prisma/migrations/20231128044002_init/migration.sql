@@ -398,6 +398,7 @@ CREATE TABLE `Transaction` (
     `status` ENUM('PENDING', 'SUCCEEDED', 'FAILED') NOT NULL,
     `paymentId` INTEGER NOT NULL,
     `orderId` VARCHAR(191) NOT NULL,
+    `qrCode` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `expired_at` DATETIME(3) NULL,
     `updated_at` DATETIME(3) NOT NULL,
