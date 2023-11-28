@@ -433,34 +433,34 @@ model Payment {
   updated_at      DateTime      @updatedAt
 }
 
+model Order {
+  id           String        @id @default(uuid())
+  guest        Guest         @relation(fields: [guestId], references: [id])
+  guestId      Int
+  room         Room          @relation(fields: [roomId], references: [id])
+  roomId       Int
+  subtotal     Float
+  total        Float
+  ppn          Float
+  fees         Float
+  transaction  Transaction?
+  orderDetails OrderDetail[]
+  orderTracks  OrderTrack[]
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+}
+
 model Transaction {
   id         String        @id
   name       String
   status     PaymentStatus
   payment    Payment       @relation(fields: [paymentId], references: [id])
   paymentId  Int
-  order      Order?
+  order      Order         @relation(fields: [orderId], references: [id])
+  orderId    String        @unique
   created_at DateTime      @default(now())
   expired_at DateTime?
   updated_at DateTime      @updatedAt
-}
-
-model Order {
-  id            String        @id
-  guest         Guest         @relation(fields: [guestId], references: [id])
-  guestId       Int
-  room          Room          @relation(fields: [roomId], references: [id])
-  roomId        Int
-  subtotal      Float
-  total         Float
-  ppn           Float
-  fees          Float
-  transaction   Transaction   @relation(fields: [transactionId], references: [id])
-  transactionId String        @unique
-  orderDetails  OrderDetail[]
-  orderTracks   OrderTrack[]
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
 }
 
 model OrderTrack {
