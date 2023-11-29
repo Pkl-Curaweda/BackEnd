@@ -2,6 +2,7 @@ const { Router } = require("express");
 const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom } = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const { getLogAvailability } = require("../controllers/Reservation/C_LogAvailabilty");
+const { getAllReport, testing } = require("../controllers/Reservation/C_Report");
 
 const R_Reservation = new Router();
 
@@ -21,5 +22,9 @@ R_Reservation.get("/roomavail", getLogAvailability)
 
 //? NON SPECIFIC ROUTE
 R_Reservation.put("/edit/:id", updateReservation);
+
+//?REPORT PAGE
+R_Reservation.get("/report", getAllReport);
+R_Reservation.get("/test", testing);
 
 module.exports = R_Reservation;

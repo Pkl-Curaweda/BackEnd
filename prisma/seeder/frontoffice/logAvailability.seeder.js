@@ -9,6 +9,7 @@ const logAvail = [
                     "rowColor": "#16a75c",
                     "textColor": "#ffffff"
                 },
+                "roomPrice": 300000,
                 
             },
             room_2: {
@@ -16,7 +17,9 @@ const logAvail = [
                 "resvStatus": {
                     rowColor: "#fffc06",
                     textColor: "#000000",
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_3: 0,
             room_4: 0,
@@ -25,42 +28,54 @@ const logAvail = [
                 "resvStatus": {
                     rowColor: "#16a75c",
                     textColor: "#ffffff"
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_6: {
                 "guestName": "Legs Io",
                 "resvStatus": {
                     rowColor: "#16a75c",
                     textColor: "#ffffff"
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_7: {
                 "guestName": "Refi Hikman",
                 "resvStatus": {
                     rowColor: "#fffc06",
                     textColor: "#000000",
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_8: {
                 "guestName": "Barack Obama",
                 "resvStatus": {
                     rowColor: "#fffc06",
                     textColor: "#000000",
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_9: {
                 "guestName": "HardBreed",
                 "resvStatus": {
                     rowColor: "#16a75c",
                     textColor: "#ffffff"
-                }
+                },
+                "roomPrice": 300000,
+
             },
             room_10: {
                 "guestName": "Gustavo Fring",
                 "resvStatus": {
                     rowColor: "#fe0001",
                     textColor: "#ffffff"
-                }
+                },
+                "roomPrice": 300000,
+
             },
         },
         created_at: new Date(),

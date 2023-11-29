@@ -260,10 +260,11 @@ const editReservation = async (reservationId, updatedData) => {
   }
 };
 
+
 module.exports = {
   getAllReservation,
   getReservationById,
   deleteReservationById,
   CreateNewReservation,
-  editReservation
+  editReservation,
 };
