@@ -1,7 +1,5 @@
-const { guestTokenClient, userTokenClient } = require("../Helpers/Config/Global/TokenConfig");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { ThrowError } = require("../Helpers/ThrowError");
-const { generateRandomString, generateExpire } = require("../Helpers/generateFunction");
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect, generateRandomString, generateExpire } = require("../../utils/helper");
 
 const generateRefreshToken = async (client) => {
   try {
@@ -21,7 +19,7 @@ const generateRefreshToken = async (client) => {
 const CheckToken = async (type, refreshToken) => {
   let token;
   try {
-    const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
+    const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     token = await tokenClient.findUniqueOrThrow({ where: { refreshToken } });
     if (!token) throw Error('Invalid refresh token')
     if (Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
@@ -35,7 +33,7 @@ const CheckToken = async (type, refreshToken) => {
 
 const RemoveToken = async (type, refreshToken) => {
   try {
-    const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
+    const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     const deletedToken = await tokenClient.delete({ where: { refreshToken } });
     return deletedToken;
   } catch (err) {
@@ -48,7 +46,7 @@ const RemoveToken = async (type, refreshToken) => {
 const CreateAndAssignToken = async (type, data) => {
   try {
     //?CREATE THE TOKEN
-    const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
+    const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     const generatedRefreshToken = await generateRefreshToken(tokenClient);
 
     //?ASSIGN THE TOKEN
@@ -71,7 +69,7 @@ const CreateAndAssignToken = async (type, data) => {
 
 const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
-    const tokenClient = type === "user" ? userTokenClient : guestTokenClient;
+    const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     const deletedToken = await tokenClient.delete({ where: { refreshToken } });
     const generatedRefreshToken = await generateRefreshToken(tokenClient)
     const newRefreshToken = await tokenClient.create({

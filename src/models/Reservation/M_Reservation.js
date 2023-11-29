@@ -1,12 +1,8 @@
-const { de } = require("@faker-js/faker");
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect, countNight } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
-const { CreateAndAssignToken } = require("../Authorization/M_Token");
-const { reservationClient } = require("../Helpers/Config/Front Office/ReservationConfig");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { ThrowError } = require("../Helpers/ThrowError");
-const { countNight } = require("../Helpers/generateFunction");
 const { CreateNewReserver } = require("./M_Reserver");
-const { createNewResvRoom } = require("./M_ResvRoom");
+const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
 
 const orderByIdentifier = (sortAndOrder) => {
   let orderQuery;
@@ -50,7 +46,7 @@ const displayByIdentifier = (disOpt) => {
   const dateToday = today.toISOString().split('T')[0];
   if (disOpt != "inhouse") {
     displayOption = `${disOpt}Date`;
-    if(disOpt === "reservation") displayOption = "created_at"
+    if (disOpt === "reservation") displayOption = "created_at"
     whereQuery = {
       gte: `${dateToday}T00:00:00.000Z`,
       lte: `${dateToday}T23:59:59.999Z`,
@@ -62,12 +58,11 @@ const displayByIdentifier = (disOpt) => {
   return {
     displayOption, whereQuery
   }
-} 
+}
 
 
 
-const getAllReservation = async (sortAndOrder,displayOption,nameQuery,dateQuery,limit,skip,
-) => {
+const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery) => {
   try {
     let orderBy, name, whereQuery, arrivalDate, departureDate;
     name = nameQuery || ""; //?Used for querying a name
@@ -82,7 +77,7 @@ const getAllReservation = async (sortAndOrder,displayOption,nameQuery,dateQuery,
       }
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
-    const reservations = await reservationClient.findMany({
+    const reservations = await prisma.reservation.findMany({
       where: {
         //? SEARCH BY NAME
         reserver: { guest: { name: { contains: name } } },
@@ -121,8 +116,8 @@ const getAllReservation = async (sortAndOrder,displayOption,nameQuery,dateQuery,
         created_at: true,
       },
       orderBy,
-      take: limit,
-      skip:skip,
+      // take: limit,
+      // skip: skip,
     });
     return reservations;
   } catch (err) {
@@ -136,7 +131,7 @@ const getAllReservation = async (sortAndOrder,displayOption,nameQuery,dateQuery,
 //? DETAILS RESERVATION
 const getReservationById = async (id) => {
   try {
-    const reservation = await reservationClient.findFirst({
+    const reservation = await prisma.reservation.findFirst({
       where: {
         id,
       },
@@ -193,14 +188,13 @@ const CreateNewReservation = async (data) => {
     arrivalDate = new Date(data.arrivalDate).toISOString();
     departureDate = new Date(data.departureDate).toISOString();
     manyNight = countNight(arrivalDate, departureDate);
-    console.log(manyNight)
 
     const guestName = data.nameContact.split('-')[0];
     const guestContact = data.nameContact.split('-')[1];
     const createdGuest = await CreateNewGuest(guestName, guestContact);
     const createdReserver = await CreateNewReserver(createdGuest.guest.id, data);
 
-    const createdReservation = await reservationClient.create({
+    const createdReservation = await prisma.reservation.create({
       data: {
         reserver: {
           connect: {
@@ -232,103 +226,17 @@ const CreateNewReservation = async (data) => {
 };
 
 //! UNDER CONSTUCTIONS
-const deleteReservation = async (reservationId) => {
+const deleteReservationById = async (id) => {
   try {
-    await prisma.resvFlight.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.resvRoom.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.deposit.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.logReservation.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.canceledReservation.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.voucher.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.discrepancy.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.cleaningSheet.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.cleanRoom.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.dirtyRoom.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.oooRoom.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.guestPreference.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.task.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    await prisma.roomChange.deleteMany({
-      where: {
-        reservationId: reservationId,
-      },
-    });
-
-    const deleteResv = await reservationClient.deleteMany({
-      where: {
-        id: reservationId,
-      },
-    });
-
-    return deleteResv;
-  } catch (error) {
-    console.error("Error deleting reservation:", error);
-    console.log("Error details:", JSON.stringify(error, null, 2)); // Log detailed error information
-    throw error;
+    const deletedResvRoom = await deleteResvRoomByReservationId(id);
+    await prisma.cleanRoom.deleteMany({ where: { reservationId: id } })
+    await prisma.dirtyRoom.deleteMany({ where: { reservationId: id } })
+    const deletedReservation = await prisma.reservation.delete({ where: { id } });
+    return deletedReservation
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
   }
 };
 
@@ -338,7 +246,7 @@ const editReservation = async (reservationId, updatedData) => {
     if (!updatedData) {
       throw new Error("No data provided for update");
     }
-    const update = await reservationClient.update({
+    const update = await prisma.reservation.update({
       where: {
         id: reservationId,
       },
@@ -355,7 +263,7 @@ const editReservation = async (reservationId, updatedData) => {
 module.exports = {
   getAllReservation,
   getReservationById,
-  deleteReservation,
+  deleteReservationById,
   CreateNewReservation,
   editReservation
 };

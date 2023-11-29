@@ -1,3 +1,9 @@
+const { prisma } = require("../../prisma/seeder/config");
+
+const PrismaDisconnect = async () => {
+    await prisma.$disconnect();
+}
+
 function generateExpire(currentDate) {
     var expiredDate = new Date(currentDate);
     expiredDate.setDate(currentDate.getDate() + 3); //3 days from now
@@ -34,4 +40,11 @@ function countNight(arrivalDate, departureDate) {
 
 }
 
-module.exports = { generateExpire, generateRandomString, generateStringRandomizer, countNight }
+const ThrowError = (err) => {
+    console.log(err)
+    throw err;
+}
+
+module.exports = {
+    PrismaDisconnect, generateExpire, generateRandomString, generateStringRandomizer, countNight, ThrowError
+};

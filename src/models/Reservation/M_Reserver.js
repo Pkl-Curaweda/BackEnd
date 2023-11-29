@@ -1,10 +1,9 @@
-const { reserverClient } = require("../Helpers/Config/Front Office/ReserverConfig");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { ThrowError } = require("../Helpers/ThrowError")
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const CreateNewReserver = async (guestId, data) => {
     try{
-        const createdReserver = await reserverClient.create({
+        const createdReserver = await prisma.reserver.create({
             data: {
                 guestId,
                 resourceName: data.resourceName,

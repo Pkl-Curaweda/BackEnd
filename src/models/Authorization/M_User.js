@@ -1,12 +1,11 @@
-const bcrypt = require("bcrypt");
-const { ThrowError } = require("../Helpers/ThrowError");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { userClient } = require("../Helpers/Config/Global/UserConfig");
+const bcrypt = require('bcrypt');
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
   try {
-    const user = await userClient.findUniqueOrThrow({ where: { email } });
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
     if (!user) throw Error("User Not Found");
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
@@ -29,13 +28,12 @@ const UserLogout = async (RefreshToken) => {
   } catch (err) {
     ThrowError(err)
   } finally {
-    await PrismaDisconnect();
   }
 }
 
 const GetAllUsers = async () => {
   try {
-    const user = await userClient.findMany({
+    const user = await prisma.user.findMany({
       select: {
         username: true,
         email: true,

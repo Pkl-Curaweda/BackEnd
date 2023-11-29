@@ -1,31 +1,61 @@
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
-const { roomClient } = require("../Helpers/Config/Front Office/RoomConfig");
-const { roomStatusClient } = require("../Helpers/Config/Front Office/RoomStatusConfig");
-const { specialTreatmentClient } = require("../Helpers/Config/Front Office/specialTreatmentConfig");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { ThrowError } = require("../Helpers/ThrowError");
 
 const getAllStatus = async () => {
   try {
-    const statusDescription = await roomStatusClient.findMany({ select: { shortDescription: true, longDescription: true, rowColor: true, textColor: true } });
-    const specialStatusDescription = await specialTreatmentClient.findMany({ select: { description: true, rowColor: true, textColor: true } });
-    const floorplan = await roomClient.findMany({
-      select: {
-        id: true,
-        floor: true,
-        roomStatus: {
-          select: {
-            rowColor: true,
-            textColor: true,
+    const roomIdList = [];
+    const todayDate = new Date().toISOString().split("T")[0];
+    const rooms = await prisma.room.findMany({ select: { id: true } });
+    rooms.forEach(room => {
+      roomIdList.push(room.id);
+    });
+
+    const floorPlan = {};
+
+    for (const roomId of roomIdList) {
+      const resvRoom = await prisma.resvRoom.findFirst({
+        where: {
+          created_at: {
+            gte: `${todayDate}T00:00:00.000Z`,
+            lte: `${todayDate}T23:59:59.999Z`
+          },
+          roomId
+        },
+        select: {
+          reservation: {
+            select: {
+              resvStatus: {
+                select: {
+                  rowColor: true,
+                  textColor: true
+                }
+              },
+              reserver: {
+                select: {
+                  guest: {
+                    select: {
+                      name: true
+                    }
+                  }
+                }
+              }
+            }
           }
         }
+      })
+      const key = `room_${roomId}`;
+      if(resvRoom != null){
+        floorPlan[key] = {
+          "guestName": resvRoom.reservation.reserver.guest.name,
+          "resvStatus": resvRoom.reservation.resvStatus
+        };
+      }else{
+        floorPlan[key] = ""
       }
-    });
-    return {
-      floorplan,
-      statusDescription,
-      specialStatusDescription
     }
+
+    return { floorPlan }
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -33,5 +63,22 @@ const getAllStatus = async () => {
   }
 };
 
-
-module.exports = { getAllStatus };
+const getFloorPlanDataBasedOnDate = async (searchedDate) => {
+  try {
+    const searchDate = new Date(searchedDate).toISOString().split("T")[0];
+    const floorPlan = await prisma.logAvailability.findFirst({
+      where: {
+        created_at: {
+          gte: `${searchDate}T00:00:00.000Z`,
+          lte: `${searchDate}T23:59:59.999Z`
+        }
+      }, select: { roomHistory: true }
+    })
+    return floorPlan;
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect();
+  }
+}
+module.exports = { getAllStatus, getFloorPlanDataBasedOnDate };

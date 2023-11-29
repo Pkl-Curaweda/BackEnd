@@ -1,182 +1,12 @@
-const {
-  reservationClient,
-} = require("../Helpers/Config/Front Office/ReservationConfig");
-const {
-  ResvRoomClient,
-} = require("../Helpers/Config/Front Office/ResvRoomConfig");
-const { PrismaDisconnect } = require("../Helpers/DisconnectPrisma");
-const { ThrowError } = require("../Helpers/ThrowError");
-
-// function getTotalPrice(orders) {
-//     const flattenedOrders = orders.flatMap(order => order.orderDetails);
-//     const totalPrice = flattenedOrders.reduce((acc, curr) => {
-//         const servicePrice = curr.service ? curr.service.price : 0;
-//         return acc + curr.qty * servicePrice;
-//     }, 0);
-//     return totalPrice;
-// }
-
-// function getDatesBetween(startDate, endDate){
-//     const dates = [];
-//     let currentDate = startDate;
-
-//     while (currentDate <= endDate) {
-//         const day = currentDate.getDate();
-//         const month = currentDate.getMonth() + 1; // Months are zero-based
-//         const year = currentDate.getFullYear();
-
-//         const formattedDate = `${year}-${month < 10 ? '0' : ''}${month}-${day < 10 ? '0' : ''}${day}`;
-//         dates.push(formattedDate);
-
-//         currentDate.setDate(currentDate.getDate() + 1);
-//     }
-
-//     return dates;
-// }
-
-const getAllOrderFromReservationId = async (reservationId, filter) => {
-  try {
-    const reservation = await reservationClient.findFirst({
-      where: {
-        id: parseInt(reservationId),
-      },
-      select: {
-        arrivalDate: true,
-        departureDate: true,
-        reserver: true,
-      },
-    });
-
-    console.log(reservationId, filter);
-    const orders = await getAllOrderBasedOnFilter(filter, reservation);
-    return orders;
-  } catch (err) {
-    ThrowError(err);
-  } finally {
-    await PrismaDisconnect();
-  }
-};
-
-const getAllOrderBasedOnFilter = async (filterContext, reservationData) => {
-  try {
-    const guestId = reservationData.reserver.guestId;
-    const orders = [];
-    let searchedFilter;
-
-    if (filterContext === "day") {
-      searchedFilter = getDatesBetween(
-        reservationData.arrivalDate,
-        reservationData.departureDate
-      );
-    } else if (filterContext === "month") {
-      searchedFilter = reservationData.arrivalDate.getMonth() + 1;
-    } else if (filterContext === "year") {
-      searchedFilter = reservationData.arrivalDate.getFullYear();
-    }
-    if (filterContext === "day") {
-      searchedFilter = getDatesBetween(
-        reservationData.arrivalDate,
-        reservationData.departureDate
-      );
-    } else if (filterContext === "month") {
-      searchedFilter = reservationData.arrivalDate.getMonth() + 1;
-    } else if (filterContext === "year") {
-      searchedFilter = reservationData.arrivalDate.getFullYear();
-    }
-
-    const orderData = searchedFilter.map(async (filter) => {
-      return await getAllOrderWithFilter(
-        filterContext,
-        guestId,
-        searchedFilter
-      );
-    });
-
-    const result = await Promise.all(orderData);
-    orders.push(...result);
-
-    console.log(orders);
-    return orders;
-  } catch (err) {
-    ThrowError(err);
-  } finally {
-    await PrismaDisconnect();
-  }
-};
-
-// const getAllOrderWithFilter = async (filter, guestId, searchedFilter) => {
-//     try{
-//         let orderData;
-//         let createdFilter;
-//         let currentYear;
-//         if (filter === "month") currentYear = new Date().getFullYear();
-//         switch (filter) {
-//             case 'year':
-//                 createdFilter = {
-//                     lte: '${searchedFilter}-1-1T23:59:59.999Z',
-//                     gte: '${searchedFilter}-12-31T00:00:00.000Z'
-//                 }
-//                 break;
-//             case 'month':
-//                 createdFilter = {
-//                     lte: '${currentYear}-${searchedFilter}-1T23:59:59.999Z',
-//                     gte: '${currentYear}-${searchedFilter}-31T00:00:00.000Z'
-//                 }
-//                 break;
-//             case 'date':
-//                 createdFilter = {
-//                     lte: '${searchedFilter}T23:59:59.999Z',
-//                     gte: '${searchedFilter}T00:00:00.000Z'
-//                 }
-//                 break;
-//             default:
-//                 console.log("Invalid filter type");
-//                 return null;
-//         }
-
-//         let orders = await orderClient.findMany({
-//             where: {
-//                 guestId,
-//                 created_at: createdFilter
-//             },
-//             select: {
-//                 orderDetails: {
-//                     select: {
-//                         qty: true,
-//                         service: {
-//                             select: {
-//                                 name: true,
-//                                 price: true
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         })
-
-//         total = getTotalPrice(orders);
-
-//         orderData = {
-//             year: searchedYear,
-//             orders, total
-//         }
-
-//         console.log(orderData)
-
-//         return orderData;
-//     }catch(err){
-//         ThrowError(err);
-//     }finally{
-//         await PrismaDisconnect();
-//     }
-// }
+const { prisma } = require("../../../prisma/seeder/config");
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const getAllRoomIdReservedByReserverId = async (reserverId) => {
   let reservedRoom = [];
   try {
-    const reservation = reservationClient.findFirst({ where: { reserverId } });
+    const reservation = await prisma.reservation.findFirst({ where: { reserverId } });
     if (!reservation) return Error("Invalid Reserver Id");
-    const rooms = await ResvRoomClient.findMany({
+    const rooms = await prisma.resvRoom.findMany({
       where: { reservationId: reservation.id },
       select: { roomId: true },
     });
@@ -185,41 +15,54 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
     });
     return reservedRoom;
   } catch (err) {
-    ThrowError(err);
+    ThrowError(err)
   } finally {
     await PrismaDisconnect();
   }
 };
 
 const createNewResvRoom = async (arrangmentCode, reservationId, data) => {
-    try{
-        let resvRooms = [], addedPrice;
-        addedPrice = arrangmentCode === "RB" ? 30000 : 0;
-        for(room of data.rooms) {
-            console.log(room)
-            const resvRoom = await ResvRoomClient.create({
-                data: {
-                    reservation: {
-                        connect: {
-                            id: reservationId
-                        }
-                    },
-                    room: {
-                        connect: {
-                            id: room.roomId
-                        }
-                    },
-                    addedPrice,
-                }
-            })
-            resvRooms.push(resvRoom)
+  try {
+    let resvRooms = [], addedPrice;
+    addedPrice = arrangmentCode === "RB" ? 30000 : 0;
+    for (room of data.rooms) {
+      const resvRoom = await prisma.resvRoom.create({
+        data: {
+          reservation: {
+            connect: {
+              id: reservationId
+            }
+          },
+          room: {
+            connect: {
+              id: room.roomId
+            }
+          },
+          addedPrice,
         }
-        return resvRooms;
-    }catch(err){
-        ThrowError(err)
-    }finally{
-        await PrismaDisconnect()
+      })
+      resvRooms.push(resvRoom)
     }
+    return resvRooms;
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect();
+  }
 }
 
-module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId };
+const deleteResvRoomByReservationId = async (id) => {
+  try {
+    const resvRooms = await prisma.resvRoom.findMany({ where: { reservationId: id }, select: { id: true } })
+    resvRooms.forEach(async resvRoom => {
+      await prisma.roomMaid.deleteMany({ where: { resvRoomId: resvRoom.id } })
+      await  prisma.roomChange.deleteMany({ where: { resvRoomId: resvRoom.id } })
+    });
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect();
+  }
+}
+
+module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId, deleteResvRoomByReservationId };

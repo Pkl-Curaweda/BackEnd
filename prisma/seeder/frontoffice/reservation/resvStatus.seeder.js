@@ -4,7 +4,7 @@ const resvStatus = [
 	{
 		description: "Guaranted",
 		rowColor: "#16a75c",
-		textColor: "#ffffffD"
+		textColor: "#ffffff"
 	},
 	{
 		description: "6 PM",

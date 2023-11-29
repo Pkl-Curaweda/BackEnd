@@ -1,14 +1,18 @@
-const { getAllStatus } = require("../../models/Reservation/M_FloorPlan.js");
+const { getAllStatus, getFloorPlanDataBasedOnDate } = require("../../models/Reservation/M_FloorPlan.js");
+const { success, error } = require("../../utils/response.js");
 
 const getFloorPlan  = async (req, res) => {
   try {
-    const data = await getAllStatus();
-    res.status(200).json({
-      data,
-    });
+    let floorPlan;
+    const date = req.query.date || "";
+    if(date != ""){
+      floorPlan = await getFloorPlanDataBasedOnDate(date);
+    }else{
+      floorPlan = await getAllStatus();
+    }
+    return success(res, 'Operation Success', floorPlan)
   }catch(err) {
-    console.log(err);
+    return error(res, err.message, 404)
   }
 };
-
-module.exports = { getFloorPlan };
+module.exports = { getFloorPlan};
