@@ -65,4 +65,4 @@ const deleteResvRoomByReservationId = async (id) => {
   }
 }
 
-module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId, deleteResvRoomByReservationId };
+module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId, deleteResvRoomByReservationId, };

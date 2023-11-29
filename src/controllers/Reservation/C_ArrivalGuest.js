@@ -58,6 +58,42 @@ const postNewReservationRoom = async (req, res) => {
   }
 }
 
+const postChangeRoom = async (req, res) => {
+  const { resvRoomId, roomToId, note } = req.body;
+  try {
+    const resvRoom = await prisma.resvRoom.findUnique({
+      where: { id: resvRoomId },
+      include: { room: true, reservation: true },
+    });
+
+    const roomChange = await prisma.roomChange.create({
+      data: {
+        roomFrom: { connect: { id: resvRoom.roomId } },
+        roomTo: { connect: { id: roomToId } },
+        resvRoom: { connect: { id: resvRoomId } },
+        note,
+      },
+    });
+
+    const updatedResvRoom = await prisma.resvRoom.update({
+      where: { id: resvRoomId },
+      data: {
+        roomId: roomToId,
+      },
+    });
+
+    res.json({
+      message: "Room change recorded successfully",
+      roomChange,
+      updatedResvRoom,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 const updateReservation = async (req, res) => {
   const reservationId = parseInt(req.params.id);
   const updatedData = req.body;
@@ -82,4 +118,4 @@ const updateReservation = async (req, res) => {
   }
 };
 
-module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, postNewReservationRoom };
+module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, postNewReservationRoom ,postChangeRoom};

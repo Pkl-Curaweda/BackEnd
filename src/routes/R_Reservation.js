@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom } = require("../controllers/Reservation/C_ArrivalGuest");
+const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom } = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const { getLogAvailability } = require("../controllers/Reservation/C_LogAvailabilty");
 
@@ -10,6 +10,8 @@ R_Reservation.get("/arrival", getCorrection);
 R_Reservation.post("/reservation/create", postNewReservation);
 R_Reservation.post("/reservation/room/create", postNewReservationRoom);
 R_Reservation.delete("/reservation/:id", deleteReservation);
+R_Reservation.post("/reservation/change-room", postChangeRoom);
+
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
