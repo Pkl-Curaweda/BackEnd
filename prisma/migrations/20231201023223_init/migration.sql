@@ -255,8 +255,8 @@ CREATE TABLE `OooRoom` (
     `reason` TEXT NOT NULL,
     `from` DATETIME(3) NOT NULL,
     `until` DATETIME(3) NOT NULL,
-    `resvStatusId` INTEGER NOT NULL,
     `description` TEXT NOT NULL,
+    `departmentId` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -524,13 +524,16 @@ ALTER TABLE `OooRoom` ADD CONSTRAINT `OooRoom_userId_fkey` FOREIGN KEY (`userId`
 ALTER TABLE `OooRoom` ADD CONSTRAINT `OooRoom_reservationId_fkey` FOREIGN KEY (`reservationId`) REFERENCES `Reservation`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `OooRoom` ADD CONSTRAINT `OooRoom_resvStatusId_fkey` FOREIGN KEY (`resvStatusId`) REFERENCES `ResvStatus`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OooRoom` ADD CONSTRAINT `OooRoom_departmentId_fkey` FOREIGN KEY (`departmentId`) REFERENCES `Department`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ExtraBed` ADD CONSTRAINT `ExtraBed_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `LostFound` ADD CONSTRAINT `LostFound_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Service` ADD CONSTRAINT `Service_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Service` ADD CONSTRAINT `Service_serviceTypeId_fkey` FOREIGN KEY (`serviceTypeId`) REFERENCES `ServiceType`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

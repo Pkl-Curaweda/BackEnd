@@ -224,7 +224,6 @@ model ResvStatus {
   reservation Reservation[]
   cleanRooms  CleanRoom[]
   DirtyRoom   DirtyRoom[]
-  OooRoom     OooRoom[]
 }
 
 model ResvRoom {
@@ -321,9 +320,9 @@ model OooRoom {
   reason        String      @db.Text
   from          DateTime
   until         DateTime
-  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
-  resvStatusId  Int
   description   String      @db.Text
+  departmentId Int
+  department Department @relation(fields: [departmentId], references: [id])
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
@@ -332,7 +331,9 @@ model Department {
   id        Int        @id @default(autoincrement())
   name      String
   roomMaids RoomMaid[]
+  oooRooms OooRoom[]
 }
+
 
 model ExtraBed {
   id     Int      @id @default(autoincrement())
