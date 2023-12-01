@@ -65,7 +65,7 @@ const getNewUserRefreshToken = async (req, res) => {
         })
         return success(res, 'Refresh token success', { accessToken });
     } catch (err) {
-        return error(res, err, 401)
+        return error(res, err.message, 401)
     }
 }
 

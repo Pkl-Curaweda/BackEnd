@@ -10,9 +10,7 @@ const getAllStatus = async () => {
     rooms.forEach(room => {
       roomIdList.push(room.id);
     });
-
     const floorPlan = {};
-
     for (const roomId of roomIdList) {
       const resvRoom = await prisma.resvRoom.findFirst({
         where: {
@@ -54,7 +52,6 @@ const getAllStatus = async () => {
         floorPlan[key] = ""
       }
     }
-
     return { floorPlan }
   } catch (err) {
     ThrowError(err);

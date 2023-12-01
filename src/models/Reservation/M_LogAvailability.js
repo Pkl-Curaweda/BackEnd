@@ -1,8 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, countNight } = require("../../utils/helper");
 
-
-
 const getLogAvailabilityData = async (dateQuery, skip, limit) => {
     try {
         let logData = [], totalData = 0, originDate, startDate, endDate;

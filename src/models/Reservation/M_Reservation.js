@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, paginate } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
@@ -11,29 +11,29 @@ const orderByIdentifier = (sortAndOrder) => {
   const orderBy = sortAndOrder.split(' ')[2];
 
   if (sortIdentifier === "resv") {
-    orderQuery = { [sortBy]: orderBy }
+    orderQuery = { reservation: { [sortBy]: orderBy } }
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
         orderQuery = {
-          reserver: { guest: { [sortBy]: orderBy } }
+          reservation: {
+            reserver: { guest: { [sortBy]: orderBy } }
+          }
         }
         break;
 
       default:
-        orderQuery = { reserver: { [sortBy]: orderBy } }
+        orderQuery = { reservation: { reserver: { [sortBy]: orderBy } } }
         break;
     }
   } else if (sortIdentifier === "room") {
     switch (sortBy) {
-      case "name":
-        orderQuery = {
-          resvRooms: { RoomMaid: { [sortBy]: orderBy } }
-        }
-        break;
+      // case "name":
+      //   orderQuery = { roomMaids: { user: { [sortBy]: orderBy } } }
+      //   break;
 
       default:
-        orderQuery = { resvRoomS: { room: { [sortBy]: orderBy } } }
+        orderQuery = { room: { [sortBy]: orderBy } }
         break;
     }
   }
@@ -45,7 +45,7 @@ const displayByIdentifier = (disOpt) => {
   const today = new Date();
   const dateToday = today.toISOString().split('T')[0];
   if (disOpt != "inhouse") {
-    displayOption = `${disOpt}Date`;
+    displayOption = `${disOpt}Date`; //arrivalDate
     if (disOpt === "reservation") displayOption = "created_at"
     whereQuery = {
       gte: `${dateToday}T00:00:00.000Z`,
@@ -56,70 +56,86 @@ const displayByIdentifier = (disOpt) => {
     whereQuery = true
   }
   return {
-    displayOption, whereQuery
+    displayOption,
+    whereQuery
   }
 }
 
 
 
-const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery) => {
+const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage) => {
   try {
     let orderBy, name, whereQuery, arrivalDate, departureDate;
-    name = nameQuery || ""; //?Used for querying a name
+    name = nameQuery || "";
     if (displayOption != "") {
       const displayOptionAndQuery = displayByIdentifier(displayOption);
       displayOption = displayOptionAndQuery.displayOption;
       whereQuery = displayOptionAndQuery.whereQuery;
     } else {
       if (dateQuery != "") {
-        arrivalDate = dateQuery.split(" ")[0] || "";
-        departureDate = dateQuery.split(" ")[1] || "";
+        arrivalDate = {
+          gte: `${dateQuery.split(" ")[0] || ""}T00:00:00.000Z`,
+          lte: `${dateQuery.split(" ")[1] || ""}T23:59:59.999Z`
+        }
+        departureDate = {
+          gte: `${dateQuery.split(" ")[0] || ""}T00:00:00.000Z`,
+          lte: `${dateQuery.split(" ")[1] || ""}T23:59:59.999Z`,
+        }
       }
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
-    const reservations = await prisma.reservation.findMany({
+    // const { take, skip, totalData } = await paginate(prisma.reservation, whereQuery, { page, perPage })
+    const reservations = await prisma.resvRoom.findMany({
       where: {
-        //? SEARCH BY NAME
-        reserver: { guest: { name: { contains: name } } },
-        ...(dateQuery && { arrivalDate }),
-        ...(dateQuery && { departureDate }),
-        ...(whereQuery && { [displayOption]: whereQuery }),
+        reservation: {
+          reserver: { guest: { name: { contains: name } } },
+        },
+        ...(dateQuery && { reservation: { arrivalDate } }),
+        ...(dateQuery && { reservation: { departureDate } }),
+        ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
       },
       select: {
-        id: true,
-        reserver: {
+        roomId: true,
+        room: {
           select: {
-            resourceName: true,
-            guest: {
-              select: {
-                name: true,
-              },
-            },
+            roomType: true,
+            bedSetup: true,
+            rate: true,
           },
         },
-        arrivalDate: true,
-        departureDate: true,
-        arrangmentCode: true,
-        manyNight: true,
-        resvRooms: {
+        roomMaids: {
           select: {
-            roomId: true,
-            room: {
+            user: {
+              select: { name: true }
+            }
+          }
+        },
+        reservation: {
+          select: {
+            id: true,
+            reserver: {
               select: {
-                roomType: true,
-                bedSetup: true,
-                rate: true,
+                resourceName: true,
+                guest: {
+                  select: {
+                    name: true,
+                  },
+                },
               },
             },
-          },
-        },
-        created_at: true,
+            arrivalDate: true,
+            departureDate: true,
+            arrangmentCode: true,
+            manyNight: true,
+            created_at: true,
+          }
+        }
       },
       orderBy,
-      // take: limit,
-      // skip: skip,
+      // take,
+      // skip
     });
-    return reservations;
+    return { reservations };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -131,46 +147,48 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
 //? DETAILS RESERVATION
 const getReservationById = async (id) => {
   try {
-    const reservation = await prisma.reservation.findFirst({
+    const reservation = await prisma.resvRoom.findFirst({
       where: {
         id,
       },
       select: {
-        id: true,
-        arrangmentCode: true,
-        resvRooms: {
-          select: {
-            roomId: true,
-            room: {
-              select:
-              {
-                roomType: true,
-                bedSetup: true,
-                roomImage: true,
-                rate: true,
-              },
-            },
+        roomId: true,
+        room: {
+          select:
+          {
+            roomType: true,
+            bedSetup: true,
+            roomImage: true,
+            rate: true,
           },
         },
-        resvStatus: {
+        reservation: {
           select: {
-            description: true,
-          },
-        },
-        reserver: {
-          select: {
-            resourceName: true,
-            guest: {
+            id: true,
+            arrangmentCode: true,
+            resvStatus: {
               select: {
-                name: true,
+                description: true,
+                rowColor: true,
+                textColor: true
               },
             },
-          },
-        },
-        manyNight: true,
-        manyAdult: true,
-        manyBaby: true,
-        manyChild: true,
+            reserver: {
+              select: {
+                resourceName: true,
+                guest: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+            manyNight: true,
+            manyAdult: true,
+            manyBaby: true,
+            manyChild: true,
+          }
+        }
       },
     });
     return reservation;

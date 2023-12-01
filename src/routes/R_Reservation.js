@@ -13,7 +13,6 @@ R_Reservation.post("/reservation/room/create", postNewReservationRoom);
 R_Reservation.delete("/reservation/:id", deleteReservation);
 R_Reservation.post("/reservation/change-room", postChangeRoom);
 
-
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
 
@@ -25,6 +24,5 @@ R_Reservation.put("/edit/:id", updateReservation);
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);
-R_Reservation.get("/test", testing);
 
 module.exports = R_Reservation;

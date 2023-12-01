@@ -1,28 +1,15 @@
-const { prisma } = require("../../../prisma/seeder/config");
-const { findReportReservation, getReportData } = require("../../models/Report/M_Report");
-const { success } = require("../../utils/response");
+const { getReportData } = require("../../models/Reservation/M_Report");
+const { success, error } = require("../../utils/response");
 
 const getAllReport  = async (req, res) => {
     try {
-      const data = await findReportReservation();
-      res.status(200).json({
-        data,
-      });
+      const data = await getReportData();
+      return success(res, 'Operation Success', data)
     }catch(err) {
-      console.log(err);
+      return error(res, err.message, err.code)
     }
   };
 
-const testing = async (req, res) => {
-    try {
-        const data = await getReportData();
-        return success(res, 'success', data);
-      }catch(err) {
-        console.log(err);
-      }
-}
-
 module.exports = {
     getAllReport,
-    testing,
 }

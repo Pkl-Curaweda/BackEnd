@@ -103,7 +103,7 @@ const getReportData = async () => {
                   roomRevenue,
                   arr,
               }
-  
+
               perDay.push(storedData);
 
         }

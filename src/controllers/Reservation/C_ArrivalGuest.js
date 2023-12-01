@@ -4,27 +4,20 @@ const { createNewResvRoom } = require("../../models/Reservation/M_ResvRoom");
 const { success, error } = require("../../utils/response");
 
 const getCorrection = async (req, res) => {
-  let reservations, reservationDetail;
-  const reservationId = req.query.id || "";
+  const resvRoomId = req.query.id || "";
   const sortAndOrder = req.query.sortOrder || "";
   const displayOption = req.query.disOpt || "";
   const nameQuery = req.query.name || "";
   const dateQuery = req.query.date || "";
-  // const page = +req.query.page || 2;
-  // const limit = +req.query.limit || 5;
-  // const skip = (page - 1) * limit;  
-  // const resultCount = await prisma.reservation.count();
-  // const totalPage = Math.ceil(resultCount / limit);
+  const page = +req.query.page;
+  const perPage = +req.query.perPage;
 
-
-  reservations = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery);
-  reservationDetail = reservationId != "" || undefined ? await getReservationById(parseInt(reservationId)) : "";
+  const { reservations, totalData } = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage);
+  const reservationDetail = resvRoomId != "" || undefined ? await getReservationById(parseInt(resvRoomId)) : "";
   return success(res, "Operation Success", {
     reservations,
     reservationDetail,
-    // current_page: page - 0,
-    // total_page: totalPage,
-    // total_data: resultCount,
+    totalData
   });
 };
 

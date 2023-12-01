@@ -45,6 +45,20 @@ const ThrowError = (err) => {
     throw err;
 }
 
+
+async function paginate(model, where, options) {
+    let page, perPage, skip;
+    page = options.page || 1;
+    perPage = options.perPage || 10;
+    skip = (page - 1) * perPage;
+    // const totalData = await model.count({ where })
+    return {
+        take: perPage,
+        skip,
+        // totalData
+    }
+}
+
 module.exports = {
-    PrismaDisconnect, generateExpire, generateRandomString, generateStringRandomizer, countNight, ThrowError
+    PrismaDisconnect, generateExpire, generateRandomString, generateStringRandomizer, countNight, ThrowError, paginate
 };
