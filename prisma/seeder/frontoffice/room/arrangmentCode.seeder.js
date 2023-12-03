@@ -30,8 +30,10 @@ const arrangmentCodes = [
 
 async function arrangmentCodeSeed() {
     for (let arrangmentCode of arrangmentCodes) {
-        await prisma.arrangmentCode.create({
-            data: arrangmentCode
+        await prisma.arrangmentCode.upsert({
+            where: { id: arrangmentCode.id },
+            update: { ...arrangmentCode },
+            create: { ...arrangmentCode },
         });
     }
 }

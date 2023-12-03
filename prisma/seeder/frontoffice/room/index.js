@@ -1,4 +1,4 @@
-const { arrangmentCodeSeed } = require("./room.arrangmentCode.seeder");
+const { arrangmentCodeSeed } = require("./arrangmentCode.seeder");
 const { roomSeed } = require("./room.seeder");
 const { roomCapacitySeed } = require("./roomCapacity.seeder");
 const { roomFacilitySeed } = require("./roomFacility.seeder");
