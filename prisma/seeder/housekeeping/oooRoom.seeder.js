@@ -9,7 +9,7 @@ const oooRooms = [
       "Maintenance work in progress. Room will be unavailable for the next few days.",
     from: new Date(),
     until: new Date(),
-    resvStatusId: 1,
+    departmentId: 2,
     description: "Room cleaned thoroughly, ready for next guest.",
     created_at: new Date(),
     updated_at: new Date(),

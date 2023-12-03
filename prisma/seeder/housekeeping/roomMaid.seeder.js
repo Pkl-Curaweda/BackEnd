@@ -30,11 +30,11 @@ const roomMaids = [
 ];
 
 async function roomMaidSeed() {
-  for (let roomMaid of roomMaids) {
+	for (let roomMaid of roomMaids) {
     await prisma.roomMaid.create({
       data: roomMaid,
     });
-  }
+	}
 }
 
 module.exports = { roomMaidSeed };

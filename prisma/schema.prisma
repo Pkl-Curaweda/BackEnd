@@ -44,16 +44,6 @@ enum BedType {
   SINGLE
 }
 
-enum GuestResouce {
-  WHATSAPP
-  WALK_IN
-}
-
-enum ArrangmentCode {
-  RB
-  RO
-}
-
 // Front Office Area ==========================================================
 
 model Guest {
@@ -89,6 +79,7 @@ model User {
   password    String
   role        Role         @relation(fields: [roleId], references: [id])
   roleId      Int
+  service     Service[]
   productReqs ProductReq[]
   cleanRooms  CleanRoom[]
   Tokens      UserToken[]
@@ -145,7 +136,8 @@ model Room {
   roomCapacity    RoomCapacity   @relation(fields: [roomCapacityId], references: [id])
   roomCapacityId  Int
   occupied_status Boolean
-  rate            Float
+  rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
+  rate            String
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
@@ -184,7 +176,6 @@ model Reservation {
   id                 Int               @id @default(autoincrement())
   resvStatus         ResvStatus        @relation(fields: [resvStatusId], references: [id])
   resvStatusId       Int
-  arrangmentCode     ArrangmentCode
   specialTreatment   SpecialTreatment? @relation(fields: [specialTreatmentId], references: [id])
   specialTreatmentId Int?
   reserver           Reserver          @relation(fields: [reserverId], references: [id])
@@ -193,7 +184,9 @@ model Reservation {
   manyChild          Int
   manyBaby           Int
   manyNight          Int
+  borderColor        String?           @default("#ffff")
   reservationRemarks String?           @db.Text
+  onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime          @db.Date
   departureDate      DateTime          @db.Date
@@ -223,20 +216,20 @@ model ResvStatus {
   reservation Reservation[]
   cleanRooms  CleanRoom[]
   DirtyRoom   DirtyRoom[]
-  OooRoom     OooRoom[]
 }
 
 model ResvRoom {
-  id            Int          @id @default(autoincrement())
-  reservation   Reservation  @relation(fields: [reservationId], references: [id])
-  reservationId Int
-  room          Room         @relation(fields: [roomId], references: [id])
-  roomId        Int
-  addedPrice    Float?       @default(0)
-  roomMaids     RoomMaid[]
-  roomChanges   RoomChange[]
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  id               Int            @id @default(autoincrement())
+  reservation      Reservation    @relation(fields: [reservationId], references: [id])
+  reservationId    Int
+  room             Room           @relation(fields: [roomId], references: [id])
+  roomId           Int
+  arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
+  arrangmentCodeId String
+  roomMaids        RoomMaid[]
+  roomChanges      RoomChange[]
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
 }
 
 model Reserver {
@@ -254,6 +247,13 @@ model LogAvailability {
   roomHistory Json
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model ArrangmentCode {
+  id       String     @id
+  rate     Float
+  ResvRoom ResvRoom[]
+  Room     Room[]
 }
 
 // End Front Office Area ======================================================
@@ -320,9 +320,9 @@ model OooRoom {
   reason        String      @db.Text
   from          DateTime
   until         DateTime
-  resvStatus    ResvStatus  @relation(fields: [resvStatusId], references: [id])
-  resvStatusId  Int
   description   String      @db.Text
+  departmentId  Int
+  department    Department  @relation(fields: [departmentId], references: [id])
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
@@ -331,6 +331,7 @@ model Department {
   id        Int        @id @default(autoincrement())
   name      String
   roomMaids RoomMaid[]
+  oooRooms  OooRoom[]
 }
 
 model ExtraBed {
@@ -383,6 +384,7 @@ model SubType {
 model Service {
   id            Int           @id @default(autoincrement())
   userId        Int
+  user          User          @relation(fields: [userId], references: [id])
   name          String
   price         Int
   desc          String
@@ -433,34 +435,35 @@ model Payment {
   updated_at      DateTime      @updatedAt
 }
 
+model Order {
+  id           String        @id @default(uuid())
+  guest        Guest         @relation(fields: [guestId], references: [id])
+  guestId      Int
+  room         Room          @relation(fields: [roomId], references: [id])
+  roomId       Int
+  subtotal     Float
+  total        Float
+  ppn          Float
+  fees         Float
+  transaction  Transaction?
+  orderDetails OrderDetail[]
+  orderTracks  OrderTrack[]
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+}
+
 model Transaction {
   id         String        @id
   name       String
   status     PaymentStatus
   payment    Payment       @relation(fields: [paymentId], references: [id])
   paymentId  Int
-  order      Order?
+  order      Order         @relation(fields: [orderId], references: [id])
+  orderId    String        @unique
+  qrCode     String?
   created_at DateTime      @default(now())
   expired_at DateTime?
   updated_at DateTime      @updatedAt
-}
-
-model Order {
-  id            String        @id
-  guest         Guest         @relation(fields: [guestId], references: [id])
-  guestId       Int
-  room          Room          @relation(fields: [roomId], references: [id])
-  roomId        Int
-  subtotal      Float
-  total         Float
-  ppn           Float
-  fees          Float
-  transaction   Transaction   @relation(fields: [transactionId], references: [id])
-  transactionId String        @unique
-  orderDetails  OrderDetail[]
-  orderTracks   OrderTrack[]
-  created_at    DateTime      @default(now())
-  updated_at    DateTime      @updatedAt
 }
 
 model OrderTrack {
