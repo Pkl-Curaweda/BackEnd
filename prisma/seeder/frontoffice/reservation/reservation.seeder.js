@@ -3,7 +3,6 @@ const { prisma } = require("../../config");
 const reservation = [
 	{
 		resvStatusId: 1,
-		arrangmentCode: "RB",
 		reserverId: 1,
 		manyAdult: 2,
 		manyChild: 3,

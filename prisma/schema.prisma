@@ -44,16 +44,6 @@ enum BedType {
   SINGLE
 }
 
-enum GuestResouce {
-  WHATSAPP
-  WALK_IN
-}
-
-enum ArrangmentCode {
-  RB
-  RO
-}
-
 // Front Office Area ==========================================================
 
 model Guest {
@@ -146,7 +136,8 @@ model Room {
   roomCapacity    RoomCapacity   @relation(fields: [roomCapacityId], references: [id])
   roomCapacityId  Int
   occupied_status Boolean
-  rate            Float
+  rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
+  rate            String
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
@@ -185,7 +176,6 @@ model Reservation {
   id                 Int               @id @default(autoincrement())
   resvStatus         ResvStatus        @relation(fields: [resvStatusId], references: [id])
   resvStatusId       Int
-  arrangmentCode     ArrangmentCode
   specialTreatment   SpecialTreatment? @relation(fields: [specialTreatmentId], references: [id])
   specialTreatmentId Int?
   reserver           Reserver          @relation(fields: [reserverId], references: [id])
@@ -194,7 +184,9 @@ model Reservation {
   manyChild          Int
   manyBaby           Int
   manyNight          Int
+  borderColor        String?           @default("#ffff")
   reservationRemarks String?           @db.Text
+  onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime          @db.Date
   departureDate      DateTime          @db.Date
@@ -227,16 +219,17 @@ model ResvStatus {
 }
 
 model ResvRoom {
-  id            Int          @id @default(autoincrement())
-  reservation   Reservation  @relation(fields: [reservationId], references: [id])
-  reservationId Int
-  room          Room         @relation(fields: [roomId], references: [id])
-  roomId        Int
-  addedPrice    Float?       @default(0)
-  roomMaids     RoomMaid[]
-  roomChanges   RoomChange[]
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  id               Int            @id @default(autoincrement())
+  reservation      Reservation    @relation(fields: [reservationId], references: [id])
+  reservationId    Int
+  room             Room           @relation(fields: [roomId], references: [id])
+  roomId           Int
+  arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
+  arrangmentCodeId String
+  roomMaids        RoomMaid[]
+  roomChanges      RoomChange[]
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
 }
 
 model Reserver {
@@ -254,6 +247,13 @@ model LogAvailability {
   roomHistory Json
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
+}
+
+model ArrangmentCode {
+  id   String     @id
+  rate     Float
+  ResvRoom ResvRoom[]
+  Room     Room[]
 }
 
 // End Front Office Area ======================================================
@@ -321,8 +321,8 @@ model OooRoom {
   from          DateTime
   until         DateTime
   description   String      @db.Text
-  departmentId Int
-  department Department @relation(fields: [departmentId], references: [id])
+  departmentId  Int
+  department    Department  @relation(fields: [departmentId], references: [id])
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
@@ -331,9 +331,8 @@ model Department {
   id        Int        @id @default(autoincrement())
   name      String
   roomMaids RoomMaid[]
-  oooRooms OooRoom[]
+  oooRooms  OooRoom[]
 }
-
 
 model ExtraBed {
   id     Int      @id @default(autoincrement())

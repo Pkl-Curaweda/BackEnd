@@ -95,7 +95,7 @@ CREATE TABLE `Room` (
     `description` VARCHAR(191) NOT NULL,
     `roomCapacityId` INTEGER NOT NULL,
     `occupied_status` BOOLEAN NOT NULL,
-    `rate` DOUBLE NOT NULL,
+    `rate` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -128,14 +128,15 @@ CREATE TABLE `RoomChange` (
 CREATE TABLE `Reservation` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `resvStatusId` INTEGER NOT NULL,
-    `arrangmentCode` ENUM('RB', 'RO') NOT NULL,
     `specialTreatmentId` INTEGER NULL,
     `reserverId` INTEGER NOT NULL,
     `manyAdult` INTEGER NOT NULL,
     `manyChild` INTEGER NOT NULL,
     `manyBaby` INTEGER NOT NULL,
     `manyNight` INTEGER NOT NULL,
+    `borderColor` VARCHAR(191) NULL DEFAULT '#ffff',
     `reservationRemarks` TEXT NULL,
+    `onGoingReservation` BOOLEAN NULL DEFAULT true,
     `inHouseIndicator` BOOLEAN NULL DEFAULT false,
     `arrivalDate` DATE NOT NULL,
     `departureDate` DATE NOT NULL,
@@ -172,7 +173,7 @@ CREATE TABLE `ResvRoom` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `reservationId` INTEGER NOT NULL,
     `roomId` INTEGER NOT NULL,
-    `addedPrice` DOUBLE NULL DEFAULT 0,
+    `arrangmentCodeId` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -196,6 +197,14 @@ CREATE TABLE `LogAvailability` (
     `roomHistory` JSON NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ArrangmentCode` (
+    `id` VARCHAR(191) NOT NULL,
+    `rate` DOUBLE NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -449,6 +458,9 @@ ALTER TABLE `Room` ADD CONSTRAINT `Room_roomStatusId_fkey` FOREIGN KEY (`roomSta
 ALTER TABLE `Room` ADD CONSTRAINT `Room_roomCapacityId_fkey` FOREIGN KEY (`roomCapacityId`) REFERENCES `RoomCapacity`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `Room` ADD CONSTRAINT `Room_rate_fkey` FOREIGN KEY (`rate`) REFERENCES `ArrangmentCode`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `RoomFacility` ADD CONSTRAINT `RoomFacility_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -474,6 +486,9 @@ ALTER TABLE `ResvRoom` ADD CONSTRAINT `ResvRoom_reservationId_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `ResvRoom` ADD CONSTRAINT `ResvRoom_roomId_fkey` FOREIGN KEY (`roomId`) REFERENCES `Room`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ResvRoom` ADD CONSTRAINT `ResvRoom_arrangmentCodeId_fkey` FOREIGN KEY (`arrangmentCodeId`) REFERENCES `ArrangmentCode`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Reserver` ADD CONSTRAINT `Reserver_guestId_fkey` FOREIGN KEY (`guestId`) REFERENCES `Guest`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

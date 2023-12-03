@@ -10,7 +10,7 @@ const rooms = [
     occupied_status: true,
     description: "kamar well",
     bedSetup: "KING",
-    rate: 240000
+    rate: "DLX-RO"
   },
 ];
 
