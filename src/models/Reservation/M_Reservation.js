@@ -11,7 +11,20 @@ const orderByIdentifier = (sortAndOrder) => {
   const orderBy = sortAndOrder.split(' ')[2];
 
   if (sortIdentifier === "resv") {
-    orderQuery = { reservation: { [sortBy]: orderBy } }
+    switch (sortBy) {
+      case "arrCode": {
+        orderQuery = { arrangmentCodeId: orderBy }
+      }
+        break;
+      case "rate": {
+        orderQuery = { arrangment: { rate: orderBy } }
+      }
+        break;
+      default: {
+        orderQuery = { reservation: { [sortBy]: orderBy } }
+        break;
+      }
+    }
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
@@ -61,8 +74,6 @@ const displayByIdentifier = (disOpt) => {
   }
 }
 
-
-
 const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage) => {
   try {
     let orderBy, name, whereQuery, arrivalDate, departureDate;
@@ -84,7 +95,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
-    // const { take, skip, totalData } = await paginate(prisma.reservation, whereQuery, { page, perPage })
+    const { take, skip } = await paginate(prisma.reservation, whereQuery, { page, perPage })
     const reservations = await prisma.resvRoom.findMany({
       where: {
         reservation: {
@@ -95,7 +106,14 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
       },
       select: {
+        reservationId: true,
+        arrangmentCodeId: true,
         roomId: true,
+        arrangment: {
+          select: {
+            rate: true
+          }
+        },
         room: {
           select: {
             roomType: true,
@@ -112,7 +130,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         },
         reservation: {
           select: {
-            id: true,
             reserver: {
               select: {
                 resourceName: true,
@@ -123,19 +140,32 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
                 },
               },
             },
+            manyNight: true,
             arrivalDate: true,
             departureDate: true,
-            arrangmentCode: true,
-            manyNight: true,
             created_at: true,
           }
         }
       },
       orderBy,
-      // take,
-      // skip
+      take,
+      skip
     });
-    return { reservations };
+    let reservationsArray = [];
+    reservations.forEach((reservation) => {
+      const reservationId = reservation.reservationId;
+      const index = reservationsArray.findIndex((item) => item.reservationId === reservationId);
+      if (index === -1) {
+        reservationsArray.push({
+          reservationId,
+          reservation: [reservation],
+        });
+      } else {
+        reservationsArray[index].reservation.push(reservation);
+      }
+    });
+
+    return { reservations: reservationsArray };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -230,11 +260,10 @@ const CreateNewReservation = async (data) => {
             id: 1
           }
         },
-        arrangmentCode: data.arrangmentCode,
         reservationRemarks: data.reservationRemarks
       }
     })
-    const createdResvRoom = await createNewResvRoom(createdReservation.arrangmentCode, createdReservation.id, data);
+    const createdResvRoom = await createNewResvRoom(createdReservation.id, data.room);
     return { createdGuest, createdReserver, createdReservation, createdResvRoom }
   } catch (err) {
     ThrowError(err);

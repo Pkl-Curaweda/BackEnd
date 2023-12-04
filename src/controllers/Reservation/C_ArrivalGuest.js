@@ -9,15 +9,14 @@ const getCorrection = async (req, res) => {
   const displayOption = req.query.disOpt || "";
   const nameQuery = req.query.name || "";
   const dateQuery = req.query.date || "";
-  const page = +req.query.page;
-  const perPage = +req.query.perPage;
+  const page = +req.query.page || 1;
+  const perPage = +req.query.perPage || 5;
 
-  const { reservations, totalData } = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage);
+  const { reservations } = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage);
   const reservationDetail = resvRoomId != "" || undefined ? await getReservationById(parseInt(resvRoomId)) : "";
   return success(res, "Operation Success", {
     reservations,
     reservationDetail,
-    totalData
   });
 };
 
@@ -44,7 +43,7 @@ const postNewReservation = async (req, res) => {
 const postNewReservationRoom = async (req, res) => {
   const body = req.body;
   try {
-    const resvRoom = await createNewResvRoom(body.arrangmentCode, body.reservationId, body)
+    const resvRoom = await createNewResvRoom(body.reservationId, body)
     return success(res, `New Room Created in Room`, resvRoom);
   } catch (err) {
     return error(res, err.message, 404);
@@ -111,4 +110,4 @@ const updateReservation = async (req, res) => {
   }
 };
 
-module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, postNewReservationRoom ,postChangeRoom};
+module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, postNewReservationRoom, postChangeRoom };

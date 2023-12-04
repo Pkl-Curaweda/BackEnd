@@ -188,10 +188,10 @@ model Reservation {
   reservationRemarks String?           @db.Text
   onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
-  arrivalDate        DateTime          @db.Date
-  departureDate      DateTime          @db.Date
-  checkInDate        DateTime?         @db.Date
-  checkoutDate       DateTime?         @db.Date
+  arrivalDate        DateTime          
+  departureDate      DateTime          
+  checkInDate        DateTime?         
+  checkoutDate       DateTime?         
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
   resvRooms          ResvRoom[]
