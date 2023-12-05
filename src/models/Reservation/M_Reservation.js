@@ -3,6 +3,7 @@ const { ThrowError, PrismaDisconnect, countNight, paginate } = require("../../ut
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
+const { getAllAvailableRoom } = require("./M_Room");
 
 const orderByIdentifier = (sortAndOrder) => {
   let orderQuery;
@@ -272,6 +273,25 @@ const CreateNewReservation = async (data) => {
   }
 };
 
+const createReservationHelper = async () => {
+  try{
+    const availableRooms = await getAllAvailableRoom();
+    const arrangmentCode = await prisma.arrangmentCode.findMany({ 
+      select: {
+        id: true,
+        rate: true
+      }
+    })
+    return {
+      availableRooms, arrangmentCode
+    }
+  }catch (err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 //! UNDER CONSTUCTIONS
 const deleteReservationById = async (id) => {
   try {
@@ -314,4 +334,5 @@ module.exports = {
   deleteReservationById,
   CreateNewReservation,
   editReservation,
+  createReservationHelper
 };

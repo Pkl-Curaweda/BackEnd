@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById } = require("../../models/Reservation/M_Reservation");
+const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById, createReservationHelper } = require("../../models/Reservation/M_Reservation");
 const { createNewResvRoom } = require("../../models/Reservation/M_ResvRoom");
 const { success, error } = require("../../utils/response");
 
@@ -29,6 +29,15 @@ const deleteReservation = async (req, res) => {
     return error(res, err.message, 404)
   }
 };
+
+const getCreateResevationHelper = async (req, res) => {
+  try{
+    const helper = await createReservationHelper();
+    return success(res, 'Helper Running', helper)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
 
 const postNewReservation = async (req, res) => {
   const body = req.body;
@@ -110,4 +119,4 @@ const updateReservation = async (req, res) => {
   }
 };
 
-module.exports = { getCorrection, deleteReservation, postNewReservation, updateReservation, postNewReservationRoom, postChangeRoom };
+module.exports = { getCorrection, getCreateResevationHelper , deleteReservation, postNewReservation, updateReservation, postNewReservationRoom, postChangeRoom };
