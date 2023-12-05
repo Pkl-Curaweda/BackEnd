@@ -3,28 +3,22 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const createNewLogAvailable = async () => {
     try {
-        let roomIdList = [], roomHistory = {};
-        const todayDate = new Date().toISOString().split("T")[0];
-        const gteLte = {
-            gte: `${todayDate}T00:00:00.000Z`,
-            lte: `${todayDate}T23:59:59.999Z`
-        }
-        // const alreadyExist = await prisma.logAvailability.findFirst({ where: { created_at: gteLte } })
-        // if(alreadyExist){
-        const rooms = await prisma.room.findMany({ select: { id: true } });
-        rooms.forEach(room => {
-            roomIdList.push(room.id)
-        })
-        for (const roomId of roomIdList) {
+        let roomHistory = {};
+        const rooms = await prisma.room.findMany({ select: { id: true }, orderBy: { id: 'asc' } });
+        for (const room of rooms) {
             const resvRoom = await prisma.resvRoom.findFirst({
                 where: {
-                    // reservation: {
-                    //     arrivalDate: gteLte,
-                    //     departureDate: gteLte
-                    // },
-                    roomId
+                    reservation: {
+                        onGoingReservation: true
+                    },
+                    roomId: room.id
                 },
                 select: {
+                    arrangment: {
+                        select: {
+                            rate: true
+                        }
+                    },
                     reservation: {
                         select: {
                             reserver: {
@@ -44,23 +38,26 @@ const createNewLogAvailable = async () => {
                             },
                         }
                     }
+                },
+                orderBy: {
+                    reservation: {
+                        arrivalDate: 'asc'
+                    }
                 }
-            })
-            console.log(resvRoom);
-            const key = `room_${roomId}`;
+            });
+
+            const key = `room_${room.id}`;
             if (resvRoom != null) {
                 roomHistory[key] = {
                     "guestName": resvRoom.reservation.reserver.guest.name,
-                    "resvStatus": resvRoom.reservation.resvStatus
+                    "resvStatus": resvRoom.reservation.resvStatus,
+                    "roomPrice": resvRoom.arrangment.rate
                 };
             } else {
-                roomHistory[key] = ""
+                roomHistory[key] = "";
             }
         }
         return roomHistory
-        // }else{
-        //     throw Error('Log Already Created');
-        // }
     } catch (err) {
         ThrowError(err)
     } finally {

@@ -16,7 +16,7 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
     return reservedRoom;
   } catch (err) {
     ThrowError(err)
-  } finally {
+} finally {
     await PrismaDisconnect();
   }
 };
@@ -37,7 +37,7 @@ const createNewResvRoom = async (reservationId, data) => {
         },
         arrangment: {
           connect: {
-             id: data.arrangmentCode
+            id: data.arrangmentCode
           }
         }
       }
