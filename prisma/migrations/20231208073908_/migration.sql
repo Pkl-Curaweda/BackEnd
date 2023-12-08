@@ -174,9 +174,11 @@ CREATE TABLE `ResvRoom` (
     `reservationId` INTEGER NOT NULL,
     `roomId` INTEGER NOT NULL,
     `arrangmentCodeId` VARCHAR(191) NOT NULL,
+    `voucherNo` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `ResvRoom_voucherNo_key`(`voucherNo`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -187,6 +189,17 @@ CREATE TABLE `Reserver` (
     `resourceName` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `idCard` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `reserverId` INTEGER NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `cardIdentifier` ENUM('KTP', 'SIM') NOT NULL,
+    `cardId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -205,6 +218,19 @@ CREATE TABLE `LogAvailability` (
 CREATE TABLE `ArrangmentCode` (
     `id` VARCHAR(191) NOT NULL,
     `rate` DOUBLE NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ResvPayment` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `reservationId` INTEGER NOT NULL,
+    `paymentMethod` VARCHAR(191) NOT NULL,
+    `orders` JSON NOT NULL,
+    `total` DOUBLE NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updated_at` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -492,6 +518,12 @@ ALTER TABLE `ResvRoom` ADD CONSTRAINT `ResvRoom_arrangmentCodeId_fkey` FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE `Reserver` ADD CONSTRAINT `Reserver_guestId_fkey` FOREIGN KEY (`guestId`) REFERENCES `Guest`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `idCard` ADD CONSTRAINT `idCard_reserverId_fkey` FOREIGN KEY (`reserverId`) REFERENCES `Reserver`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ResvPayment` ADD CONSTRAINT `ResvPayment_reservationId_fkey` FOREIGN KEY (`reservationId`) REFERENCES `Reservation`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `RoomMaid` ADD CONSTRAINT `RoomMaid_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
