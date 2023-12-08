@@ -1,9 +1,11 @@
 const { prisma } = require("../../config");
 
+
 const resvRoom = [
 	{
 		roomId: 1,
 		reservationId: 1,
+		voucherNo: 1,
 		arrangmentCodeId: "DLX-RB",
 		created_at: new Date(),
 		updated_at: new Date(),

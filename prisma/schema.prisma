@@ -44,6 +44,11 @@ enum BedType {
   SINGLE
 }
 
+enum cardIdentifier {
+  KTP
+  SIM
+}
+
 // Front Office Area ==========================================================
 
 model Guest {
@@ -198,6 +203,7 @@ model Reservation {
   cleanRooms         CleanRoom[]
   dirtyRooms         DirtyRoom[]
   oooRooms           OooRoom[]
+  ResvPayment        ResvPayment[]
 }
 
 model SpecialTreatment {
@@ -226,6 +232,7 @@ model ResvRoom {
   roomId           Int
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
+  voucherNo        Int            @unique
   roomMaids        RoomMaid[]
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
@@ -240,6 +247,16 @@ model Reserver {
   reservations Reservation[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
+  idCard       idCard[]
+}
+
+model idCard {
+  id             Int            @id @default(autoincrement())
+  reserver       Reserver       @relation(fields: [reserverId], references: [id])
+  reserverId     Int
+  name           String
+  cardIdentifier cardIdentifier
+  cardId         Int
 }
 
 model LogAvailability {
@@ -254,6 +271,17 @@ model ArrangmentCode {
   rate     Float
   ResvRoom ResvRoom[]
   Room     Room[]
+}
+
+model ResvPayment {
+  id            Int         @id @default(autoincrement())
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservationId Int
+  paymentMethod String
+  orders        Json
+  total         Float
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
 }
 
 // End Front Office Area ======================================================

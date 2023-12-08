@@ -5,8 +5,21 @@ const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
   try {
-    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
-    if (!user) throw Error("User Not Found");
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email }, select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        picture: true,
+        password: true,
+        role: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
