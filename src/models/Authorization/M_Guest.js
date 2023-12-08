@@ -5,7 +5,7 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { encrypt, decrypt } = require("../../utils/encryption");
 const { ThrowError, PrismaDisconnect, generateRandomString, generateStringRandomizer } = require("../../utils/helper");
 const { CreateAndAssignToken } = require("./M_Token");
-const { getAllRoomIdReservedByReserverId } = require("../Reservation/M_ResvRoom");
+const { getAllRoomIdReservedByReserverId } = require("../Front Office/M_ResvRoom");
 
 const generateUsernameAndPassword = async (guestName) => {
   try {
@@ -107,7 +107,7 @@ const GetGuestById = async (id) => {
 
 const GetAllGuests = async () => {
   try {
-    const guests = await prisma.guest.findMany({ select: { username: true, name: true, contact: true } });
+    const guests = await prisma.guest.findMany({ select: {id: true, username: true, name: true, contact: true } });
     return guests;
   } catch (err) {
     ThrowError(err)

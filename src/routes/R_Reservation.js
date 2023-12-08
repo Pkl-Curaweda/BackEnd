@@ -1,27 +1,26 @@
 const { Router } = require("express");
-const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getCreateResevationHelper } = require("../controllers/Reservation/C_ArrivalGuest");
+const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getCreateResevationHelper, getArrivalGuest, putNewReservationData, postChangeProgress } = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
-const { getLogAvailability } = require("../controllers/Reservation/C_LogAvailabilty");
+const { getLogAvailability, CreateLog } = require("../controllers/Reservation/C_LogAvailabilty");
 const { getAllReport, testing } = require("../controllers/Reservation/C_Report");
 
 const R_Reservation = new Router();
 
 //?ARRIVAL GUEST LIST
-R_Reservation.get("/arrival", getCorrection);
-R_Reservation.get("/reservation/create", getCreateResevationHelper);
-R_Reservation.post("/reservation/create", postNewReservation);
-R_Reservation.post("/reservation/room/create", postNewReservationRoom);
-R_Reservation.delete("/reservation/:id", deleteReservation);
-R_Reservation.post("/reservation/change-room", postChangeRoom);
+R_Reservation.get("/arrival/:reservationId?/:resvRoomId?/:action?", getArrivalGuest);
+R_Reservation.put("/arrival/:reservationId/:resvRoomId/edit", putNewReservationData);
+R_Reservation.post("/arrival/:reservationId/:resvRoomId/create", postNewReservation);
+R_Reservation.post("/arrival/:reservationId/:resvRoomId/add-room", postNewReservationRoom);
+R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-room", postChangeRoom);
+R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-progress/:changeProgress", postChangeProgress);
+R_Reservation.delete("/arrival/:reservationId?/:resvRoomId?/delete", deleteReservation);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
 
 //?lOG AVAILABILITY
 R_Reservation.get("/roomavail", getLogAvailability)
-
-//? NON SPECIFIC ROUTE
-R_Reservation.put("/edit/:id", updateReservation);
+R_Reservation.get("/roomavail/create-log", CreateLog)
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);

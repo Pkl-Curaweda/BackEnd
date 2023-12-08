@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { getLogAvailabilityData } = require("../../models/Reservation/M_LogAvailability");
+const { getLogAvailabilityData, createNewLogAvailable } = require("../../models/Front Office/M_LogAvailability");
 const { success } = require("../../utils/response");
 
 const getLogAvailability = async (req, res) => {
@@ -15,4 +15,14 @@ const getLogAvailability = async (req, res) => {
   });
 };
 
-module.exports = { getLogAvailability };
+const CreateLog = async (req, res) => {
+  try{
+      const createdLog = await createNewLogAvailable();
+      return success(res, 'Log Created', createdLog)
+  }catch(err){
+      return error(res, err.message)
+  }
+  
+}
+
+module.exports = { getLogAvailability, CreateLog };

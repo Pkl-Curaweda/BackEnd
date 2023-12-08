@@ -1,4 +1,4 @@
-const { getAllStatus, getFloorPlanDataBasedOnDate } = require("../../models/Reservation/M_FloorPlan.js");
+const { getAllStatus, getFloorPlanDataBasedOnDate } = require("../../models/Front Office/M_FloorPlan.js");
 const { success, error } = require("../../utils/response.js");
 
 const getFloorPlan  = async (req, res) => {
@@ -12,7 +12,7 @@ const getFloorPlan  = async (req, res) => {
     }
     return success(res, 'Operation Success', floorPlan)
   }catch(err) {
-    return error(res, err.message, 404)
+  return error(res, err.message, 404);
   }
 };
 module.exports = { getFloorPlan};

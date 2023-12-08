@@ -1,39 +1,52 @@
-const { prisma } = require("../../../prisma/seeder/config");
-const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById, createReservationHelper } = require("../../models/Reservation/M_Reservation");
-const { createNewResvRoom } = require("../../models/Reservation/M_ResvRoom");
+const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById, createReservationHelper, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress } = require("../../models/Front Office/M_Reservation");
+const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom");
+const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange");
 const { success, error } = require("../../utils/response");
 
-const getCorrection = async (req, res) => {
-  const resvRoomId = req.query.id || "";
-  const sortAndOrder = req.query.sortOrder || "";
-  const displayOption = req.query.disOpt || "";
-  const nameQuery = req.query.name || "";
-  const dateQuery = req.query.date || "";
-  const page = +req.query.page || 1;
-  const perPage = +req.query.perPage || 5;
+const getArrivalGuest = (req, res) => {
+  const { action } = req.params;
+  switch (action){
+    case "create":
+      getCreateResevationHelper(req, res);
+      break;
+    case "edit":
+      getEditReservationHelper(req, res);
+      break;
+    default:
+      getArrivalGuestData(req, res);
+      break;
+  }
+}
 
-  const { reservations } = await getAllReservation(sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage);
-  const reservationDetail = resvRoomId != "" || undefined ? await getReservationById(parseInt(resvRoomId)) : "";
-  return success(res, "Operation Success", {
-    reservations,
-    reservationDetail,
-  });
-};
-
-const deleteReservation = async (req, res) => {
-  const reservationId = +req.params.id
-  try {
-    const deletedReservation = await deleteReservationById(reservationId)
-    return success(res, 'Operation Success', deletedReservation);
-  } catch (err) {
-    return error(res, err.message, 404)
+const getArrivalGuestData = async (req, res) => {
+  try{
+    const { reservationId, resvRoomId } = req.params;
+    const { sortOrder = "", disOpt = "", name = "", date = "", page = 1, perPage = 5 } = req.query;
+    const { reservations } = await getAllReservation(sortOrder, disOpt, name, date, parseInt(page), parseInt(perPage));
+    const reservationDetail = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
+    return success(res, "Operation Success", {
+      reservations,
+      reservationDetail,
+    });
+  }catch(err){
+    return error(res, err.message)
   }
 };
 
 const getCreateResevationHelper = async (req, res) => {
-  try{
-    const helper = await createReservationHelper();
+  try {
+    const helper = await DetailCreateReservationHelper();
     return success(res, 'Helper Running', helper)
+  } catch (err) {
+    return error(res, err.message)
+  }
+}
+
+const getEditReservationHelper = async (req, res) => {
+  try{
+    const { reservationId, resvRoomId } = req.params;
+     const helper = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
+     return success(res, 'Helper Running', helper)
   }catch(err){
     return error(res, err.message)
   }
@@ -50,73 +63,56 @@ const postNewReservation = async (req, res) => {
 }
 
 const postNewReservationRoom = async (req, res) => {
+  const { reservationId } = req.params
   const body = req.body;
-  try {
-    const resvRoom = await createNewResvRoom(body.reservationId, body)
-    return success(res, `New Room Created in Room`, resvRoom);
-  } catch (err) {
-    return error(res, err.message, 404);
+  try{
+    const resvRoom = await createNewResvRoom(parseInt(reservationId), body)
+    return success(res, `New Room  on Reservation ${reservationId}`, resvRoom);
+  }catch(err){
+    return error(res, err.message);
   }
 }
 
 const postChangeRoom = async (req, res) => {
-  const { resvRoomId, roomToId, note } = req.body;
+  const { resvRoomId, reservationId } = req.params;
+  const body = req.body
   try {
-    const resvRoom = await prisma.resvRoom.findUnique({
-      where: { id: resvRoomId },
-      include: { room: true, reservation: true },
-    });
-
-    const roomChange = await prisma.roomChange.create({
-      data: {
-        roomFrom: { connect: { id: resvRoom.roomId } },
-        roomTo: { connect: { id: roomToId } },
-        resvRoom: { connect: { id: resvRoomId } },
-        note,
-      },
-    });
-
-    const updatedResvRoom = await prisma.resvRoom.update({
-      where: { id: resvRoomId },
-      data: {
-        roomId: roomToId,
-      },
-    });
-
-    res.json({
-      message: "Room change recorded successfully",
-      roomChange,
-      updatedResvRoom,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    const changeRoom = await ChangeRoom(parseInt(resvRoomId), parseInt(reservationId), body);
+    return success(res, 'Changes Updated', changeRoom)
+  } catch(err){
+    return error(res, err.message)
   }
 };
 
+const postChangeProgress = async (req, res) => {
+  const { reservationId, changeProgress } = req.params
+  try{
+    const changedProgress = await ChangeReservationProgress(parseInt(reservationId), changeProgress);
+    return success(res, 'Change Success', changedProgress)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
 
-const updateReservation = async (req, res) => {
-  const reservationId = parseInt(req.params.id);
-  const updatedData = req.body;
-
+const putNewReservationData = async (req, res) => {
+  const { reservationId, resvRoomId } = req.params
+  const body = req.body;
   try {
-    const updatedReservation = await editReservation(
-      reservationId,
-      updatedData
-    );
-
-    if (!updatedReservation) {
-      return res.status(404).json({ error: "Reservation not found" });
-    }
-
-    res.status(200).json({
-      message: "Reservation updated successfully",
-      updatedReservation,
-    });
-  } catch (error) {
-    console.error("Error updating reservation:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const updatedReservation = await editReservation(parseInt(reservationId), parseInt(resvRoomId), body);
+    return success(res, `Reservation ${reservationId} Updated`, updatedReservation)
+  } catch (err) {
+    return error(res, err.message)
   }
 };
 
-module.exports = { getCorrection, getCreateResevationHelper , deleteReservation, postNewReservation, updateReservation, postNewReservationRoom, postChangeRoom };
+const deleteReservation = async (req, res) => {
+  const { reservationId } = req.params
+  try {
+    const deletedReservation = await deleteReservationById(parseInt(reservationId))
+    return success(res, 'Operation Success', deletedReservation);
+  } catch (err) {
+    return error(res, err.message, 404)
+  }
+};
+
+module.exports = { getArrivalGuest, postChangeProgress , getCreateResevationHelper, deleteReservation, postNewReservation, putNewReservationData, postNewReservationRoom, postChangeRoom };

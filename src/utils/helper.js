@@ -4,6 +4,11 @@ const PrismaDisconnect = async () => {
     await prisma.$disconnect();
 }
 
+const ThrowError = (err) => {
+    console.log(err)
+    throw err
+}
+
 function generateExpire(currentDate) {
     var expiredDate = new Date(currentDate);
     expiredDate.setDate(currentDate.getDate() + 3); //3 days from now
@@ -39,12 +44,6 @@ function countNight(arrivalDate, departureDate) {
     return night;
 
 }
-
-const ThrowError = (err) => {
-    console.log(err)
-    throw err;
-}
-
 
 async function paginate(model, where, options) {
     let page, perPage, skip;
