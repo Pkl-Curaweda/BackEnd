@@ -4,6 +4,8 @@ const logAvail = [
     {
         roomHistory: {
             room_1: {
+                "reservationId": 1,
+                "resvRoomId": 1,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -13,6 +15,8 @@ const logAvail = [
 
             }, 
             room_2: {
+                "reservationId": 1,
+                "resvRoomId": 2,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -23,6 +27,8 @@ const logAvail = [
             room_3: 0, 
             room_4: 0, 
             room_5: {
+                "reservationId": 2,
+                "resvRoomId": 4,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -31,6 +37,8 @@ const logAvail = [
                 "roomPrice": 300000,
             },
             room_6: {
+                "reservationId": 2,
+                "resvRoomId": 3,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -39,6 +47,8 @@ const logAvail = [
                 "roomPrice": 300000,
             },
             room_7: {
+                "reservationId": 1,
+                "resvRoomId": 5,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -47,6 +57,8 @@ const logAvail = [
                 "roomPrice": 300000,
             },
             room_8: {
+                "reservationId": 3,
+                "resvRoomId": 6,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -55,6 +67,8 @@ const logAvail = [
                 "roomPrice": 300000,
             },
             room_9: {
+                "reservationId": 3,
+                "resvRoomId": 7,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
@@ -63,6 +77,8 @@ const logAvail = [
                 "roomPrice": 300000,
             },
             room_10: {
+                "reservationId": 3,
+                "resvRoomId": 8,
                 "guestName": "Kenbrid",
                 "resvStatus": {
                     rowColor: "#fffc06",
