@@ -118,5 +118,19 @@ const createNewLogAvailable = async () => {
     }
 }
 
+//? FILTER - ROOM AVAILABILITY
+const filterRoomAvailabiy = async (roomType, roomId, bedSetup) => {
+	const roomAvail = await prisma.room.findMany({
+		where: {
+			AND: [
+				roomType ? { roomType: roomType } : {},
+				roomId ? { id: parseInt(roomId) } : {},
+				bedSetup ? { bedSetup: bedSetup } : {},
+			]
+		}
+	});
 
-module.exports = { getLogAvailabilityData, createNewLogAvailable }
+	return roomAvail;
+}
+
+module.exports = { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy, }
