@@ -193,10 +193,7 @@ const getReportDataByDate = async (requestedDate) => {
   } catch (error) {
     throw error;
   }
-}
-
-module.exports = { getReportDataByDate };
-
+};
 
 
 module.exports = {

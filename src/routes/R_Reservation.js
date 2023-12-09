@@ -25,6 +25,4 @@ R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);
-R_Reservation.get("/report/date", getReportByDate);
-
 module.exports = R_Reservation;
