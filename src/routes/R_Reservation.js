@@ -2,7 +2,7 @@ const { Router } = require("express");
 const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getCreateResevationHelper, getArrivalGuest, putNewReservationData, postChangeProgress } = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const { getLogAvailability, CreateLog, getFilterRoomAvail } = require("../controllers/Reservation/C_LogAvailabilty");
-const { getAllReport, testing } = require("../controllers/Reservation/C_Report");
+const { getAllReport, getReportByDate } = require("../controllers/Reservation/C_Report");
 
 const R_Reservation = new Router();
 
@@ -25,5 +25,6 @@ R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);
+R_Reservation.get("/report/date", getReportByDate);
 
 module.exports = R_Reservation;

@@ -29,7 +29,7 @@ const findReportReservation = async () => {
       }
       value.totalRoom++
     }
-    value.occ = value.occupied / value.totalRoom * 100; // 10 ubah agar dinamis
+    value.occ = value.occupied / value.totalRoom * 100;
     value.arr = value.roomRevenue / value.occupied;
 
     //value.totalAvailableSatuBulan (date, room avail)
@@ -132,8 +132,75 @@ const GetReportDetail = async () => {
   
 }
 
+//? GET REPORT DATA BY DATE
+const getReportDataByDate = async (requestedDate) => {
+  try {
+    const formattedDate = requestedDate;
+
+    const logAvailability = await prisma.logAvailability.findFirst({
+      where: {
+        created_at: {
+          gte: `${formattedDate}T00:00:00.000Z`,
+          lte: `${formattedDate}T23:59:59.999Z`
+        }
+      },
+      select: {
+        roomHistory: true,
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+
+    if (!logAvailability || !logAvailability.roomHistory) {
+      return {
+        date: formattedDate,
+        roomAvailable: null,
+        occupied: null,
+        occ: null,
+        roomRevenue: null,
+        arr: null,
+      };
+    }
+
+    let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, totalRoom = 0;
+
+    for (const history in logAvailability.roomHistory) {
+      if (logAvailability.roomHistory[history] !== 0) {
+        roomAvailable++;
+        if (logAvailability.roomHistory[history].roomPrice) {
+          roomRevenue += logAvailability.roomHistory[history].roomPrice;
+        }
+      } else {
+        occupied++;
+      }
+      totalRoom++;
+    }
+
+    occ = totalRoom === 0 ? null : (occupied / totalRoom) * 100;
+    arr = occupied === 0 ? null : roomRevenue / occupied;
+
+    const storedData = {
+      date: formattedDate,
+      roomAvailable: roomAvailable === 0 ? null : roomAvailable,
+      occupied: occupied === 0 ? null : occupied,
+      occ,
+      roomRevenue,
+      arr,
+    };
+
+    return storedData;
+  } catch (error) {
+    throw error;
+  }
+}
+
+module.exports = { getReportDataByDate };
+
+
 
 module.exports = {
   findReportReservation,
   getReportData,
+  getReportDataByDate,
 }
