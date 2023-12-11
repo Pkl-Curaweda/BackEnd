@@ -257,6 +257,7 @@ model idCard {
   name           String
   cardIdentifier cardIdentifier
   cardId         String
+  address        String         @db.Text
 }
 
 model LogAvailability {
