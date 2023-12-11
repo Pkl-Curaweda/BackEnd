@@ -5,7 +5,7 @@ const idCards = [
 		reservationId: 1,
         name: "Akbar",
         cardIdentifier: "KTP",
-        cardId: 2317381122
+        cardId: "2317381122"
 	},
 ];
 

@@ -199,7 +199,7 @@ CREATE TABLE `idCard` (
     `reservationId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `cardIdentifier` ENUM('KTP', 'SIM') NOT NULL,
-    `cardId` INTEGER NOT NULL,
+    `cardId` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

@@ -256,7 +256,7 @@ model idCard {
   reservationId  Int
   name           String
   cardIdentifier cardIdentifier
-  cardId         Int
+  cardId         String
 }
 
 model LogAvailability {
