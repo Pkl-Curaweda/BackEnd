@@ -1,4 +1,5 @@
-const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById, createReservationHelper, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress } = require("../../models/Front Office/M_Reservation");
+const { prisma } = require("../../../prisma/seeder/config");
+const { getAllReservation, getReservationById, editReservation, CreateNewReservation, deleteReservationById, createReservationHelper, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard } = require("../../models/Front Office/M_Reservation");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom");
 const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange");
 const { success, error } = require("../../utils/response");
@@ -94,6 +95,18 @@ const postChangeProgress = async (req, res) => {
   }
 }
 
+const postNewIdCard = async (req, res) => {
+  const { reservationId, resvRoomId } = req.params
+  const body = req.body
+  try{
+    const data = { reservationId: parseInt(reservationId), resvRoomId: parseInt(resvRoomId), ...body }
+    const IdCard = await AddNewIdCard(data);
+    return success(res, `New Id Created on Reservation ${reservationId}`, IdCard)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
+
 const putNewReservationData = async (req, res) => {
   const { reservationId, resvRoomId } = req.params
   const body = req.body;
@@ -115,4 +128,4 @@ const deleteReservation = async (req, res) => {
   }
 };
 
-module.exports = { getArrivalGuest, postChangeProgress , getCreateResevationHelper, deleteReservation, postNewReservation, putNewReservationData, postNewReservationRoom, postChangeRoom };
+module.exports = { getArrivalGuest, postChangeProgress , getCreateResevationHelper, deleteReservation, postNewReservation, putNewReservationData, postNewReservationRoom, postChangeRoom, postNewIdCard };

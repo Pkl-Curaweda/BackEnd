@@ -4,6 +4,7 @@ const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
+const { encrypt } = require("../../utils/encryption");
 
 const orderByIdentifier = (sortAndOrder) => {
   let orderQuery;
@@ -363,7 +364,6 @@ const editReservation = async (reservationId, resvRoomId, data) => {
   }
 };
 
-
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
     const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true } });
@@ -397,6 +397,23 @@ const ChangeReservationProgress = async (id, changeTo) => {
     await PrismaDisconnect()
   }
 }
+
+const AddNewIdCard = async (data) => {
+  try{
+    console.log(data)
+    const  { reservationId, resvRoomId } = data
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } } }})
+    data.cardId = encrypt(data.cardId)
+    await prisma.guest.update({ where: { id: resvRoom.reservation.reserver.guestId }, data: { address: data.address } })
+    delete data.resvRoomId, data.address
+    const createdIdCard = await prisma.idCard.create({data})    
+    return createdIdCard
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
 module.exports = {
   getAllReservation,
   getDetailById,
@@ -404,5 +421,6 @@ module.exports = {
   CreateNewReservation,
   editReservation,
   ChangeReservationProgress,
-  DetailCreateReservationHelper
+  DetailCreateReservationHelper,
+  AddNewIdCard
 };

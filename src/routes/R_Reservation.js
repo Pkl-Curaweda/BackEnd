@@ -1,8 +1,9 @@
 const { Router } = require("express");
-const { getCorrection, postNewReservation, updateReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getCreateResevationHelper, getArrivalGuest, putNewReservationData, postChangeProgress } = require("../controllers/Reservation/C_ArrivalGuest");
+const { postNewReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getArrivalGuest, putNewReservationData, postChangeProgress, postNewIdCard } = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const { getLogAvailability, CreateLog, getFilterRoomAvail } = require("../controllers/Reservation/C_LogAvailabilty");
-const { getAllReport, getReportByDate } = require("../controllers/Reservation/C_Report");
+const { getAllReport } = require("../controllers/Reservation/C_Report");
+const { getInvoice } = require("../controllers/Reservation/C_Invoice");
 
 const R_Reservation = new Router();
 
@@ -11,6 +12,7 @@ R_Reservation.get("/arrival/:reservationId?/:resvRoomId?/:action?", getArrivalGu
 R_Reservation.put("/arrival/:reservationId/:resvRoomId/edit", putNewReservationData);
 R_Reservation.post("/arrival/:reservationId/:resvRoomId/create", postNewReservation);
 R_Reservation.post("/arrival/:reservationId/:resvRoomId/add-room", postNewReservationRoom);
+R_Reservation.post("/arrival/:reservationId/:resvRoomId/add-idcard", postNewIdCard);
 R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-room", postChangeRoom);
 R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-progress/:changeProgress", postChangeProgress);
 R_Reservation.delete("/arrival/:reservationId?/:resvRoomId?/delete", deleteReservation);
@@ -25,4 +27,8 @@ R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);
+
+//?INVOICE
+R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice)
+
 module.exports = R_Reservation;
