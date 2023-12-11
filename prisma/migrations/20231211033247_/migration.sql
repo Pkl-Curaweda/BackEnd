@@ -196,7 +196,7 @@ CREATE TABLE `Reserver` (
 -- CreateTable
 CREATE TABLE `idCard` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `reserverId` INTEGER NOT NULL,
+    `reservationId` INTEGER NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `cardIdentifier` ENUM('KTP', 'SIM') NOT NULL,
     `cardId` INTEGER NOT NULL,
@@ -520,7 +520,7 @@ ALTER TABLE `ResvRoom` ADD CONSTRAINT `ResvRoom_arrangmentCodeId_fkey` FOREIGN K
 ALTER TABLE `Reserver` ADD CONSTRAINT `Reserver_guestId_fkey` FOREIGN KEY (`guestId`) REFERENCES `Guest`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `idCard` ADD CONSTRAINT `idCard_reserverId_fkey` FOREIGN KEY (`reserverId`) REFERENCES `Reserver`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `idCard` ADD CONSTRAINT `idCard_reservationId_fkey` FOREIGN KEY (`reservationId`) REFERENCES `Reservation`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ResvPayment` ADD CONSTRAINT `ResvPayment_reservationId_fkey` FOREIGN KEY (`reservationId`) REFERENCES `Reservation`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

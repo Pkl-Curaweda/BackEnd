@@ -204,6 +204,7 @@ model Reservation {
   dirtyRooms         DirtyRoom[]
   oooRooms           OooRoom[]
   ResvPayment        ResvPayment[]
+  idCard             idCard[]
 }
 
 model SpecialTreatment {
@@ -247,13 +248,12 @@ model Reserver {
   reservations Reservation[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
-  idCard       idCard[]
 }
 
 model idCard {
   id             Int            @id @default(autoincrement())
-  reserver       Reserver       @relation(fields: [reserverId], references: [id])
-  reserverId     Int
+  reservation    Reservation    @relation(fields: [reservationId], references: [id])
+  reservationId  Int
   name           String
   cardIdentifier cardIdentifier
   cardId         Int
