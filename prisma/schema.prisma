@@ -257,10 +257,7 @@ model idCard {
   name           String
   cardIdentifier cardIdentifier
   cardId         String
-<<<<<<< HEAD
-=======
   address        String         @db.Text
->>>>>>> 0f48b6dc600c2156f298492e0b2a73aa22e5424f
 }
 
 model LogAvailability {
