@@ -2,10 +2,11 @@ const { prisma } = require("../../config");
 
 const idCards = [
 	{
-		reserverId: 1,
+		reservationId: 1,
         name: "Akbar",
         cardIdentifier: "KTP",
-        cardId: 2317381122
+        cardId: "2317381122",
+		address: "Jl. Kalimantan 202"
 	},
 ];
 

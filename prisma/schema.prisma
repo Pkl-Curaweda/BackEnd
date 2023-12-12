@@ -193,10 +193,10 @@ model Reservation {
   reservationRemarks String?           @db.Text
   onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
-  arrivalDate        DateTime          
-  departureDate      DateTime          
-  checkInDate        DateTime?         
-  checkoutDate       DateTime?         
+  arrivalDate        DateTime
+  departureDate      DateTime
+  checkInDate        DateTime?
+  checkoutDate       DateTime?
   created_at         DateTime          @default(now())
   updated_at         DateTime          @updatedAt
   resvRooms          ResvRoom[]
@@ -204,6 +204,7 @@ model Reservation {
   dirtyRooms         DirtyRoom[]
   oooRooms           OooRoom[]
   ResvPayment        ResvPayment[]
+  idCard             idCard[]
 }
 
 model SpecialTreatment {
@@ -247,16 +248,16 @@ model Reserver {
   reservations Reservation[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
-  idCard       idCard[]
 }
 
 model idCard {
   id             Int            @id @default(autoincrement())
-  reserver       Reserver       @relation(fields: [reserverId], references: [id])
-  reserverId     Int
+  reservation    Reservation    @relation(fields: [reservationId], references: [id])
+  reservationId  Int
   name           String
   cardIdentifier cardIdentifier
-  cardId         Int
+  cardId         String
+  address        String         @db.Text
 }
 
 model LogAvailability {
