@@ -3,9 +3,10 @@ const { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy } = r
 const { success, error } = require("../../utils/response");
 
 const getRoomAvailability = async (req, res) => {
-  const { page = 1, perPage = 5, date = "" } = req.query;
+  const { filter } = req.params
+  const { page = 1, perPage = 5, date = ""} = req.query;
   try {
-    const logData = await getLogAvailabilityData(date, parseInt(page), parseInt(perPage));
+    const logData = await getLogAvailabilityData(date, parseInt(page), parseInt(perPage), filter);
     return success(res, "Operation Success", logData);
   } catch (err) {
     return error(res, err.meesage)

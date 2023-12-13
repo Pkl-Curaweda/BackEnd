@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const {ThrowError,PrismaDisconnect,countNight} = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays } = require("../../utils/helper");
 
 //? REPORT
 const findReportReservation = async () => {
@@ -41,98 +41,104 @@ const findReportReservation = async () => {
 };
 
 
-const getReportData = async (disOpt) => {
+const getReportData = async (disOpt, page, perPage) => {
   try {
-    let month = [];
-      const skip = (page - 1) * pageSize;
-      const paginatedData = month.slice(skip, skip + pageSize);
+    let reports = [], startIndex, endIndex;
+    startIndex = (page - 1) * perPage;
+    endIndex = startIndex + perPage - 1;
+    // const skip = (page - 1) * pageSize;
+    // const paginatedData = month.slice(skip, skip + pageSize);
 
-    const monthNames = [
-      "January","February","March","April","May","June",
-      "July","August","September","October","November","December",
-    ];
+    // const monthNames = [
+    //   "January", "February", "March", "April", "May", "June",
+    //   "July", "August", "September", "October", "November", "December",
+    // ];
 
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentYear = currentDate.getFullYear();
-    const toMonth = currentMonth - 3;
+    const dates = generateDateBetweenNowBasedOnDays("past", 30) //?31 DAYS BEFORE TODAY
+    startIndex = Math.max(0, startIndex);
+    endIndex = Math.min(dates.length - 1, endIndex);
+    console.log(startIndex, endIndex)
 
-    for (let i = currentMonth; i > toMonth; i--) {
-      let perDay = [],
-        dataCount = 0;
-      const daysInMonth = new Date(currentYear, i, 0).getDate();
-      const formattedMonth = i.toString().padStart(2, "0");
-      const monthName = monthNames[i - 1];
-      const endDate = i === currentMonth ? currentDate.getDate() : daysInMonth;
-
-      for (let date = endDate; date >= 1; date--) {
-        const formattedDate = date.toString().padStart(2, "0");
-        const logAvailability = await prisma.logAvailability.findFirst({
-          where: {
-            created_at: {
-              gte: `${currentYear}-${formattedMonth}-${formattedDate}T00:00:00.000Z`,
-              lte: `${currentYear}-${formattedMonth}-${formattedDate}T23:59:59.999Z`,
-            },
+    for (let i = startIndex; i <= endIndex; i++) {
+      const searchedDate = new Date(dates[i]);
+      const searchDate = searchedDate.toISOString().split("T")[0];
+      const logAvailability = await prisma.logAvailability.findFirst({
+        where: {
+          created_at: {
+            gte: `${searchDate}T00:00:00.000Z`,
+            lte: `${searchDate}T23:59:59.999Z`,
           },
-          select: {
-            roomHistory: true,
-          },
-          orderBy: {
-            created_at: "desc",
-          },
-        });
+        },
+        select: {
+          roomHistory: true,
+        },
+        orderBy: {
+          created_at: "desc",
+        },
+      });
 
-        let roomAvailable = 0,
-          occupied = 0,
-          occ = 0,
-          roomRevenue = 0,
-          arr = 0,
-          totalRoom = 0;
-
-        if (logAvailability && logAvailability.roomHistory) {
-          for (const history in logAvailability.roomHistory) {
-            if (logAvailability.roomHistory[history] !== 0) {
-              roomAvailable++;
-              if (logAvailability.roomHistory[history].roomPrice) {
-                roomRevenue += logAvailability.roomHistory[history].roomPrice;
-              }
-            } else {
-              occupied++;
-            }
-            totalRoom++;
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, totalRoom = 0;
+      if (logAvailability && logAvailability.roomHistory) {
+        for (const history in logAvailability.roomHistory) {
+          if (logAvailability.roomHistory[history] != 0) roomAvailable++;
+          if (logAvailability.roomHistory[history].roomPrice) {
+            occupied++;
+            roomRevenue += logAvailability.roomHistory[history].roomPrice;
           }
+          totalRoom++;
         }
-
-        occ = (occupied / totalRoom) * 100;
-        arr = roomRevenue / occupied;
-
-        const storedData = {
-          date: `${currentYear}-${formattedMonth}-${formattedDate}`,
-          roomAvailable,
-          occupied,
-          occ,
-          roomRevenue,
-          arr,
-        };
-
-        perDay.push(storedData);
       }
 
-      const storedMonth = {
-        monthName,
-        perDay,
+      occ = (occupied / totalRoom) * 100 || 0;
+      arr = roomRevenue / occupied || 0;
+
+      const storedData = {
+        date: searchDate,
+        roomAvailable,
+        occupied,
+        occ,
+        roomRevenue,
+        arr,
       };
 
-      month.push(storedMonth);
+      reports.push(storedData)
     }
-    const result = {
-      perDay: disOpt === "perDay" ? month.flatMap((m) => m.perDay) : undefined,
-      perMonth:disOpt === "perMonth"? month.map((m) => ({monthName: m.monthName,perDay: m.perDay.map((day) => ({ data: day })),})): undefined,
-      perYear:disOpt === "perYear"? month.map((m) => ({ year: currentYear,monthName: m.monthName,perDay: m.perDay.map((day) => ({ data: day})),})): undefined,
-      allData: !disOpt ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    };
+    const lastPage = Math.ceil(dates.length / perPage);
+    // const daysInMonth = new Date(currentYear, i, 0).getDate();
+    // const formattedMonth = i.toString().padStart(2, "0");
+    // const monthName = monthNames[i - 1];
+    // const endDate = i === currentMonth ? currentDate.getDate() : daysInMonth;
 
-    return result;
+    // for (let date = endDate; date >= 1; date--) {
+    //   const formattedDate = date.toString().padStart(2, "0");
+
+    //   perDay.push(storedData);
+    // }
+
+    // const storedMonth = {
+    //   monthName,
+    //   perDay,
+    // };
+
+    // month.push(storedMonth);
+    // const result = {
+    //   perDay: disOpt === "perDay" ? month.flatMap((m) => m.perDay) : undefined,
+    //   perMonth: disOpt === "perMonth" ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
+    //   perYear: disOpt === "perYear" ? month.map((m) => ({ year: currentYear, monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
+    //   allData: !disOpt ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
+    // };
+
+    return {
+      reports,
+      meta: {
+        total: dates.length,
+        currPage: page,
+        lastPage,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null
+    }
+    };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -142,7 +148,7 @@ const getReportData = async (disOpt) => {
 
 //?OnGOING
 const GetReportDetail = async () => {
-  
+
 }
 
 //? GET REPORT DATA BY DATE

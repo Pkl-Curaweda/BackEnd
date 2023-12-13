@@ -1,10 +1,31 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
 
-const getLogAvailabilityData = async (dateQuery, page, perPage) => {
+const filterRoomHistory = (roomHistory, filter) => {
+    let filteredRoomHistory = {};
+    const filterIdentifier = filter.split("_")[0]
+    filter = filter.split("_")[1]
+    switch (filterIdentifier) {
+        case "T":
+            Object.values(roomHistory).forEach((room) => {
+                if (room.room.roomType === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
+            });
+            break;
+        case "B":
+            Object.values(roomHistory).forEach((room) => {
+                if (room.room.bedSetup === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
+            });
+            break;
+        default:
+            throw Error('Unknown Filter')
+    }
+    if (Object.keys(filteredRoomHistory).length === 0) filteredRoomHistory = 0
+    return filteredRoomHistory
+}
+
+const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
     try {
-        let logData = [], totalData = 0, originDate, startDate, endDate, dates;
-        originDate = new Date();
+        let logData = [], startDate, endDate, dates;
         let startIndex = (page - 1) * perPage;
         let endIndex = startIndex + perPage - 1;
         if (dateQuery != "") {
@@ -17,7 +38,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage) => {
         startIndex = Math.max(0, startIndex);
         endIndex = Math.min(dates.length - 1, endIndex);
 
-        console.log(dates)
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
@@ -34,7 +54,8 @@ const getLogAvailabilityData = async (dateQuery, page, perPage) => {
                     created_at: 'desc'
                 }
             })
-            const roomHistory = logAvailability ? logAvailability.roomHistory : 0;
+            let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
+            if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
                 roomHistory
@@ -49,7 +70,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage) => {
                 currPage: page,
                 lastPage,
                 perPage,
-                prev: page > 0 ? page - 1 : null,
+                prev: page > 1 ? page - 1 : null,
                 next: page < lastPage ? page + 1 : null
             }
         }
@@ -74,6 +95,7 @@ const createNewLogAvailable = async () => {
                     roomId: room.id
                 },
                 select: {
+                    id: true,
                     arrangment: {
                         select: {
                             rate: true
@@ -81,6 +103,7 @@ const createNewLogAvailable = async () => {
                     },
                     reservation: {
                         select: {
+                            id: true,
                             reserver: {
                                 select: {
                                     guest: {
@@ -97,6 +120,12 @@ const createNewLogAvailable = async () => {
                                 }
                             },
                         }
+                    }, room: {
+                        select: {
+                            id: true,
+                            roomType: true,
+                            bedSetup: true
+                        }
                     }
                 },
                 orderBy: {
@@ -109,8 +138,11 @@ const createNewLogAvailable = async () => {
             const key = `room_${room.id}`;
             if (resvRoom != null) {
                 roomHistory[key] = {
+                    "reservationId": resvRoom.reservation.id,
+                    "resvRoomId": resvRoom.id,
                     "guestName": resvRoom.reservation.reserver.guest.name,
                     "resvStatus": resvRoom.reservation.resvStatus,
+                    "room": resvRoom.room,
                     "roomPrice": resvRoom.arrangment.rate
                 };
             } else {
@@ -129,19 +161,4 @@ const createNewLogAvailable = async () => {
     }
 }
 
-//? FILTER - ROOM AVAILABILITY
-const filterRoomAvailabiy = async (roomType, roomId, bedSetup) => {
-    const roomAvail = await prisma.room.findMany({
-        where: {
-            AND: [
-                roomType ? { roomType: roomType } : {},
-                roomId ? { id: parseInt(roomId) } : {},
-                bedSetup ? { bedSetup: bedSetup } : {},
-            ]
-        }
-    });
-
-    return roomAvail;
-}
-
-module.exports = { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy, }
+module.exports = { getLogAvailabilityData, createNewLogAvailable }

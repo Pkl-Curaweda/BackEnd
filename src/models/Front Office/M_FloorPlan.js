@@ -52,7 +52,7 @@ const getAllStatus = async () => {
         floorPlan[key] = ""
       }
     }
-    return { floorPlan }
+    return floorPlan
   } catch (err) {
     ThrowError(err);
   } finally {

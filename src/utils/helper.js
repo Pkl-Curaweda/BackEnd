@@ -6,7 +6,7 @@ const PrismaDisconnect = async () => {
 }
 
 const ThrowError = (err) => {
-    console.log(err)
+console.log(err)
     throw err
 }
 
@@ -14,7 +14,7 @@ function generateDateBetweenNowBasedOnDays(pastFuture, manyDays) {
     const dateArray = [];
     const currentDate = new Date();
 
-    for (let i = 0; i <= manyDays; i++) {
+    for (let i = 0; i <= manyDays - 1; i++) {
         const listDate = new Date(currentDate);
         if (pastFuture === "past") {
             listDate.setDate(currentDate.getDate() - i);

@@ -21,7 +21,7 @@ R_Reservation.get("/arrival/:reservationId?/:resvRoomId?/:action?", getArrivalGu
 R_Reservation.get("/floorplan", getFloorPlan);
 
 //?lOG AVAILABILITY
-R_Reservation.get("/roomavail", getRoomAvailability)
+R_Reservation.get("/roomavail/:filter?", getRoomAvailability)
 R_Reservation.post("/roomavail/create-log", CreateLog)
 R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
 
