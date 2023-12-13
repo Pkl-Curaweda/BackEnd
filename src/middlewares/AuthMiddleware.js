@@ -9,7 +9,8 @@ const { error } = require("../utils/response");
  */
 const auth = async (req, res, next) => {
     try {
-        const accessToken = req.header('Authorization').split(' ')[1];
+        const refreshToken = req.header('Authorization').split(' ')[1];
+        await prisma.userToken.findFirstOrThrow({ where: { refreshToken } })
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
         const userData = await prisma.user.findUniqueOrThrow({
             where: {
@@ -26,7 +27,7 @@ const auth = async (req, res, next) => {
         req.user = userData
     } catch (err) {
         console.log(err)
-        return error(res, 'Unaunthenticated', 401);
+        return error(res, err.message, 401);
     }
     next();
 }

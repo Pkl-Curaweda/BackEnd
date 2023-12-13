@@ -97,9 +97,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
-    const { take, skip } = await paginate(prisma.reservation, whereQuery, { page, perPage })
 
-    const reservations = await prisma.resvRoom.findMany({
+    const { reservations, meta } = await paginate(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
         ...(dateQuery && { reservation: { arrivalDate } }),
@@ -150,9 +149,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         }
       },
       orderBy,
-      take,
-      skip
-    });
+    })
 
     let reservationsArray = [];
     reservations.forEach((reservation) => {
@@ -168,7 +165,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         reservationsArray[index].reservation.push(reservation);
       }
     });
-    return { reservations: reservationsArray };
+
+    return { reservations: reservationsArray, meta };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -399,18 +397,14 @@ const ChangeReservationProgress = async (id, changeTo) => {
 }
 
 const AddNewIdCard = async (data) => {
-  try{
-    console.log(data)
-    const  { reservationId, resvRoomId } = data
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } } }})
+  try {
     data.cardId = encrypt(data.cardId)
-    await prisma.guest.update({ where: { id: resvRoom.reservation.reserver.guestId }, data: { address: data.address } })
-    delete data.resvRoomId, data.address
-    const createdIdCard = await prisma.idCard.create({data})    
+    delete data.resvRoomId
+    const createdIdCard = await prisma.idCard.create({ data })
     return createdIdCard
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }

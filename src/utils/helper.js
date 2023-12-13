@@ -1,3 +1,4 @@
+const { randomInt } = require("crypto");
 const { prisma } = require("../../prisma/seeder/config");
 
 const PrismaDisconnect = async () => {
@@ -7,6 +8,35 @@ const PrismaDisconnect = async () => {
 const ThrowError = (err) => {
     console.log(err)
     throw err
+}
+
+function generateDateBetweenNowBasedOnDays(pastFuture, manyDays) {
+    const dateArray = [];
+    const currentDate = new Date();
+
+    for (let i = 0; i <= manyDays; i++) {
+        const listDate = new Date(currentDate);
+        if (pastFuture === "past") {
+            listDate.setDate(currentDate.getDate() - i);
+        } else {
+            listDate.setDate(currentDate.getDate() + i);
+        }
+        dateArray.push(listDate.toISOString().split('T')[0]);
+    }
+    return dateArray;
+}
+
+
+function generateDateBetweenStartAndEnd(startDate, endDate) {
+    const dateArray = [];
+    let currentDate = new Date(startDate);
+
+    while (currentDate <= new Date(endDate)) {
+        dateArray.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dateArray;
 }
 
 function generateExpire(currentDate) {
@@ -45,19 +75,72 @@ function countNight(arrivalDate, departureDate) {
 
 }
 
-async function paginate(model, where, options) {
-    let page, perPage, skip;
-    page = options.page || 1;
-    perPage = options.perPage || 10;
-    skip = (page - 1) * perPage;
-    // const totalData = await model.count({ where })
-    return {
-        take: perPage,
-        skip,
-        // totalData
+const generateVoucherNo = async () => {
+    let uniqueVoucherNo, existingResvRoom;
+    do {
+        uniqueVoucherNo = randomInt(1000)
+        existingResvRoom = await prisma.resvRoom.findFirst({
+            where: {
+                voucherNo: uniqueVoucherNo
+            }
+        });
+    } while (existingResvRoom);
+    return uniqueVoucherNo;
+};
+
+const GenerateUsernameAndPassword = async (guestName) => {
+    try {
+        let username, usernameExist;
+        guestName = guestName.split(' ')[0];
+        do {
+            username = generateStringRandomizer(guestName)
+            usernameExist = await prisma.guest.findUnique({ where: { username } })
+        } while (usernameExist)
+        const password = generateRandomString(8);
+        return { username, password }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect();
+    }
+}
+
+
+const paginate = async (model, options, args = { where: undefined }) => {
+    let { page = 1, perPage = 5 } = options;
+    model = model
+    try {
+        const skip = (page - 1) * perPage;
+        const [data, total] = await Promise.all([
+            model.findMany({
+                ...args,
+                skip,
+                take: perPage
+            }),
+            model.count({
+                where: args.where
+            })
+        ])
+        const lastPage = Math.ceil(total / perPage);
+
+        return {
+            [options.name]: data,
+            meta: {
+                total,
+                currPage: page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null,
+            }
+        }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
     }
 }
 
 module.exports = {
-    PrismaDisconnect, generateExpire, generateRandomString, generateStringRandomizer, countNight, ThrowError, paginate
+    PrismaDisconnect, generateExpire, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, generateRandomString, generateStringRandomizer, countNight, ThrowError, paginate, generateVoucherNo, GenerateUsernameAndPassword
 };

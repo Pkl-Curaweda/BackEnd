@@ -1,27 +1,28 @@
 const jwt = require('jsonwebtoken')
 const path = require('path');
-const { CreateNewGuest, GenerateGuestQrCode, GetGuestById, GuestLogin, GetAllGuests } = require("../models/Authorization/M_Guest");
+const { CreateNewGuest, GetGuestById, GuestLogin, GetAllGuests, CreateGuestQrCode } = require("../models/Authorization/M_Guest");
 const { success, error } = require("../utils/response");
 
-const PostNewGuest = async (req, res) => {
-    const name = req.body.name;
-    const contact = req.body.contact;
-    const createGuest = await CreateNewGuest(name, contact);
-    return success(res, 'User Created', createGuest)
-}
-
 const GetQRCode = async (req, res) => {
-    const guestId = parseInt(req.params.id);
-    const guestData = await GetGuestById(guestId)
-    const generatedQR = await GenerateGuestQrCode(guestData);
-    setTimeout(() => {
-        return res.download(path.resolve(generatedQR))
-    }, 100)
+    try {
+        const guestId = parseInt(req.params.id);
+        const guestData = await GetGuestById(guestId)
+        const generatedQR = await CreateGuestQrCode(guestData);
+        setTimeout(() => {
+            return res.download(path.resolve(generatedQR))
+        }, 100)
+    } catch (err) {
+        return error(res, err.message)
+    }
 }
 
 const GetAllGuest = async (req, res) => {
-    const guests = await GetAllGuests();
-    return success(res, 'Operation Success', guests)
+    try {
+        const guests = await GetAllGuests();
+        return success(res, 'Operation Success', guests)
+    } catch (err) {
+        return error(res, err.message)
+    }
 }
 
 const GetCurrentGuest = async (req, res) => {
@@ -56,6 +57,17 @@ const PostLogin = async (req, res) => {
         return success(res, 'Login Success', { user: guestAndGeneratedToken.user, accessToken });
     } catch (err) {
         return error(res, err.message, 404)
+    }
+}
+
+const PostNewGuest = async (req, res) => {
+    try {
+        const name = req.body.name;
+        const contact = req.body.contact;
+        const createGuest = await CreateNewGuest(name, contact);
+        return success(res, 'User Created', createGuest)
+    } catch (err) {
+        return error(res, err.meesage)
     }
 }
 

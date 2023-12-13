@@ -1,21 +1,26 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
 
-const getLogAvailabilityData = async (dateQuery, skip, limit) => {
+const getLogAvailabilityData = async (dateQuery, page, perPage) => {
     try {
-        let logData = [], totalData = 0, originDate, startDate, endDate;
+        let logData = [], totalData = 0, originDate, startDate, endDate, dates;
         originDate = new Date();
-        longSearchedDate = 3;
+        let startIndex = (page - 1) * perPage;
+        let endIndex = startIndex + perPage - 1;
         if (dateQuery != "") {
             startDate = new Date(dateQuery.split(' ')[0]).toISOString();
             endDate = new Date(dateQuery.split(' ')[1]).toISOString();
-            longSearchedDate = countNight(startDate, endDate)
-            originDate = new Date(endDate)
+            dates = generateDateBetweenStartAndEnd(startDate, endDate)
+        } else {
+            dates = generateDateBetweenNowBasedOnDays("past", 7) //?7 DAYS BEFORE NOW
         }
-        for (let i = 0; i <= longSearchedDate; i++) {
-            const searchedDate = new Date(originDate);
-            searchedDate.setDate(searchedDate.getDate() - i);
-            const searchDate = searchedDate.toISOString().split('T')[0];
+        startIndex = Math.max(0, startIndex);
+        endIndex = Math.min(dates.length - 1, endIndex);
+
+        console.log(dates)
+        for (let i = startIndex; i <= endIndex; i++) {
+            const searchedDate = new Date(dates[i]);
+            const searchDate = searchedDate.toISOString().split("T")[0];
             const logAvailability = await prisma.logAvailability.findFirst({
                 where: {
                     created_at: {
@@ -27,9 +32,7 @@ const getLogAvailabilityData = async (dateQuery, skip, limit) => {
                 },
                 orderBy: {
                     created_at: 'desc'
-                },
-                take: limit,
-                skip: skip,
+                }
             })
             const roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             const pushedData = {
@@ -37,10 +40,18 @@ const getLogAvailabilityData = async (dateQuery, skip, limit) => {
                 roomHistory
             }
             logData.push(pushedData);
-            totalData++
         }
+        const lastPage = Math.ceil(dates.length / perPage);
         return {
-            logData, totalData
+            logData,
+            meta: {
+                total: dates.length,
+                currPage: page,
+                lastPage,
+                perPage,
+                prev: page > 0 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null
+            }
         }
     } catch (err) {
         ThrowError(err)
@@ -120,17 +131,17 @@ const createNewLogAvailable = async () => {
 
 //? FILTER - ROOM AVAILABILITY
 const filterRoomAvailabiy = async (roomType, roomId, bedSetup) => {
-	const roomAvail = await prisma.room.findMany({
-		where: {
-			AND: [
-				roomType ? { roomType: roomType } : {},
-				roomId ? { id: parseInt(roomId) } : {},
-				bedSetup ? { bedSetup: bedSetup } : {},
-			]
-		}
-	});
+    const roomAvail = await prisma.room.findMany({
+        where: {
+            AND: [
+                roomType ? { roomType: roomType } : {},
+                roomId ? { id: parseInt(roomId) } : {},
+                bedSetup ? { bedSetup: bedSetup } : {},
+            ]
+        }
+    });
 
-	return roomAvail;
+    return roomAvail;
 }
 
 module.exports = { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy, }
