@@ -9,7 +9,9 @@ const { error } = require("../utils/response");
  */
 const auth = async (req, res, next) => {
     try {
-        const refreshToken = req.header('Authorization').split(' ')[1];
+        const accessToken = req.headers['authorization'].split(' ')[1];
+		const refreshToken = req.cookies['refresh_token'];
+        
         await prisma.userToken.findFirstOrThrow({ where: { refreshToken } })
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
         const userData = await prisma.user.findUniqueOrThrow({
