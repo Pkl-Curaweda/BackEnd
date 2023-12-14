@@ -236,7 +236,6 @@ const getReportDetailData = async (date, displayOption) => {
     }
 
     for(let searchDate of dates){
-      console.log(searchDate)
       const logAvailability  = await prisma.logAvailability.findFirst({
         where: {
           created_at: {
@@ -267,9 +266,10 @@ const getReportDetailData = async (date, displayOption) => {
     rooms.forEach(room => {
       const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
-      const percentage = percentages[`room_${id}`] / dates.length
+      let key = `room_${id}`, percent = percentages[key];
+      if(percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
       if (!detail.hasOwnProperty(detailKey)) {
-        detail[detailKey] = { id, roomType, bedSetup, percentage }
+        detail[detailKey] = { id, roomType, bedSetup, percent }
       }
     })
     return detail

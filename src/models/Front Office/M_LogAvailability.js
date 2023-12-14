@@ -25,7 +25,7 @@ const filterRoomHistory = (roomHistory, filter) => {
 
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
     try {
-        let logData = [], startDate, endDate, dates;
+        let logData = [], startDate, endDate, dates, averages = {};
         let startIndex = (page - 1) * perPage;
         let endIndex = startIndex + perPage - 1;
         if (dateQuery != "") {
@@ -60,11 +60,24 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
                 date: searchedDate.toISOString().split('T')[0],
                 roomHistory
             }
+            if(roomHistory != 0){
+                Object.values(roomHistory).forEach(history => {
+                    const key = `total_${history.room.id}`;
+                    const averageKeyExists = averages.hasOwnProperty(key);
+                    averages[key] = (averageKeyExists ? averages[key] : 0) + 1;
+                })
+            }
             logData.push(pushedData);
         }
+        let roomAverage = {}
+        Object.keys(averages).forEach((average) => {
+            const avg = averages[average];
+            roomAverage[average] = avg / logData.length;
+        });
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             logData,
+            roomAverage,
             meta: {
                 total: dates.length,
                 currPage: page,
