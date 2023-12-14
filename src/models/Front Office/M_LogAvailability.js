@@ -16,6 +16,12 @@ const filterRoomHistory = (roomHistory, filter) => {
                 if (room.room.bedSetup === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
             });
             break;
+        case "R":
+            if(filter === 'desc'){
+                // roomHistory = roomHistory.sort((a, b) => a[])
+            }else{
+
+            }
         default:
             throw Error('Unknown Filter')
     }

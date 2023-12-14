@@ -57,7 +57,6 @@ const getReportData = async (disOpt, page, perPage) => {
     const dates = generateDateBetweenNowBasedOnDays("past", 30) //?31 DAYS BEFORE TODAY
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
-    console.log(startIndex, endIndex)
 
     for (let i = startIndex; i <= endIndex; i++) {
       const searchedDate = new Date(dates[i]);
@@ -146,11 +145,6 @@ const getReportData = async (disOpt, page, perPage) => {
   }
 };
 
-//?OnGOING
-const GetReportDetail = async () => {
-
-}
-
 //? GET REPORT DATA BY DATE
 const getReportDataByDate = async (requestedDate) => {
   try {
@@ -218,8 +212,7 @@ const getReportDataByDate = async (requestedDate) => {
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
   try {
-    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates
-    //?For now it's only perDay
+    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates, startDate, endDate
     switch (displayOption) {
       case "day":
         dates = generateDateBetweenStartAndEnd(date, date);
@@ -229,13 +222,21 @@ const getReportDetailData = async (date, displayOption) => {
         break;
       case "month":
         const searchedDate = new Date(date)
-        const startDate = new Date(searchedDate.setDate(searchedDate.getDate() - (searchedDate.getDate() - 1)))
+        startDate = new Date(searchedDate.setDate(searchedDate.getDate() - (searchedDate.getDate() - 1)))
         const lastDate = new Date(searchedDate.getFullYear(), searchedDate.getMonth() + 1, 0).getDate();
-        const endDate = new Date(searchedDate.setDate(lastDate))
+        endDate = new Date(searchedDate.setDate(lastDate))
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
+      case "year":
+        const currentYear = new Date(date).getFullYear() 
+        startDate = `${currentYear}-01-01`;
+        endDate = `${currentYear}-12-31`
+        dates = generateDateBetweenStartAndEnd(startDate, endDate)
+        break;
     }
+    console.log(dates)
 
     for(let searchDate of dates){
+      //?SearchedDate = 2023-12-12
       const logAvailability  = await prisma.logAvailability.findFirst({
         where: {
           created_at: {
@@ -264,7 +265,7 @@ const getReportDetailData = async (date, displayOption) => {
 
     const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
     rooms.forEach(room => {
-      const { id, roomType, bedSetup } = room
+    const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
       if(percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]

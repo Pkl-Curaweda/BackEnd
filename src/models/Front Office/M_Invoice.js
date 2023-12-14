@@ -2,7 +2,7 @@ const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenStartAndEnd } = require("../../utils/helper")
 
 //?This one is only the invoice is by the room/ per resvRoom
-const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) => {
+const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage) => {
     try {
         let invoices = [], startIndex, endIndex, arrivalDate, departureDate;
         let resvRoom = await prisma.resvRoom.findFirstOrThrow({
@@ -38,7 +38,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) 
         const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate)
         startIndex = Math.max(0, (page - 1) * perPage);
         endIndex = Math.min(dates.length - 1, startIndex + perPage - 1);
-
 
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
@@ -111,6 +110,9 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) 
                 })
             })
         }
+        if(sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier)
+
+        // const 
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             invoices,
@@ -128,6 +130,33 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) 
     } finally {
         await PrismaDisconnect()
     }
+}
+
+const sortInvoiceData = (invoice, sortIdentifier) => {
+    let propertiesKey;
+    propertiesKey = sortIdentifier.split("-")[0]
+    if(propertiesKey === 'rev') propertiesKey = 'amount'
+    const sortBy = sortIdentifier.split("-")[1]
+    if(propertiesKey === 'desc' || propertiesKey === 'date'){
+        switch (sortBy) {
+            case "desc":
+                invoice = invoice.sort((a, b) => b[propertiesKey]?.localeCompare(a[propertiesKey]));
+                break;
+            default:
+                invoice = invoice.sort((a, b) => a[propertiesKey]?.localeCompare(b[propertiesKey]));
+                break;
+        }
+    }else{
+        switch (sortBy) {
+            case "desc":
+                invoice = invoice.sort((a, b) => b[propertiesKey] - a[propertiesKey]);
+                break;
+            default:
+                invoice = invoice.sort((a, b) => a[propertiesKey] - b[propertiesKey]);
+                break;
+        }
+    }
+    return invoice
 }
 
 module.exports = { GetInvoiceByResvRoomId }
