@@ -71,6 +71,7 @@ const getFloorPlanDataBasedOnDate = async (searchedDate) => {
         }
       }, select: { roomHistory: true }
     })
+    if(floorPlan === null) throw Error(`No Log in ${searchDate}`)
     return floorPlan;
   } catch (err) {
     ThrowError(err)

@@ -43,26 +43,26 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) 
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
-
             //?ROOM PRICE / DAYS
             invoices.push({
-                art: 1,
+                art: 115,
                 qty: 1,
                 desc: "Room",
                 rate: resvRoom.arrangment.rate,
                 amount: resvRoom.arrangment.rate,
-                billDate: searchedDate
+                billDate: searchDate
             })
-            console.log(searchDate)
 
             const orders = await prisma.orderDetail.findMany({
                 where: {
+                    order: { guestId },
                     created_at: {
                         gte: `${searchDate}T00:00:00.000Z`,
                         lte: `${searchDate}T23:59:59.999Z`
                     }
                 },
                 select: {
+                    id: true,
                     qty: true,
                     service: {
                         select: {
@@ -75,20 +75,54 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, page, perPage) 
             })
 
             orders.forEach((order) => {
+                //?ORDER / DAYS
                 invoices.push({
                     art: order.id,
                     qty: order.qty,
                     desc: order.service.name,
                     rate: order.service.price,
                     amount: order.qty * order.service.price,
-                    billDate: searchedDate
+                    billDate: searchDate
                 })
             })
 
-            console.log(orders)
+            const payments = await prisma.resvPayment.findMany({
+                where: {
+                    created_at: {
+                        gte: `${searchDate}T00:00:00.000Z`,
+                        lte: `${searchDate}T23:59:59.999Z`
+                    }
+                },
+                select: {
+                    orders: true,
+                    total: true
+                }
+            })
+
+            payments.forEach((payment) => {
+                //?ANY PAYMENT IN THIS DATE
+                invoices.push({
+                    art: 111,
+                    qty: 1,
+                    desc: "Payment",
+                    rate: payment.total,
+                    amount: 1 * payment.total,
+                    billDate: searchDate
+                })
+            })
         }
-
-
+        const lastPage = Math.ceil(dates.length / perPage);
+        return {
+            invoices,
+            meta: {
+                total: dates.length,
+                currPage: page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null
+            }
+        }
     } catch (err) {
         ThrowError(err)
     } finally {

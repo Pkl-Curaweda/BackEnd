@@ -215,6 +215,18 @@ const getReportDataByDate = async (requestedDate) => {
 };
 
 
+//? REPORT DETAIL
+const getReportDetailData = async () => {
+  try{
+    
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect();
+  }
+}
+
+
 module.exports = {
   findReportReservation,
   getReportData,

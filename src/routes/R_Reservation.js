@@ -5,6 +5,7 @@ const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../contr
 const { getAllReport } = require("../controllers/Reservation/C_Report");
 const { getInvoice } = require("../controllers/Reservation/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation } = require("../controllers/Reservation/C_Detail");
+const { auth } = require("../middlewares/AuthMiddleware");
 
 const R_Reservation = new Router();
 
@@ -15,7 +16,7 @@ R_Reservation.put("/detail/:reservationId/:resvRoomId/edit", putNewReservationDa
 R_Reservation.delete("/detail/:reservationId/:resvRoomId/delete", deleteReservation);
 
 //?ARRIVAL GUEST LIST
-R_Reservation.get("/arrival/:reservationId?/:resvRoomId?/:action?", getArrivalGuestData);
+R_Reservation.get("/arrival", auth, getArrivalGuestData);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
