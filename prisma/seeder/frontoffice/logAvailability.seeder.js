@@ -6,14 +6,19 @@ const logAvail = [
             room_1: {
                 "reservationId": 1,
                 "resvRoomId": 1,
-                "guestName": "Kenbrid",
+                "guestName": "Akeem",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#16a75c",
+                    "textColor": "#ffffffD"
                 },
-                "roomPrice": 300000,
-
-            }, 
+                "room": {
+                    "id": 1,
+                    "roomType": "STANDARD",
+                    "bedSetup": "KING"
+                },
+                "occupied": 1,
+                "roomPrice": 530000
+            },
             room_2: {
                 "reservationId": 1,
                 "resvRoomId": 2,
@@ -22,10 +27,30 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 2,
+                    "roomType": "DELUXE",
+                    "bedSetup": "KING"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
-            room_3: 0, 
-            room_4: 0, 
+            room_3: {
+                "room": {
+                    "id": 3,
+                    "roomType": "DELUXE",
+                    "bedSetup": "KING"
+                },
+                "occupied": 0
+            },
+            room_4: {
+                "room": {
+                    "id": 4,
+                    "roomType": "DELUXE",
+                    "bedSetup": "KING"
+                },
+                "occupied": 0
+            },
             room_5: {
                 "reservationId": 2,
                 "resvRoomId": 4,
@@ -34,7 +59,13 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
-                "roomPrice": 300000,
+                "room": {
+                    "id": 5,
+                    "roomType": "FAMILY",
+                    "bedSetup": "TWIN"
+                },
+                "occupied": 1,
+                "roomPrice": 300000
             },
             room_6: {
                 "reservationId": 2,
@@ -44,6 +75,12 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 6,
+                    "roomType": "FAMILY",
+                    "bedSetup": "TWIN"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
             room_7: {
@@ -54,6 +91,12 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 7,
+                    "roomType": "FAMILY",
+                    "bedSetup": "TWIN"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
             room_8: {
@@ -64,6 +107,12 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 8,
+                    "roomType": "STANDARD",
+                    "bedSetup": "SINGLE"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
             room_9: {
@@ -74,6 +123,12 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 9,
+                    "roomType": "STANDARD",
+                    "bedSetup": "SINGLE"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
             room_10: {
@@ -84,6 +139,12 @@ const logAvail = [
                     rowColor: "#fffc06",
                     textColor: "#000000",
                 },
+                "room": {
+                    "id": 10,
+                    "roomType": "STANDARD",
+                    "bedSetup": "SINGLE"
+                },
+                "occupied": 1,
                 "roomPrice": 300000,
             },
         },

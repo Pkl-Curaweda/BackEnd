@@ -141,6 +141,9 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
                 },
               },
             },
+            resvStatus: {
+              select: { description: true, rowColor: true, textColor: true },
+            },
             manyNight: true,
             arrivalDate: true,
             departureDate: true,

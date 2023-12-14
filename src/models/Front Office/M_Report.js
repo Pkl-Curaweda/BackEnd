@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
 
 //? REPORT
 const findReportReservation = async () => {
@@ -137,7 +137,7 @@ const getReportData = async (disOpt, page, perPage) => {
         perPage,
         prev: page > 1 ? page - 1 : null,
         next: page < lastPage ? page + 1 : null
-    }
+      }
     };
   } catch (err) {
     ThrowError(err);
@@ -185,7 +185,7 @@ const getReportDataByDate = async (requestedDate) => {
     let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, totalRoom = 0;
 
     for (const history in logAvailability.roomHistory) {
-      if (logAvailability.roomHistory[history] !== 0) {
+      if (logAvailability.roomHistory[history] !== log) {
         roomAvailable++;
         if (logAvailability.roomHistory[history].roomPrice) {
           roomRevenue += logAvailability.roomHistory[history].roomPrice;
@@ -216,12 +216,83 @@ const getReportDataByDate = async (requestedDate) => {
 
 
 //? REPORT DETAIL
-const getReportDetailData = async () => {
-  try{
-    
-  }catch(err){
+const getReportDetailData = async (date, displayOption) => {
+  try {
+    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates
+    //?For now it's only perDay
+    switch (displayOption) {
+      case "day":
+        dates = generateDateBetweenStartAndEnd(date, date);
+        break;
+      case "week":
+        //TODO: KERJAIN
+        break;
+      case "month":
+        const searchDate = new Date(date)
+        const startDate = new Date(searchDate.setDate(searchDate.getDate() - 1))
+        const lastDate = new Date(searchDate.getFullYear(), date, 0).getDate();
+        const endDate = new Date(searchDate.setDate(lastDate))
+        dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    }
+
+    const availabilityLogs = await Promise.all(
+
+      dates.map(async (searchDate) =>{
+        try {
+          const logAvailability = await prisma.logAvailability.findFirst({
+            where: {
+              created_at: {
+                gte: `${searchDate}T00:00:00.000Z`,
+                lte: `${searchDate}T23:59:59.999Z`,
+              },
+            },
+            select: { roomHistory: true },
+            orderBy: { created_at: 'desc' },
+          });
+  
+          if (logAvailability) {
+            return logAvailability;
+          } else {
+            // Handle the case where no data is found for the date
+            return null;
+          }
+        } catch (error) {
+          // Handle specific errors if needed
+          console.error(`Error fetching availability logs for date ${searchDate}: ${error.message}`);
+          return null;
+        }
+      })
+    );
+
+    availabilityLogs.forEach((logAvailability) => {
+      Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
+        const { roomType, id } = roomHistory.room;
+        const key = `room_${id}`;
+
+        if (roomHistory.occupied !== 0) {
+          total.RESERVATION++;
+          total[roomType]++;
+          const percentageKeyExists = percentages.hasOwnProperty(key);
+          percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
+        } else {
+          if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
+        }
+      });
+    });
+
+    const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
+    rooms.forEach(room => {
+      const { id, roomType, bedSetup } = room
+      const detailKey = `${id}-${roomType}-${bedSetup}`;
+      const percentage = percentages[`room_${id}`] / dates.length
+      if (!detail.hasOwnProperty(detailKey)) {
+        detail[detailKey] = { id, roomType, bedSetup, percentage }
+      }
+    })
+    return detail
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect();
   }
 }
@@ -231,4 +302,5 @@ module.exports = {
   findReportReservation,
   getReportData,
   getReportDataByDate,
+  getReportDetailData
 }

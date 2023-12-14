@@ -1,3 +1,4 @@
+const { getReportDetailData } = require("../../models/Front Office/M_Report.js");
 const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard } = require("../../models/Front Office/M_Reservation");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom");
 const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange");
@@ -72,6 +73,16 @@ const getEditReservationHelper = async (req, res) => {
   }
 }
 
+const getReportDetail = async (req, res) => {
+  const { displayOption = "day" } = req.params;
+  const { date = new Date().toISOString().split("T")[0]} = req.query
+  try{
+    const detail = await getReportDetailData(date, displayOption)
+    return success(res, 'Operation Success', detail)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
 
 //*   POST REQUEST
 const postNewReservation = async (req, res) => {
@@ -154,4 +165,4 @@ const deleteReservation = async (req, res) => {
 };
 
 
-module.exports = { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation }
+module.exports = { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail }

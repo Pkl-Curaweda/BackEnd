@@ -85,7 +85,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
 const createNewLogAvailable = async () => {
     try {
         let roomHistory = {};
-        const rooms = await prisma.room.findMany({ select: { id: true }, orderBy: { id: 'asc' } });
+        const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true }, orderBy: { id: 'asc' } });
         for (const room of rooms) {
             const resvRoom = await prisma.resvRoom.findFirst({
                 where: {
@@ -143,10 +143,19 @@ const createNewLogAvailable = async () => {
                     "guestName": resvRoom.reservation.reserver.guest.name,
                     "resvStatus": resvRoom.reservation.resvStatus,
                     "room": resvRoom.room,
+                    "occupied": 1,
                     "roomPrice": resvRoom.arrangment.rate
                 };
             } else {
-                roomHistory[key] = 0;
+                roomHistory[key] = {
+                    "room": {
+                        "id": room.id,
+                        "roomType": room.roomType,
+                        "bedSetup": room.bedSetup
+                    },
+                    "occupied": 0,
+                    "roomPrice": 0
+                };
             }
         }
 
