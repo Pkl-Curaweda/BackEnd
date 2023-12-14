@@ -1,7 +1,7 @@
-const { transactionSeeder } = require("./transaction.seeder")
+const { orderSeeder } = require("./order.seeder")
 
 const frontOfficeDevelopBatchSeed = async () => {
-    await transactionSeeder()
+    await orderSeeder();
 }
 
 module.exports = { frontOfficeDevelopBatchSeed }

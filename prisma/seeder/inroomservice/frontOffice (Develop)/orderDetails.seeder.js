@@ -11,10 +11,10 @@ const orderDetails = [{
 }];
 
 const orderDetailSeeder = async (orderId) => {
-    for(let detail in orderDetails){
-        orderDetails[detail].orderId = orderId;
+    for(let detail of orderDetails){
+        detail.orderId = orderId;
         await prisma.orderDetail.createMany({
-            data: orderDetails[detail]
+            data: detail
         });
     }
 }

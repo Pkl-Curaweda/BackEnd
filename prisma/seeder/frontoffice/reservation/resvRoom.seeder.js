@@ -13,7 +13,7 @@ const resvRoom = [
 ];
 async function ResvRoomSeed() {
 	for (let ResvRoom of resvRoom) {
-		await prisma.ResvRoom.create({
+		await prisma.resvRoom.create({
 			data: ResvRoom,
 		});
 	}
