@@ -228,57 +228,40 @@ const getReportDetailData = async (date, displayOption) => {
         //TODO: KERJAIN
         break;
       case "month":
-        const searchDate = new Date(date)
-        const startDate = new Date(searchDate.setDate(searchDate.getDate() - 1))
-        const lastDate = new Date(searchDate.getFullYear(), date, 0).getDate();
-        const endDate = new Date(searchDate.setDate(lastDate))
+        const searchedDate = new Date(date)
+        const startDate = new Date(searchedDate.setDate(searchedDate.getDate() - (searchedDate.getDate() - 1)))
+        const lastDate = new Date(searchedDate.getFullYear(), searchedDate.getMonth() + 1, 0).getDate();
+        const endDate = new Date(searchedDate.setDate(lastDate))
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
     }
 
-    const availabilityLogs = await Promise.all(
-
-      dates.map(async (searchDate) =>{
-        try {
-          const logAvailability = await prisma.logAvailability.findFirst({
-            where: {
-              created_at: {
-                gte: `${searchDate}T00:00:00.000Z`,
-                lte: `${searchDate}T23:59:59.999Z`,
-              },
-            },
-            select: { roomHistory: true },
-            orderBy: { created_at: 'desc' },
-          });
-  
-          if (logAvailability) {
-            return logAvailability;
-          } else {
-            // Handle the case where no data is found for the date
-            return null;
-          }
-        } catch (error) {
-          // Handle specific errors if needed
-          console.error(`Error fetching availability logs for date ${searchDate}: ${error.message}`);
-          return null;
-        }
-      })
-    );
-
-    availabilityLogs.forEach((logAvailability) => {
-      Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
-        const { roomType, id } = roomHistory.room;
-        const key = `room_${id}`;
-
-        if (roomHistory.occupied !== 0) {
-          total.RESERVATION++;
-          total[roomType]++;
-          const percentageKeyExists = percentages.hasOwnProperty(key);
-          percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
-        } else {
-          if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
-        }
+    for(let searchDate of dates){
+      console.log(searchDate)
+      const logAvailability  = await prisma.logAvailability.findFirst({
+        where: {
+          created_at: {
+            gte: `${searchDate}T00:00:00.000Z`,
+            lte: `${searchDate}T23:59:59.999Z`,
+          },
+        },
+        select: { roomHistory: true },
+        orderBy: { created_at: 'desc' },
       });
-    });
+      if(logAvailability != null){
+        Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
+          const { roomType, id } = roomHistory.room;
+          const key = `room_${id}`;
+          if (roomHistory.occupied !== 0) {
+            total.RESERVATION++;
+            total[roomType]++;
+            const percentageKeyExists = percentages.hasOwnProperty(key);
+            percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
+          } else {
+            if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
+          }
+        });
+      }
+    }
 
     const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
     rooms.forEach(room => {

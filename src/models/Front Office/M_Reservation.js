@@ -118,14 +118,13 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           select: {
             id: true,
             roomType: true,
-            bedSetup: true,
-            rate: true,
+            bedSetup: true
           },
         },
         roomMaids: {
           select: {
             user: {
-              select: { name: true }
+              select: { name: true , picture: true}
             }
           }
         },
