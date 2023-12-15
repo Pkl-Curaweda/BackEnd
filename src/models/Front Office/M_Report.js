@@ -41,7 +41,8 @@ const findReportReservation = async () => {
 };
 
 
-const getReportData = async (disOpt, page, perPage) => {
+//? GET ALL REPORT DATA
+const getReportData = async (disOpt, page, perPage, date) => {
   try {
     let reports = [], startIndex, endIndex;
     startIndex = (page - 1) * perPage;
@@ -54,13 +55,16 @@ const getReportData = async (disOpt, page, perPage) => {
     //   "July", "August", "September", "October", "November", "December",
     // ];
 
-    const dates = generateDateBetweenNowBasedOnDays("past", 30) //?31 DAYS BEFORE TODAY
+    const dates = date
+      ? [date]
+      : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
+
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
     for (let i = startIndex; i <= endIndex; i++) {
-      const searchedDate = new Date(dates[i]);
-      const searchDate = searchedDate.toISOString().split("T")[0];
+      const searchDate = date || new Date(dates[i]).toISOString().split("T")[0];
+
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
           created_at: {
@@ -76,7 +80,13 @@ const getReportData = async (disOpt, page, perPage) => {
         },
       });
 
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, totalRoom = 0;
+      let roomAvailable = 0,
+        occupied = 0,
+        occ = 0,
+        roomRevenue = 0,
+        arr = 0,
+        totalRoom = 0;
+
       if (logAvailability && logAvailability.roomHistory) {
         for (const history in logAvailability.roomHistory) {
           if (logAvailability.roomHistory[history] != 0) roomAvailable++;
@@ -100,8 +110,9 @@ const getReportData = async (disOpt, page, perPage) => {
         arr,
       };
 
-      reports.push(storedData)
+      reports.push(storedData);
     }
+
     const lastPage = Math.ceil(dates.length / perPage);
     // const daysInMonth = new Date(currentYear, i, 0).getDate();
     // const formattedMonth = i.toString().padStart(2, "0");
@@ -135,76 +146,13 @@ const getReportData = async (disOpt, page, perPage) => {
         lastPage,
         perPage,
         prev: page > 1 ? page - 1 : null,
-        next: page < lastPage ? page + 1 : null
-      }
+        next: page < lastPage ? page + 1 : null,
+      },
     };
   } catch (err) {
-    ThrowError(err);
+    throw err;
   } finally {
     await PrismaDisconnect();
-  }
-};
-
-//? GET REPORT DATA BY DATE
-const getReportDataByDate = async (requestedDate) => {
-  try {
-    const formattedDate = requestedDate;
-
-    const logAvailability = await prisma.logAvailability.findFirst({
-      where: {
-        created_at: {
-          gte: `${formattedDate}T00:00:00.000Z`,
-          lte: `${formattedDate}T23:59:59.999Z`
-        }
-      },
-      select: {
-        roomHistory: true,
-      },
-      orderBy: {
-        created_at: 'desc'
-      }
-    });
-
-    if (!logAvailability || !logAvailability.roomHistory) {
-      return {
-        date: formattedDate,
-        roomAvailable: null,
-        occupied: null,
-        occ: null,
-        roomRevenue: null,
-        arr: null,
-      };
-    }
-
-    let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, totalRoom = 0;
-
-    for (const history in logAvailability.roomHistory) {
-      if (logAvailability.roomHistory[history] !== log) {
-        roomAvailable++;
-        if (logAvailability.roomHistory[history].roomPrice) {
-          roomRevenue += logAvailability.roomHistory[history].roomPrice;
-        }
-      } else {
-        occupied++;
-      }
-      totalRoom++;
-    }
-
-    occ = totalRoom === 0 ? null : (occupied / totalRoom) * 100;
-    arr = occupied === 0 ? null : roomRevenue / occupied;
-
-    const storedData = {
-      date: formattedDate,
-      roomAvailable: roomAvailable === 0 ? null : roomAvailable,
-      occupied: occupied === 0 ? null : occupied,
-      occ,
-      roomRevenue,
-      arr,
-    };
-
-    return storedData;
-  } catch (error) {
-    throw error;
   }
 };
 
@@ -279,12 +227,11 @@ const getReportDetailData = async (date, displayOption) => {
   } finally {
     await PrismaDisconnect();
   }
-}
+};
 
 
 module.exports = {
   findReportReservation,
   getReportData,
-  getReportDataByDate,
-  getReportDetailData
+  getReportDetailData,
 }

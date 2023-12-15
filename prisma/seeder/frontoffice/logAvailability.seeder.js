@@ -3,7 +3,7 @@ const { prisma } = require("../config");
 const logAvail = [
     {
         roomHistory: {
-            room_1: {
+            "room_1": {
                 "reservationId": 1,
                 "resvRoomId": 1,
                 "guestName": "Akeem",
@@ -21,11 +21,11 @@ const logAvail = [
             },
             room_2: {
                 "reservationId": 1,
-                "resvRoomId": 2,
-                "guestName": "Kenbrid",
+                "resvRoomId": 1,
+                "guestName": "Adam Smith",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#e74c3c",
+                    "textColor": "#ffffff"
                 },
                 "room": {
                     "id": 2,
@@ -56,8 +56,13 @@ const logAvail = [
                 "resvRoomId": 4,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
+                },
+                "room": {
+                    "id": 5,
+                    "roomType": "FAMILY",
+                    "bedSetup": "TWIN"
                 },
                 "room": {
                     "id": 5,
@@ -67,13 +72,19 @@ const logAvail = [
                 "occupied": 1,
                 "roomPrice": 300000
             },
-            room_6: {
+            
+            "room_6": {
                 "reservationId": 2,
                 "resvRoomId": 3,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
+                },
+                "room": {
+                    "id": 6,
+                    "roomType": "STANDARD",
+                    "bedSetup": "TWIN"
                 },
                 "room": {
                     "id": 6,
@@ -83,13 +94,19 @@ const logAvail = [
                 "occupied": 1,
                 "roomPrice": 300000,
             },
-            room_7: {
+            
+            "room_7": {
                 "reservationId": 1,
                 "resvRoomId": 5,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
+                },
+                "room": {
+                    "id": 7,
+                    "roomType": "DELUXE",
+                    "bedSetup": "KING"
                 },
                 "room": {
                     "id": 7,
@@ -99,13 +116,19 @@ const logAvail = [
                 "occupied": 1,
                 "roomPrice": 300000,
             },
-            room_8: {
+            
+            "room_8": {
                 "reservationId": 3,
                 "resvRoomId": 6,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
+                },
+                "room": {
+                    "id": 8,
+                    "roomType": "DELUXE",
+                    "bedSetup": "KING"
                 },
                 "room": {
                     "id": 8,
@@ -115,13 +138,19 @@ const logAvail = [
                 "occupied": 1,
                 "roomPrice": 300000,
             },
-            room_9: {
+            
+            "room_9": {
                 "reservationId": 3,
                 "resvRoomId": 7,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
+                },
+                "room": {
+                    "id": 9,
+                    "roomType": "FAMILY",
+                    "bedSetup": "DOUBLE"
                 },
                 "room": {
                     "id": 9,
@@ -131,13 +160,14 @@ const logAvail = [
                 "occupied": 1,
                 "roomPrice": 300000,
             },
-            room_10: {
+            
+            "room_10": {
                 "reservationId": 3,
                 "resvRoomId": 8,
                 "guestName": "Kenbrid",
                 "resvStatus": {
-                    rowColor: "#fffc06",
-                    textColor: "#000000",
+                    "rowColor": "#fffc06",
+                    "textColor": "#000000"
                 },
                 "room": {
                     "id": 10,
