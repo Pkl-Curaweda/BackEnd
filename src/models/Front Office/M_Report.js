@@ -44,23 +44,30 @@ const findReportReservation = async () => {
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, date) => {
   try {
-    let reports = [], startIndex, endIndex;
-    startIndex = (page - 1) * perPage;
-    endIndex = startIndex + perPage - 1;
-    // const skip = (page - 1) * pageSize;
-    // const paginatedData = month.slice(skip, skip + pageSize);
+    let reports = [],
+      startIndex,
+      endIndex;
+      startIndex = (page - 1) * perPage;
+      endIndex = startIndex + perPage - 1;
 
-    // const monthNames = [
-    //   "January", "February", "March", "April", "May", "June",
-    //   "July", "August", "September", "October", "November", "December",
-    // ];
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
 
-    const dates = date
-      ? [date]
-      : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
+    const dates = date ? [date] : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
 
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
+
+    const pagination = {
+      total: dates.length,
+      currPage: page,
+      lastPage: Math.ceil(dates.length / perPage),
+      perPage,
+      prev: page > 1 ? page - 1 : null,
+      next: page < Math.ceil(dates.length / perPage) ? page + 1 : null,
+    };
 
     for (let i = startIndex; i <= endIndex; i++) {
       const searchDate = date || new Date(dates[i]).toISOString().split("T")[0];
@@ -113,49 +120,48 @@ const getReportData = async (disOpt, page, perPage, date) => {
       reports.push(storedData);
     }
 
-    const lastPage = Math.ceil(dates.length / perPage);
-    // const daysInMonth = new Date(currentYear, i, 0).getDate();
-    // const formattedMonth = i.toString().padStart(2, "0");
-    // const monthName = monthNames[i - 1];
-    // const endDate = i === currentMonth ? currentDate.getDate() : daysInMonth;
+    let result;
 
-    // for (let date = endDate; date >= 1; date--) {
-    //   const formattedDate = date.toString().padStart(2, "0");
+    switch (disOpt) {
+      case "perDay":
+        result = {
+          perDay: reports,
+          pagination: pagination,
+        };
+        break;
+      case "perMonth":
+        result = {
+          perMonth: reports.map((report) => ({
+            monthName: monthNames[new Date(report.date).getMonth()],
+            data: reports,
+          })),
+          pagination: pagination,
+        };
+        break;
+      case "perYear":
+        result = {
+          perYear: reports.map((report) => ({
+            year: new Date(report.date).getFullYear(),
+            monthName: monthNames[new Date(report.date).getMonth()],
+            data: reports,
+          })),
+          pagination: pagination,
+        };
+        break;
+      default:
+        result = {
+          allData: reports,
+          pagination: pagination,
+        }
+    }
 
-    //   perDay.push(storedData);
-    // }
-
-    // const storedMonth = {
-    //   monthName,
-    //   perDay,
-    // };
-
-    // month.push(storedMonth);
-    // const result = {
-    //   perDay: disOpt === "perDay" ? month.flatMap((m) => m.perDay) : undefined,
-    //   perMonth: disOpt === "perMonth" ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    //   perYear: disOpt === "perYear" ? month.map((m) => ({ year: currentYear, monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    //   allData: !disOpt ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    // };
-
-    return {
-      reports,
-      meta: {
-        total: dates.length,
-        currPage: page,
-        lastPage,
-        perPage,
-        prev: page > 1 ? page - 1 : null,
-        next: page < lastPage ? page + 1 : null,
-      },
-    };
+    return result;
   } catch (err) {
     throw err;
   } finally {
     await PrismaDisconnect();
   }
 };
-
 
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
