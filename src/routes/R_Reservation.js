@@ -3,7 +3,7 @@ const { getArrivalGuestData } = require("../controllers/Reservation/C_ArrivalGue
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Reservation/C_RoomAvailability");
 const { getAllReport } = require("../controllers/Reservation/C_Report");
-const { getInvoice } = require("../controllers/Reservation/C_Invoice");
+const { getInvoice, testInvoice, getSummary } = require("../controllers/Reservation/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail } = require("../controllers/Reservation/C_Detail");
 const { auth } = require("../middlewares/AuthMiddleware");
 
@@ -32,6 +32,7 @@ R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
 R_Reservation.get("/report", getAllReport);
 
 //?INVOICE
+R_Reservation.get("/invoice/payment/:reservationId/:resvRoomId", getSummary)
 R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice)
 
 module.exports = R_Reservation;

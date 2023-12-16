@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenStartAndEnd } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenStartAndEnd, generateBalanceAndTotal } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage) => {
@@ -42,11 +42,10 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
-            let roomPriceUniqueId = 0, orderUniqueId = 0, paymentUniqeuId = 0;
             //?ROOM PRICE / DAYS
             invoices.push({
                 art: 998,
-                uniqueId: roomPriceUniqueId++,
+                uniqueId: 1,
                 qty: 1,
                 desc: "Room",
                 rate: resvRoom.arrangment.rate,
@@ -97,6 +96,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
                     }
                 },
                 select: {
+                    id: true,
                     total: true
                 }
             })
@@ -105,7 +105,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
                 //?ANY PAYMENT IN THIS DATE
                 invoices.push({
                     art: 999,
-                    uniqueId: paymentUniqeuId++,
+                    uniqueId: payment.id,
                     qty: 1,
                     desc: "Payment",
                     rate: payment.total,
@@ -137,9 +137,9 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
 const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
     try {
-        const { date, id, uniqueId } = args
-        console.log(args)
         let detail;
+        const { date, id, uniqueId } = args
+        const balanceTotal = await generateBalanceAndTotal(reservationId, resvRoomId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({
             where: { id: resvRoomId, reservationId },
             select: {
@@ -208,10 +208,10 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                     where: {
                         id: uniqueId,
                         service: { id },
-                        created_at: {
-                            gte: `${date}T00:00:00.000Z`,
-                            lte: `${date}T23:59:59.999Z`
-                        }
+                        // created_at: {
+                        //     gte: `${date}T00:00:00.000Z`,
+                        //     lte: `${date}T23:59:59.999Z`
+                        // }
                     },
                     select: {
                         qty: true,
@@ -234,8 +234,9 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                 }
                 break;
         }
-        return detail
-``    } catch (err) {
+
+        return { detail, ...balanceTotal }
+    } catch (err) {
         ThrowError(err)
     } finally {
         await PrismaDisconnect()
@@ -269,7 +270,7 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
     return invoice
 }
 
-module.exports = { 
+module.exports = {
     GetInvoiceByResvRoomId,
-    GetInvoiceDetailByArt
- }
+    GetInvoiceDetailByArt,
+}

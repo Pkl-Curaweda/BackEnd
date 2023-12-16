@@ -44,26 +44,28 @@ const findReportReservation = async () => {
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, date) => {
   try {
-    let reports = [], startIndex, endIndex;
+    let reports = [], dates, startIndex, endIndex;
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
-    // const skip = (page - 1) * pageSize;
-    // const paginatedData = month.slice(skip, skip + pageSize);
-
+  
     // const monthNames = [
     //   "January", "February", "March", "April", "May", "June",
     //   "July", "August", "September", "October", "November", "December",
     // ];
 
-    const dates = date
-      ? [date]
-      : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
+    if (date) {
+      startDate = date.split(' ')[0]
+      endDate = date.split(' ')[1]
+      dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    } else {
+      dates = generateDateBetweenNowBasedOnDays("past", 30); //30 DAYS BEFORE NOW
+    }
 
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
     for (let i = startIndex; i <= endIndex; i++) {
-      const searchDate = date || new Date(dates[i]).toISOString().split("T")[0];
+      const searchDate = dates[i]
 
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
@@ -114,29 +116,6 @@ const getReportData = async (disOpt, page, perPage, date) => {
     }
 
     const lastPage = Math.ceil(dates.length / perPage);
-    // const daysInMonth = new Date(currentYear, i, 0).getDate();
-    // const formattedMonth = i.toString().padStart(2, "0");
-    // const monthName = monthNames[i - 1];
-    // const endDate = i === currentMonth ? currentDate.getDate() : daysInMonth;
-
-    // for (let date = endDate; date >= 1; date--) {
-    //   const formattedDate = date.toString().padStart(2, "0");
-
-    //   perDay.push(storedData);
-    // }
-
-    // const storedMonth = {
-    //   monthName,
-    //   perDay,
-    // };
-
-    // month.push(storedMonth);
-    // const result = {
-    //   perDay: disOpt === "perDay" ? month.flatMap((m) => m.perDay) : undefined,
-    //   perMonth: disOpt === "perMonth" ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    //   perYear: disOpt === "perYear" ? month.map((m) => ({ year: currentYear, monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    //   allData: !disOpt ? month.map((m) => ({ monthName: m.monthName, perDay: m.perDay.map((day) => ({ data: day })), })) : undefined,
-    // };
 
     return {
       reports,
@@ -150,7 +129,7 @@ const getReportData = async (disOpt, page, perPage, date) => {
       },
     };
   } catch (err) {
-    throw err;
+    ThrowError(err)
   } finally {
     await PrismaDisconnect();
   }
@@ -175,7 +154,7 @@ const getReportDetailData = async (date, displayOption) => {
         endDate = new Date(searchedDate.setDate(lastDate))
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
       case "year":
-        const currentYear = new Date(date).getFullYear() 
+        const currentYear = new Date(date).getFullYear()
         startDate = `${currentYear}-01-01`;
         endDate = `${currentYear}-12-31`
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
@@ -183,9 +162,9 @@ const getReportDetailData = async (date, displayOption) => {
     }
     console.log(dates)
 
-    for(let searchDate of dates){
+    for (let searchDate of dates) {
       //?SearchedDate = 2023-12-12
-      const logAvailability  = await prisma.logAvailability.findFirst({
+      const logAvailability = await prisma.logAvailability.findFirst({
         where: {
           created_at: {
             gte: `${searchDate}T00:00:00.000Z`,
@@ -195,7 +174,7 @@ const getReportDetailData = async (date, displayOption) => {
         select: { roomHistory: true },
         orderBy: { created_at: 'desc' },
       });
-      if(logAvailability != null){
+      if (logAvailability != null) {
         Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
           const { roomType, id } = roomHistory.room;
           const key = `room_${id}`;
@@ -213,10 +192,10 @@ const getReportDetailData = async (date, displayOption) => {
 
     const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
     rooms.forEach(room => {
-    const { id, roomType, bedSetup } = room
+      const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
-      if(percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
+      if (percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent }
       }

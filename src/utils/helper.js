@@ -105,6 +105,48 @@ const GenerateUsernameAndPassword = async (guestName) => {
     }
 }
 
+const generateBalanceAndTotal = async (reservationId, id) => {
+    try{
+        let balance = 0, total = 0;
+        const resvRoom = await prisma.resvRoom.findFirstOrThrow({
+            where: { id, reservationId },
+            select: { reservation: { select: {
+                arrivalDate: true, departureDate: true, 
+                reserver: { select: { guestId: true } } }
+            }, arrangment: { select: { rate: true } } }
+        })
+        const { arrivalDate, departureDate } = resvRoom.reservation
+        const resvPayments = await prisma.resvPayment.findMany({ where: { reservationId }, select: { total: true } })
+        resvPayments.forEach(payment => { balance = balance + payment.total })
+        
+        const dates = generateDateBetweenStartAndEnd(arrivalDate.toISOString().split("T")[0], departureDate.toISOString().split('T')[0])
+        for(date of dates){
+            const orders  = await prisma.orderDetail.findMany({
+                where: {
+                    order: { guestId: resvRoom.reservation.reserver.guestId },
+                    created_at: {
+                        gte: `${date}T00:00:00.000Z`,
+                        lte: `${date}T23:59:59.999Z`
+                    }
+                },
+                select:{
+                    qty: true,
+                    service: { select: { price: true } }
+                }
+            })
+            orders.forEach(order => total = total + (order.qty * order.service.price))
+
+            total = total + resvRoom.arrangment.rate
+        }
+
+        return { balance, total }
+
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
 
 const paginate = async (model, options, args = { where: undefined }) => {
     let { page = 1, perPage = 5 } = options;
@@ -142,5 +184,5 @@ const paginate = async (model, options, args = { where: undefined }) => {
 }
 
 module.exports = {
-    PrismaDisconnect, generateExpire, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, generateRandomString, generateStringRandomizer, countNight, ThrowError, paginate, generateVoucherNo, GenerateUsernameAndPassword
+    PrismaDisconnect, generateExpire, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, generateRandomString, generateStringRandomizer, countNight, ThrowError, paginate, generateVoucherNo, GenerateUsernameAndPassword, generateBalanceAndTotal
 };
