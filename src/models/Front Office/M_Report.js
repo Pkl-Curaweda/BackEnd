@@ -40,7 +40,6 @@ const findReportReservation = async () => {
   return report;
 };
 
-
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, date) => {
   try {
@@ -136,6 +135,7 @@ const getReportData = async (disOpt, page, perPage, date) => {
 };
 
 
+
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
   try {
@@ -207,6 +207,8 @@ const getReportDetailData = async (date, displayOption) => {
     await PrismaDisconnect();
   }
 };
+
+
 
 
 module.exports = {
