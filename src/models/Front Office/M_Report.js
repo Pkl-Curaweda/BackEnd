@@ -50,11 +50,30 @@ const findReportReservation = async () => {
 const getReportData = async (disOpt, page, perPage, date) => {
   try {
     let reports = [],
+      dates,
       startIndex,
       endIndex;
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
+     if (date) {
+       startDate = date.split(" ")[0];
+       endDate = date.split(" ")[1];
+       dates = generateDateBetweenStartAndEnd(startDate, endDate);
+     } else {
+       dates = generateDateBetweenNowBasedOnDays("past", 30); //30 DAYS BEFORE NOW
+     }
 
+    const lastPage = Math.ceil(dates.length / perPage);
+          const pagination = {
+
+              total: dates.length,
+              currPage: page,
+              lastPage,
+              perPage,
+              prev: page > 1 ? page - 1 : null,
+              next: page < lastPage ? page + 1 : null,
+
+          };
     const monthNames = [
       "January",
       "February",
@@ -70,22 +89,12 @@ const getReportData = async (disOpt, page, perPage, date) => {
       "December",
     ];
 
-    const dates = date ? [date] : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
-
+   
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
-    const pagination = {
-      total: dates.length,
-      currPage: page,
-      lastPage: Math.ceil(dates.length / perPage),
-      perPage,
-      prev: page > 1 ? page - 1 : null,
-      next: page < Math.ceil(dates.length / perPage) ? page + 1 : null,
-    };
-
     for (let i = startIndex; i <= endIndex; i++) {
-      const searchDate = date || new Date(dates[i]).toISOString().split("T")[0];
+      const searchDate = dates[i];
 
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
@@ -137,22 +146,22 @@ const getReportData = async (disOpt, page, perPage, date) => {
 
     switch (disOpt) {
       case "perDay":
-        data=reports
+        data = reports;
         break;
-      case "perWeek" :
-         data = {};
+      case "perWeek":
+        data = {};
         const currentDate = new Date();
         const sevenDaysAgo = new Date(currentDate);
         sevenDaysAgo.setDate(currentDate.getDate() - 7);
         reports.forEach((report) => {
           const reportDate = new Date(report.date);
-            const weekNumber = Math.ceil(
-              (reportDate.getDate() + reportDate.getMonth() * 30) / 7
-            );
-            if (!data[weekNumber]) {
-              data[weekNumber] = [];
-            }
-            data[weekNumber].push({ ...report });
+          const weekNumber = Math.ceil(
+            (reportDate.getDate() + reportDate.getMonth() * 30) / 7
+          );
+          if (!data[weekNumber]) {
+            data[weekNumber] = [];
+          }
+          data[weekNumber].push({ ...report });
         });
         break;
 
@@ -184,7 +193,6 @@ const getReportData = async (disOpt, page, perPage, date) => {
 
       default:
         data = reports;
-
     }
 
     return {
@@ -192,11 +200,13 @@ const getReportData = async (disOpt, page, perPage, date) => {
       pagination: pagination,
     };
   } catch (err) {
-    throw err;
+    ThrowError(err)
   } finally {
     await PrismaDisconnect();
   }
 };
+
+
 
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
@@ -287,6 +297,8 @@ const getReportDetailData = async (date, displayOption) => {
     await PrismaDisconnect();
   }
 };
+
+
 
 module.exports = {
   findReportReservation,
