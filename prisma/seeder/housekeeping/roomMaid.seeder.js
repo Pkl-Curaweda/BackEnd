@@ -33,12 +33,12 @@ const roomMaids = [
 async function roomMaidSeed(resvRoomId) {
   if(resvRoomId){
     const roomMaids = await prisma.user.findMany({ where: { roleId: 3 }})
-    const roomMaid = roomMaids[randomInt(roomMaids.length)]
+    const { id } = roomMaids[randomInt(roomMaids.length)]
     await prisma.roomMaid.create({
       data: {
-        userId: roomMaid,
+        userId: id,
         roomStatusId: 1,
-        departmentId: 1,
+        departmentId: 3,
         resvRoomId,
         no: 'A03',
         done: true,

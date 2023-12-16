@@ -5,29 +5,29 @@ const { tokenSeed } = require("./global/token.seeder");
 const { userSeed } = require("./global/user.seeder");
 const { inRoomServiceBatchSeed } = require("./inroomservice");
 const { houseKeepingSeed } = require("./housekeeping");
+const { departmentSeed } = require("./housekeeping/department.seeder");
 
 async function main() {
-  for(let i = 0; i < 2; i++){
-    /* front office seeed */
-    await frontOfficeBatchSeed();
-    /* front office seeed end */
-  
-    /* user seeed */
-    await roleSeed(); // important to seed role first before user
-    await userSeed();
-  
-    /* token seeed */
-    await tokenSeed(); // important to seed token after user
-  
-    /* user seeed end */
-  
-    /* in room service seeed */
-    await inRoomServiceBatchSeed();
-    /* in room service end */
-  
-    /*House Keeping seed */
-    await houseKeepingSeed();
-  }
+  /* user seeed */
+  await roleSeed(); // important to seed role first before user
+  await userSeed();
+  await departmentSeed()
+
+  /* front office seeed */
+  await frontOfficeBatchSeed();
+  /* front office seeed end */
+
+  /* token seeed */
+  await tokenSeed(); // important to seed token after user
+
+  /* user seeed end */
+
+  /* in room service seeed */
+  await inRoomServiceBatchSeed();
+  /* in room service end */
+
+  /*House Keeping seed */
+  await houseKeepingSeed();
 }
 
 main()

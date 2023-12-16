@@ -7,52 +7,68 @@ const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 
 const orderByIdentifier = (sortAndOrder) => {
-  let orderQuery;
+  let query = { orderQuery: undefined, whereQuery: undefined };
   const sortIdentifier = sortAndOrder.split(' ')[0]
   const sortBy = sortAndOrder.split(' ')[1];
-  const orderBy = sortAndOrder.split(' ')[2];
+  const filter = sortAndOrder.split(' ')[2];
 
   if (sortIdentifier === "resv") {
     switch (sortBy) {
       case "arrCode": {
-        orderQuery = { arrangmentCodeId: orderBy }
-      }
+        query.whereQuery = { arrangmentCodeId: { contains: filter } }
         break;
+      }
+
       case "rate": {
-        orderQuery = { arrangment: { rate: orderBy } }
-      }
+        query.orderQuery = { arrangment: { rate: filter } }
         break;
+      }
+
+      case "night": {
+        switch (filter) {
+          case 'asc':
+            query.whereQuery = { reservation: { manyNight: 1 } }
+            break;
+          default:
+            query.whereQuery = { reservation: { manyNight: { gt: 1 } } }
+            break;
+        }
+        break;
+      }
+
       default: {
-        orderQuery = { reservation: { [sortBy]: orderBy } }
+        query.orderQuery = { reservation: { [sortBy]: filter } }
         break;
       }
     }
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
-        orderQuery = {
-          reservation: {
-            reserver: { guest: { [sortBy]: orderBy } }
-          }
-        }
+        query.whereQuery = { reservation: { reserver: { guest: { some: { name: filter} } } } }
         break;
-
       default:
-        orderQuery = { reservation: { reserver: { [sortBy]: orderBy } } }
+        query.whereQuery = { reservation: { reserver: { resourceName: { contains: filter } } } }
         break;
     }
   } else if (sortIdentifier === "room") {
     switch (sortBy) {
-      // case "name":
-      //   orderQuery = { roomMaids: { user: { [sortBy]: orderBy } } }
-      //   break;
+      case "name":
+        query.whereQuery = { roomMaids: { some:  { user: { name: { contains: filter } } } } }
+        break;
+      case 'type':
+        query.whereQuery = { room: { roomType: filter } }
+        break;
+
+      case 'bedSetup':
+        query.whereQuery = { room: { bedSetup: filter } }
+        break;
 
       default:
-        orderQuery = { room: { [sortBy]: orderBy } }
+        query.orderQuery = { room: { [sortBy]: filter } }
         break;
     }
   }
-  return orderQuery;
+  return query
 };
 
 const displayByIdentifier = (disOpt) => {
@@ -104,6 +120,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         ...(dateQuery && { reservation: { arrivalDate } }),
         ...(dateQuery && { reservation: { departureDate } }),
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
+        ...(orderBy.whereQuery)
       },
       select: {
         id: true,
@@ -124,7 +141,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         roomMaids: {
           select: {
             user: {
-              select: { name: true , picture: true}
+              select: { name: true, picture: true }
             }
           }
         },
@@ -150,7 +167,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           }
         }
       },
-      orderBy,
+      orderBy: orderBy.orderQuery
     })
 
     let reservationsArray = [];
@@ -412,7 +429,7 @@ const AddNewIdCard = async (data) => {
 }
 
 const changeSpecialTreatment = async (data) => {
-  
+
 }
 
 module.exports = {

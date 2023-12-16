@@ -10,7 +10,7 @@ const reservers = {
 
 async function ReserverSeed(guestId) {
 	let resource = ['Individual Reservation', 'Walk In']
-	reservers.resourceName = resource[randomInt(0, 1)]
+	reservers.resourceName = resource[randomInt(0, 2)]
 	reservers.guestId = guestId
 	const reserver  = await prisma.Reserver.create({
 		data: reservers
