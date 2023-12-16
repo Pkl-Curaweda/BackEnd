@@ -17,11 +17,22 @@ const filterRoomHistory = (roomHistory, filter) => {
             });
             break;
         case "R":
-            if(filter === 'desc'){
-                // roomHistory = roomHistory.sort((a, b) => a[])
-            }else{
+            console.log(filterIdentifier)
+            if (filter === 'DESC') {
+                const roomHistories = Object.values(roomHistory).sort((a, b) => b.room.id - a.room.id);
+                Object.values(roomHistories).forEach((history) => {
+                    const key = `room_${history.room.id}`;
+                    filteredRoomHistory[key] = history
+                })
 
+            } else {
+                const roomHistories = Object.values(roomHistory).sort((a, b) => a.room.id - b.room.id);
+                Object.values(roomHistories).forEach((history) => {
+                    const key = `room_${history.room.id}`;
+                    filteredRoomHistory[key] = history
+                })
             }
+            break;
         default:
             throw Error('Unknown Filter')
     }
@@ -66,7 +77,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
                 date: searchedDate.toISOString().split('T')[0],
                 roomHistory
             }
-            if(roomHistory != 0){
+            if (roomHistory != 0) {
                 Object.values(roomHistory).forEach(history => {
                     const key = `total_${history.room.id}`;
                     const averageKeyExists = averages.hasOwnProperty(key);

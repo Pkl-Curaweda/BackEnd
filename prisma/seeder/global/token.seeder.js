@@ -19,12 +19,14 @@ const guestTokens = [
 
 async function tokenSeed() {
 	for (let userToken of userTokens) {
+		userToken.refreshToken = generateId()
 		await prisma.userToken.create({
 			data: userToken,
 		});
 	}
 
 	for (let guestToken of guestTokens) {
+		guestToken.refreshToken = generateId()
 		await prisma.guestToken.create({
 			data: guestToken,
 		});

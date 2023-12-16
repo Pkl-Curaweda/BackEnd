@@ -42,9 +42,11 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
+            let roomPriceUniqueId = 0, orderUniqueId = 0, paymentUniqeuId = 0;
             //?ROOM PRICE / DAYS
             invoices.push({
-                art: 115,
+                art: 998,
+                uniqueId: roomPriceUniqueId++,
                 qty: 1,
                 desc: "Room",
                 rate: resvRoom.arrangment.rate,
@@ -76,7 +78,8 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
             orders.forEach((order) => {
                 //?ORDER / DAYS
                 invoices.push({
-                    art: order.id,
+                    art: order.service.id,
+                    uniqueId: order.id,
                     qty: order.qty,
                     desc: order.service.name,
                     rate: order.service.price,
@@ -87,13 +90,13 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
             const payments = await prisma.resvPayment.findMany({
                 where: {
+                    reservationId,
                     created_at: {
                         gte: `${searchDate}T00:00:00.000Z`,
                         lte: `${searchDate}T23:59:59.999Z`
                     }
                 },
                 select: {
-                    orders: true,
                     total: true
                 }
             })
@@ -101,18 +104,18 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
             payments.forEach((payment) => {
                 //?ANY PAYMENT IN THIS DATE
                 invoices.push({
-                    art: 111,
+                    art: 999,
+                    uniqueId: paymentUniqeuId++,
                     qty: 1,
                     desc: "Payment",
                     rate: payment.total,
-                    amount: 1 * payment.total,
+                    amount: payment.total,
                     billDate: searchDate
                 })
             })
         }
-        if(sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier)
+        if (sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier)
 
-        // const 
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             invoices,
@@ -132,12 +135,119 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
     }
 }
 
+const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
+    try {
+        const { date, id, uniqueId } = args
+        console.log(args)
+        let detail;
+        const resvRoom = await prisma.resvRoom.findFirstOrThrow({
+            where: { id: resvRoomId, reservationId },
+            select: {
+                arrangment: {
+                    select: {
+                        rate: true
+                    }
+                },
+                roomId: true,
+                voucherNo: true,
+                roomMaids: {
+                    select: {
+                        user: {
+                            select: { name: true }
+                        }
+                    }
+                },
+                reservation: {
+                    select: {
+                        arrivalDate: true, departureDate: true,
+                        reserver: {
+                            select: { guestId: true }
+                        }
+                    }
+                }
+            }
+        })
+        switch (id) {
+            case 998:
+                //?ROOM PRICE / DAYS
+                detail = {
+                    art: id,
+                    qty: 1,
+                    desc: "Room",
+                    rate: resvRoom.arrangment.rate,
+                    amount: resvRoom.arrangment.rate,
+                    billDate: date
+                }
+                break;
+            case 999:
+                //?PAYMENT
+                const payments = await prisma.resvPayment.findMany({
+                    where: {
+                        reservationId,
+                        created_at: {
+                            gte: `${date}T00:00:00.000Z`,
+                            lte: `${date}T23:59:59.999Z`
+                        }
+                    },
+                    select: {
+                        total: true
+                    }
+                })
+                detail = {
+                    art: 999,
+                    qty: 1,
+                    desc: "Payment",
+                    rate: payments[uniqueId].total,
+                    amount: payments[uniqueId].total,
+                    billDate: date
+                }
+                break;
+            default:
+                //?ORDER DETAIL
+                const order = await prisma.orderDetail.findFirstOrThrow({
+                    where: {
+                        id: uniqueId,
+                        service: { id },
+                        created_at: {
+                            gte: `${date}T00:00:00.000Z`,
+                            lte: `${date}T23:59:59.999Z`
+                        }
+                    },
+                    select: {
+                        qty: true,
+                        service: {
+                            select: {
+                                name: true,
+                                price: true
+                            }
+                        }
+                    }
+                })
+                detail = {
+                    art: id,
+                    uniqueId,
+                    qty: order.qty,
+                    desc: order.service.name,
+                    rate: order.service.price,
+                    amount: order.qty * order.service.price,
+                    billDate: date
+                }
+                break;
+        }
+        return detail
+``    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const sortInvoiceData = (invoice, sortIdentifier) => {
     let propertiesKey;
     propertiesKey = sortIdentifier.split("-")[0]
-    if(propertiesKey === 'rev') propertiesKey = 'amount'
+    if (propertiesKey === 'rev') propertiesKey = 'amount'
     const sortBy = sortIdentifier.split("-")[1]
-    if(propertiesKey === 'desc' || propertiesKey === 'date'){
+    if (propertiesKey === 'desc' || propertiesKey === 'date') {
         switch (sortBy) {
             case "desc":
                 invoice = invoice.sort((a, b) => b[propertiesKey]?.localeCompare(a[propertiesKey]));
@@ -146,7 +256,7 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
                 invoice = invoice.sort((a, b) => a[propertiesKey]?.localeCompare(b[propertiesKey]));
                 break;
         }
-    }else{
+    } else {
         switch (sortBy) {
             case "desc":
                 invoice = invoice.sort((a, b) => b[propertiesKey] - a[propertiesKey]);
@@ -159,4 +269,7 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
     return invoice
 }
 
-module.exports = { GetInvoiceByResvRoomId }
+module.exports = { 
+    GetInvoiceByResvRoomId,
+    GetInvoiceDetailByArt
+ }

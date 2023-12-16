@@ -13,7 +13,7 @@ const logAvail = [
                 },
                 "room": {
                     "id": 1,
-                    "roomType": "STANDARD",
+                    "roomType": "DELUXE",
                     "bedSetup": "KING"
                 },
                 "occupied": 1,
@@ -64,11 +64,6 @@ const logAvail = [
                     "roomType": "FAMILY",
                     "bedSetup": "TWIN"
                 },
-                "room": {
-                    "id": 5,
-                    "roomType": "FAMILY",
-                    "bedSetup": "TWIN"
-                },
                 "occupied": 1,
                 "roomPrice": 300000
             },
@@ -80,11 +75,6 @@ const logAvail = [
                 "resvStatus": {
                     "rowColor": "#fffc06",
                     "textColor": "#000000"
-                },
-                "room": {
-                    "id": 6,
-                    "roomType": "STANDARD",
-                    "bedSetup": "TWIN"
                 },
                 "room": {
                     "id": 6,
@@ -105,11 +95,6 @@ const logAvail = [
                 },
                 "room": {
                     "id": 7,
-                    "roomType": "DELUXE",
-                    "bedSetup": "KING"
-                },
-                "room": {
-                    "id": 7,
                     "roomType": "FAMILY",
                     "bedSetup": "TWIN"
                 },
@@ -127,11 +112,6 @@ const logAvail = [
                 },
                 "room": {
                     "id": 8,
-                    "roomType": "DELUXE",
-                    "bedSetup": "KING"
-                },
-                "room": {
-                    "id": 8,
                     "roomType": "STANDARD",
                     "bedSetup": "SINGLE"
                 },
@@ -146,11 +126,6 @@ const logAvail = [
                 "resvStatus": {
                     "rowColor": "#fffc06",
                     "textColor": "#000000"
-                },
-                "room": {
-                    "id": 9,
-                    "roomType": "FAMILY",
-                    "bedSetup": "DOUBLE"
                 },
                 "room": {
                     "id": 9,

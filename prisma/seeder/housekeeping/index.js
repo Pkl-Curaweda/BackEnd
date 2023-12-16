@@ -13,7 +13,6 @@ async function houseKeepingSeed() {
   await departmentSeed();
   await oooRoomSeed();
   await lostFoundSeed();
-  await roomMaidSeed();
 }
 
 module.exports = { houseKeepingSeed };

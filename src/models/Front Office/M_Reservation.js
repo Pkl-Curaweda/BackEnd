@@ -410,6 +410,11 @@ const AddNewIdCard = async (data) => {
     await PrismaDisconnect()
   }
 }
+
+const changeSpecialTreatment = async (data) => {
+  
+}
+
 module.exports = {
   getAllReservation,
   getDetailById,
