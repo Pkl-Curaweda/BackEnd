@@ -40,37 +40,31 @@ const findReportReservation = async () => {
   return report;
 };
 
-
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, date) => {
   try {
-    let reports = [],
-      startIndex,
-      endIndex;
-      startIndex = (page - 1) * perPage;
-      endIndex = startIndex + perPage - 1;
+    let reports = [], dates, startIndex, endIndex;
+    startIndex = (page - 1) * perPage;
+    endIndex = startIndex + perPage - 1;
+  
+    // const monthNames = [
+    //   "January", "February", "March", "April", "May", "June",
+    //   "July", "August", "September", "October", "November", "December",
+    // ];
 
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
-    ];
-
-    const dates = date ? [date] : generateDateBetweenNowBasedOnDays("past", 30); // Jika date ada, gunakan tanggal tersebut; jika tidak, gunakan 31 hari sebelumnya
+    if (date) {
+      startDate = date.split(' ')[0]
+      endDate = date.split(' ')[1]
+      dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    } else {
+      dates = generateDateBetweenNowBasedOnDays("past", 30); //30 DAYS BEFORE NOW
+    }
 
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
-    const pagination = {
-      total: dates.length,
-      currPage: page,
-      lastPage: Math.ceil(dates.length / perPage),
-      perPage,
-      prev: page > 1 ? page - 1 : null,
-      next: page < Math.ceil(dates.length / perPage) ? page + 1 : null,
-    };
-
     for (let i = startIndex; i <= endIndex; i++) {
-      const searchDate = date || new Date(dates[i]).toISOString().split("T")[0];
+      const searchDate = dates[i]
 
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
@@ -120,48 +114,27 @@ const getReportData = async (disOpt, page, perPage, date) => {
       reports.push(storedData);
     }
 
-    let result;
+    const lastPage = Math.ceil(dates.length / perPage);
 
-    switch (disOpt) {
-      case "perDay":
-        result = {
-          perDay: reports,
-          pagination: pagination,
-        };
-        break;
-      case "perMonth":
-        result = {
-          perMonth: reports.map((report) => ({
-            monthName: monthNames[new Date(report.date).getMonth()],
-            data: reports,
-          })),
-          pagination: pagination,
-        };
-        break;
-      case "perYear":
-        result = {
-          perYear: reports.map((report) => ({
-            year: new Date(report.date).getFullYear(),
-            monthName: monthNames[new Date(report.date).getMonth()],
-            data: reports,
-          })),
-          pagination: pagination,
-        };
-        break;
-      default:
-        result = {
-          allData: reports,
-          pagination: pagination,
-        }
-    }
-
-    return result;
+    return {
+      reports,
+      meta: {
+        total: dates.length,
+        currPage: page,
+        lastPage,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+    };
   } catch (err) {
-    throw err;
+    ThrowError(err)
   } finally {
     await PrismaDisconnect();
   }
 };
+
+
 
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
@@ -234,6 +207,8 @@ const getReportDetailData = async (date, displayOption) => {
     await PrismaDisconnect();
   }
 };
+
+
 
 
 module.exports = {
