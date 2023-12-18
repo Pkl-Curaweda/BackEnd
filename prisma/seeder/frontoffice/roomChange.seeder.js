@@ -10,11 +10,9 @@ const roomChanges =  {
 
 async function roomChangeSeed(resvRoomId) {
   roomChanges.resvRoomId = resvRoomId
-  roomChanges.roomFromId = randomInt(10),
+  roomChanges.roomFromId = randomInt(10);
   roomChanges.roomToId = randomInt(10)
-  const roomChange = await prisma.roomChange.create({
-    data: roomChanges
-  });
+  await prisma.roomChange.create({ data: roomChanges });
 }
 
 module.exports = { roomChangeSeed };
