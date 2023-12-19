@@ -1,32 +1,23 @@
 const { prisma } = require("../config");
 const bcrypt = require("bcrypt");
 const { faker } = require('@faker-js/faker');
+const { ReserverSeed } = require("./reservation/reserver.seeder");
 
-const guests = [
-  {
-    username: faker.internet.userName(),
-    password: "password",
-    name: faker.person.firstName(),
-    contact: faker.phone.number() ,
-  },
-];
+const guests = {
+	username: faker.internet.userName(),
+	password: "password",
+	name: faker.person.firstName(),
+	contact: faker.phone.number(),
+};
 
 async function guestSeed() {
-  for (let guest of guests) {
-    const existingGuest = await prisma.guest.findFirst({
-			where: {
-				username: guest.username,
-			},
-		});
-
-		if (!existingGuest) {
-			const salt = await bcrypt.genSalt();
-			guest.password = await bcrypt.hash(guest.password, salt);
-			await prisma.guest.create({
-				data: guest,
-			});
-		};
-  }
+	const { id } = await prisma.guest.upsert({
+		where: { username: guests.username },
+		update: guests,
+		create: guests
+	})
+	const reserverId = await ReserverSeed(id)
+	return reserverId
 }
 
 module.exports = { guestSeed };

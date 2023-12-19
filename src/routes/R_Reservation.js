@@ -1,34 +1,42 @@
 const { Router } = require("express");
-const { postNewReservation, deleteReservation, postNewReservationRoom, postChangeRoom, getArrivalGuest, putNewReservationData, postChangeProgress, postNewIdCard } = require("../controllers/Reservation/C_ArrivalGuest");
+const { getArrivalGuestData} = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
-const { getLogAvailability, CreateLog, getFilterRoomAvail } = require("../controllers/Reservation/C_LogAvailabilty");
+const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controllers/Reservation/C_RoomAvailability");
 const { getAllReport } = require("../controllers/Reservation/C_Report");
-const { getInvoice } = require("../controllers/Reservation/C_Invoice");
+const {getInvoice,testInvoice,getSummary} = require("../controllers/Reservation/C_Invoice");
+const {getHelperDetail,postHelperDetail,putNewReservationData,deleteReservation,getReportDetail,getInvoiceDetail} = require("../controllers/Reservation/C_Detail");
+const { auth } = require("../middlewares/AuthMiddleware");
+const { generatePDF } = require("../controllers/Reservation/C_PrintInvoice");
 
 const R_Reservation = new Router();
 
+//?DETAIL RESERVATION
+R_Reservation.get("/detail/reservation/:reservationId/:resvRoomId/:action?",getHelperDetail);
+R_Reservation.get("/detail/report/:displayOption?", getReportDetail);
+R_Reservation.get("/detail/invoice/:reservationId/:resvRoomId/:date",getInvoiceDetail);
+R_Reservation.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?",postHelperDetail);
+R_Reservation.put("/detail/reservation/:reservationId/:resvRoomId/edit",putNewReservationData);
+R_Reservation.delete("/detail/reservation/:reservationId/:resvRoomId/delete",deleteReservation);
+
 //?ARRIVAL GUEST LIST
-R_Reservation.get("/arrival/:reservationId?/:resvRoomId?/:action?", getArrivalGuest);
-R_Reservation.put("/arrival/:reservationId/:resvRoomId/edit", putNewReservationData);
-R_Reservation.post("/arrival/:reservationId/:resvRoomId/create", postNewReservation);
-R_Reservation.post("/arrival/:reservationId/:resvRoomId/add-room", postNewReservationRoom);
-R_Reservation.post("/arrival/:reservationId/:resvRoomId/add-idcard", postNewIdCard);
-R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-room", postChangeRoom);
-R_Reservation.post("/arrival/:reservationId/:resvRoomId/change-progress/:changeProgress", postChangeProgress);
-R_Reservation.delete("/arrival/:reservationId?/:resvRoomId?/delete", deleteReservation);
+R_Reservation.get("/arrival", getArrivalGuestData);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
 
 //?lOG AVAILABILITY
-R_Reservation.get("/roomavail", getLogAvailability)
-R_Reservation.get("/roomavail/create-log", CreateLog)
-R_Reservation.get("/filter-roomAvail", getFilterRoomAvail)
+R_Reservation.get("/roomavail/:filter?", getRoomAvailability);
+R_Reservation.post("/roomavail/create-log", CreateLog);
+R_Reservation.get("/filter-roomAvail", getFilterRoomAvail);
 
 //?REPORT PAGE
 R_Reservation.get("/report", getAllReport);
 
 //?INVOICE
-R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice)
+R_Reservation.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
+R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice);
+
+//? PRINT INVOICE
+R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", generatePDF);
 
 module.exports = R_Reservation;

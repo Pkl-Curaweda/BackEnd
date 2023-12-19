@@ -3,31 +3,14 @@ const fs = require("fs");
 const bcrypt = require("bcrypt");
 const { prisma } = require("../../../prisma/seeder/config");
 const { encrypt, decrypt } = require("../../utils/encryption");
-const { ThrowError, PrismaDisconnect, generateRandomString, generateStringRandomizer } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, GenerateUsernameAndPassword } = require("../../utils/helper");
 const { CreateAndAssignToken } = require("./M_Token");
 const { getAllRoomIdReservedByReserverId } = require("../Front Office/M_ResvRoom");
-
-const generateUsernameAndPassword = async (guestName) => {
-  try {
-    let username, usernameExist;
-    guestName = guestName.split(' ')[0];
-    do {
-      username = generateStringRandomizer(guestName)
-      usernameExist = await prisma.guest.findUnique({ where: { username } })
-    } while (usernameExist)
-    const password = generateRandomString(8);
-    return { username, password }
-  } catch (err) {
-    ThrowError(err)
-  } finally {
-    await PrismaDisconnect();
-  }
-}
 
 const CreateNewGuest = async (name, contact) => {
   try {
     const salt = await bcrypt.genSalt();
-    const usernameAndPassword = await generateUsernameAndPassword(name);
+    const usernameAndPassword = await GenerateUsernameAndPassword(name);
     const realPassword = usernameAndPassword.password
     usernameAndPassword.password = await bcrypt.hash(usernameAndPassword.password, salt)
     const userExist = await prisma.guest.findUnique({ where: { username: usernameAndPassword.username } });
@@ -77,32 +60,21 @@ const GuestLogin = async (method, data) => {
   }
 }
 
-const GenerateGuestQrCode = async (guestData) => {
+const CreateGuestQrCode = async (guestData) => {
   const storedData = {
-    username: guestData.username,
-    password: "password",
+      username: guestData.username,
+      password: "password",
   };
   const path = `${process.env.QR_PATH}QR-${guestData.username}.png`;
   if (!fs.existsSync(path)) {
-    const stringfyData = JSON.stringify(storedData);
-    const encryptedData = encrypt(stringfyData);
-    const storedQR = "http://localhost:3000/auth/guest/login/qr?encryptedData=" + encryptedData;
-    qr.toFile(path, storedQR, (err) => {
-      if (err) console.log(err);
-    });
+      const stringfyData = JSON.stringify(storedData);
+      const encryptedData = encrypt(stringfyData);
+      const storedQR = "http://localhost:3000/auth/guest/login/qr?encryptedData=" + encryptedData;
+      qr.toFile(path, storedQR, (err) => {
+          if (err) console.log(err);
+      });
   }
   return path;
-};
-
-const GetGuestById = async (id) => {
-  try {
-    const guest = await prisma.guest.findFirst({ where: { id } });
-    return guest;
-  } catch (err) {
-    ThrowError(err);
-  } finally {
-    await PrismaDisconnect();
-  }
 };
 
 const GetAllGuests = async () => {
@@ -116,6 +88,17 @@ const GetAllGuests = async () => {
   }
 }
 
+const GetGuestById = async (id) => {
+  try {
+    const guest = await prisma.guest.findFirst({ where: { id } });
+    return guest;
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
+
 const DeleteGuestById = async (id) => {
   try {
     const deletedGuest = await prisma.guest.delete({ where: { id } });
@@ -128,4 +111,4 @@ const DeleteGuestById = async (id) => {
   }
 };
 
-module.exports = { CreateNewGuest, GenerateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, GetAllGuests };
+module.exports = { CreateNewGuest, CreateGuestQrCode, GetGuestById, DeleteGuestById, GuestLogin, GetAllGuests };

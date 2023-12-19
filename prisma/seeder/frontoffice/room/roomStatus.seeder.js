@@ -14,7 +14,7 @@ const roomStatuses = [
     textColor: "#000000",
   },
   {
-    shortDescription: "VD", 
+    shortDescription: "VD",
     longDescription: "Vacant Dirty",
     rowColor: "#10780A",
     textColor: "#ffffff",
@@ -58,11 +58,12 @@ const roomStatuses = [
 ];
 
 async function roomStatusSeed() {
-  for (let roomStatus of roomStatuses) {
-    await prisma.roomStatus.create({
-      data: roomStatus,
-    });
-  }
+  roomStatuses.forEach(async roomStatus => {
+    const exist = await prisma.roomStatus.findFirst({
+      where: { shortDescription: roomStatus.shortDescription }
+    })
+    if (!exist) await prisma.roomStatus.create({ data: roomStatus })
+  })
 }
 
 module.exports = {

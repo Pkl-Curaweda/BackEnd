@@ -9,7 +9,7 @@ const resvStatus = [
 	{
 		description: "6 PM",
 		rowColor: "#fffc06",
-		textColor: "#000000", 
+		textColor: "#000000",
 	},
 	{
 		description: "Tentative",
@@ -19,9 +19,8 @@ const resvStatus = [
 ];
 async function ResvStatusSeed() {
 	for (let ResvStatus of resvStatus) {
-		await prisma.ResvStatus.create({
-			data: ResvStatus,
-		});
+		const exist = await prisma.resvStatus.findFirst({ where: { description: ResvStatus.description }})
+		if(!exist) await prisma.resvStatus.create({ data: ResvStatus })
 	}
 }
 

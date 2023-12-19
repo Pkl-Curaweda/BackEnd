@@ -70,6 +70,7 @@ const CreateAndAssignToken = async (type, data) => {
 const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
+    await tokenClient.findFirstOrThrow({ where: { refreshToken } })
     const deletedToken = await tokenClient.delete({ where: { refreshToken } });
     const generatedRefreshToken = await generateRefreshToken(tokenClient)
     const newRefreshToken = await tokenClient.create({
@@ -79,6 +80,7 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
         expired_at
       }
     })
+    console.log(newRefreshToken)
     return newRefreshToken;
   } catch (err) {
     ThrowError(err);

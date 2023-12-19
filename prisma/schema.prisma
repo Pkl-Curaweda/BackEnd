@@ -245,6 +245,7 @@ model Reserver {
   guest        Guest         @relation(fields: [guestId], references: [id])
   guestId      Int
   resourceName String
+  billComment  String?        @db.Text
   reservations Reservation[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
@@ -284,6 +285,8 @@ model ResvPayment {
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
+
+//? Front Office Develop
 
 // End Front Office Area ======================================================
 

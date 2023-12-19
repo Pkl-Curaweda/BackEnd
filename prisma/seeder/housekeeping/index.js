@@ -10,10 +10,8 @@ async function houseKeepingSeed() {
   await cleanRoomSeed();
   await dirtyRoomSeed();
   await extraBedSeed();
-  await departmentSeed();
   await oooRoomSeed();
   await lostFoundSeed();
-  await roomMaidSeed();
 }
 
 module.exports = { houseKeepingSeed };
