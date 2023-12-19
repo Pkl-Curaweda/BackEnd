@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, paginate } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, paginate, generateBalanceAndTotal } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
@@ -120,7 +120,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         ...(dateQuery && { reservation: { arrivalDate } }),
         ...(dateQuery && { reservation: { departureDate } }),
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
-        ...(orderBy.whereQuery)
+        ...(orderBy && orderBy.whereQuery)
       },
       select: {
         id: true,
@@ -167,7 +167,12 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           }
         }
       },
-      orderBy: orderBy.orderQuery
+      orderBy: orderBy && orderBy.orderQuery
+    })
+
+    const roomBoys = await prisma.user.findMany({
+      where: { roleId: 3 },
+      select: { name: true }
     })
 
     let reservationsArray = [];
@@ -185,7 +190,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
     });
 
-    return { reservations: reservationsArray, meta };
+    return { reservations: reservationsArray, roomBoys, meta };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -245,6 +250,8 @@ const getDetailById = async (id, reservationId) => {
         }
       },
     });
+    const balance = await generateBalanceAndTotal({ balance: true }, reservationId, id)
+    reservationDetail.balance = balance
     return reservationDetail;
   } catch (err) {
     ThrowError(err)
