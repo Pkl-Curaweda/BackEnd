@@ -5,6 +5,7 @@ const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
+const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 
 const orderByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };

@@ -41,12 +41,12 @@ const findReportReservation = async () => {
 };
 
 //? GET ALL REPORT DATA
-const getReportData = async (disOpt, page, perPage, date) => {
+const getReportData = async (page, perPage, disOpt, sort, date) => {
   try {
     let reports = [], dates, startIndex, endIndex;
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
-  
+
     // const monthNames = [
     //   "January", "February", "March", "April", "May", "June",
     //   "July", "August", "September", "October", "November", "December",
@@ -114,6 +114,16 @@ const getReportData = async (disOpt, page, perPage, date) => {
       reports.push(storedData);
     }
 
+    if (sort) {
+      switch (sort) {
+        case "desc":
+          reports = reports.sort((a, b) => b.roomRevenue - a.roomRevenue)
+          break;
+        default:
+          reports = reports.sort((a, b) => a.roomRevenue - b.roomRevenue)
+          break;
+      }
+    }
     const lastPage = Math.ceil(dates.length / perPage);
 
     return {
@@ -135,20 +145,25 @@ const getReportData = async (disOpt, page, perPage, date) => {
 };
 
 
-
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
   try {
-    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates, startDate, endDate
+    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates, startDate, endDate, searchedDate
     switch (displayOption) {
       case "day":
         dates = generateDateBetweenStartAndEnd(date, date);
         break;
       case "week":
-        //TODO: KERJAIN
+        dates = [];
+        searchedDate = new Date(date);
+        for (let i = 0; i <= 7 - 1; i++) {
+          const listDate = new Date(searchedDate);
+          listDate.setDate(searchedDate.getDate() - i);
+          dates.push(listDate.toISOString().split('T')[0]);
+        }
         break;
       case "month":
-        const searchedDate = new Date(date)
+        searchedDate = new Date(date)
         startDate = new Date(searchedDate.setDate(searchedDate.getDate() - (searchedDate.getDate() - 1)))
         const lastDate = new Date(searchedDate.getFullYear(), searchedDate.getMonth() + 1, 0).getDate();
         endDate = new Date(searchedDate.setDate(lastDate))
@@ -160,10 +175,8 @@ const getReportDetailData = async (date, displayOption) => {
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
         break;
     }
-    console.log(dates)
 
     for (let searchDate of dates) {
-      //?SearchedDate = 2023-12-12
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
           created_at: {
@@ -207,7 +220,6 @@ const getReportDetailData = async (date, displayOption) => {
     await PrismaDisconnect();
   }
 };
-
 
 
 

@@ -1,5 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateVoucherNo } = require("../../utils/helper");
+const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 
 const getAllRoomIdReservedByReserverId = async (reserverId) => {
   let reservedRoom = [];
@@ -42,6 +43,7 @@ const createNewResvRoom = async (id, data) => {
         voucherNo
       }
     })
+    await assignRoomMaid(resvRoom.id)
     return resvRoom;
   } catch (err) {
     ThrowError(err)

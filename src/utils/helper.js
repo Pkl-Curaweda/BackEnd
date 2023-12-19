@@ -6,7 +6,7 @@ const PrismaDisconnect = async () => {
 }
 
 const ThrowError = (err) => {
-console.log(err)
+    console.log(err)
     throw err
 }
 
@@ -105,33 +105,37 @@ const GenerateUsernameAndPassword = async (guestName) => {
     }
 }
 
-const generateBalanceAndTotal = async (option =  { balance: false, total: false }, reservationId, id) => {
-    try{
+const generateBalanceAndTotal = async (option = { balance: false, total: false }, reservationId, id) => {
+    try {
         let balance = 0, total = 0;
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({
             where: { id, reservationId },
-            select: { reservation: { select: {
-                arrivalDate: true, departureDate: true, 
-                reserver: { select: { guestId: true,} },
-                ResvPayment: {
+            select: {
+                reservation: {
                     select: {
-                        total: true
+                        arrivalDate: true, departureDate: true,
+                        reserver: { select: { guestId: true, } },
+                        ResvPayment: {
+                            select: {
+                                total: true
+                            }
+                        }
                     }
-                }
+                }, arrangment: { select: { rate: true } }
             }
-            }, arrangment: { select: { rate: true } } }
         })
 
-        if(option.balance != false){
+        if (option.balance && option.balance != false) {
             const resvPayments = resvRoom.reservation.ResvPayment
-            resvPayments.forEach(payment => { balance = balance + payment.total })
+            console.log(option, resvPayments)
+            resvPayments.forEach(payment => balance = balance + payment.total)
         }
 
-        if(option.total != false ){
+        if (option.total && option.total != false) {
             const { arrivalDate, departureDate } = resvRoom.reservation
             const dates = generateDateBetweenStartAndEnd(arrivalDate.toISOString().split("T")[0], departureDate.toISOString().split('T')[0])
-            for(date of dates){
-                const orders  = await prisma.orderDetail.findMany({
+            for (date of dates) {
+                const orders = await prisma.orderDetail.findMany({
                     where: {
                         order: { guestId: resvRoom.reservation.reserver.guestId },
                         created_at: {
@@ -139,22 +143,22 @@ const generateBalanceAndTotal = async (option =  { balance: false, total: false 
                             lte: `${date}T23:59:59.999Z`
                         }
                     },
-                    select:{
+                    select: {
                         qty: true,
                         service: { select: { price: true } }
                     }
                 })
                 orders.forEach(order => total = total + (order.qty * order.service.price))
-    
+
                 total = total + resvRoom.arrangment.rate
             }
         }
 
         return { balance, total }
 
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }

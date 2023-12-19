@@ -139,7 +139,7 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
     try {
         let detail;
         const { date, id, uniqueId } = args
-        const balanceTotal = await generateBalanceAndTotal(reservationId, resvRoomId)
+        const balanceTotal = await generateBalanceAndTotal({ balance: true, total: true }, reservationId, resvRoomId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({
             where: { id: resvRoomId, reservationId },
             select: {
@@ -208,10 +208,10 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                     where: {
                         id: uniqueId,
                         service: { id },
-                        // created_at: {
-                        //     gte: `${date}T00:00:00.000Z`,
-                        //     lte: `${date}T23:59:59.999Z`
-                        // }
+                        created_at: {
+                            gte: `${date}T00:00:00.000Z`,
+                            lte: `${date}T23:59:59.999Z`
+                        }
                     },
                     select: {
                         qty: true,
