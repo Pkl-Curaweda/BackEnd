@@ -1,27 +1,29 @@
 const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
-const { error, success } = require("../../utils/response");
-const { printInvoice } = require("../../models/Front Office/M_Invoice");
-const { ThrowError } = require("../../utils/helper");
 const path = require("path");
+const { error, success } = require("../../utils/response");
+const { generatePDF } = require("../../pdf/PrintPDF");
+const { printInvoice } = require("../../models/Front Office/M_Invoice");
 
-const generatePDF = async (req, res) => {
+const getPDF = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
   try {
     const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
-    const doc = new PDFDocument();
-    const stream = fs.createWriteStream("hasil.pdf");
-
-    // Menambahkan event listener untuk mengetahui kapan penulisan selesai
-    stream.on("finish", () => {
-      res.download(path.resolve(stream.path))
-    });
+    const doc = new PDFDocument({ font: 'src/pdf/Inter-Regular.ttf', size: 'A4' });
+    const stream = fs.createWriteStream("src/pdf/example.pdf");
 
     doc.pipe(stream);
+    doc.registerFont('regular', 'src/pdf/Inter-Regular.ttf');
+    doc.registerFont('bold', 'src/pdf/Lato-Bold.ttf');
     const pageWidth = doc.page.width;
+    // const x = (pageWidth - 100) / 2;
+    // const y = 20; // Jarak dari atas halaman
+
+    // Mendapatkan informasi dari gambar
+    // const image = fs.readFileSync("src/pdf/lingian-logo-colored.png");
     // Menghitung posisi untuk menempatkan gambar di tengah atas halaman PDF
-    const x = (pageWidth - 100) / 2;
-    const y = 20; // Jarak dari atas halaman
+    // const x = (pageWidth - 100) / 2;
+    // const y = 20; // Jarak dari atas halaman
 
     // Path ke file gambar yang akan ditambahkan
     // const imagePath = "../../image/lingian-logo-colored.png.png"; // Ubah path sesuai dengan lokasi gambar Anda
@@ -36,100 +38,88 @@ const generatePDF = async (req, res) => {
     // doc.image(image, x, y, { width: 100, height: 100 });
 
     // Pindahkan kursor ke posisi di bawah gambar
+    // doc.image(image, x, y, { width: 100, height: 100 });
+    doc.image("src/pdf/lingian-logo-colored.png", (pageWidth - 100) / 2, 20, { width: 100, height: 100 });
     doc.moveDown(5);
+    doc.fontSize(11);
+    doc.font('regular').text('Bill Number: ', {
+      align: 'left',
+      continued: true
+    })
+      .font('bold').text(`#${resvRoomId}-${reservationId}`)
+    doc.moveDown(0.5);
 
-    // Tambahkan teks di bawah gambar
-    doc.fontSize(11).text(`Bill Number: #${resvRoomId}-${reservationId}`, { //?Still need to change this one
-      align: "left",
-    });
-    doc.moveDown();
-    doc.fontSize(11).text(`Reservation Resource:  ${invoiceData.resourceName}`, {
-      align: "left",
-    });
+    doc.font('regular').text('Reservation Resource: ', {
+      align: 'left',
+      continued: true
+    })
+      .font('bold').text(`${invoiceData.resourceName}`)
     doc.moveUp(1);
-    doc.fontSize(11).text(`Guest Name: ${invoiceData.guestName}`, {
+
+    doc.font('regular').text(`Guest Name: `, { //TODO: Need to change this one
       align: "right",
-    });
+      continued: true
+    })
+      .font('bold').text(`${invoiceData.guestName}`, {
+        align: 'right',
+      })
     doc.moveDown();
 
-    // Menambahkan garis pembatas warna hijau
-    doc.lineWidth(2).moveTo(50, doc.y).lineTo(pageWidth - 50, doc.y).stroke("green");
+    doc.lineWidth(1).moveTo(doc.x, doc.y).lineTo(pageWidth - doc.x, doc.y).stroke("green");
     doc.moveDown();
-    doc.fontSize(11).text(`Arrival: ${invoiceData.arrivalDate}`, {
-      align: "left",
-    });
-    doc.moveDown();
-    doc.fontSize(11).text(`Departure: ${invoiceData.departureDate}`, {
-      align: "left",
-    });
+
+    doc.font('regular').text('Arrival: ', {
+      align: 'left',
+      continued: true
+    })
+      .font('bold').text(`${invoiceData.arrivalDate}`)
+    doc.moveDown(0.5);
+
+    doc.font('regular').text('Departure: ', {
+      align: 'left',
+      continued: true
+    })
+      .font('bold').text(`${invoiceData.departureDate}`)
     doc.moveDown(2);
 
+    let width = (pageWidth - 100) * 0.2
     const table = {
       headers: [
-        {
-          label: "Date",
-          property: "date",
-          width: 140,
-          renderer: null,
-          headerColor: "#009944",
-        },
-        {
-          label: "Description",
-          property: "desc",
-          width: 200,
-          renderer: null,
-          headerColor: "#009944",
-        },
-        {
-          label: "Amount",
-          property: "amount",
-          width: 140,
-          renderer: null,
-          headerColor: "#009944",
-        },
+        { label: "Date", property: "date", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
+        { label: "Description", property: "desc", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width: (pageWidth - 100 - (width * 2)) },
+        { label: "Amount", property: "amount", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
       ],
       datas: []
     };
     const invoices = invoiceData.invoices
     invoices.forEach(invoice => {
       table.datas.push({
-        options: { columnColor: "#FFFFFF" },
+        options: { padding: 2 },
         ...invoice
       });
     })
-    // invoiceData.forEach((invoiceData) => {
-    //   invoiceData.records.forEach((record) => {
-    //     table.datas.push({
-    //       options: { columnColor: "#FFFFFF" },
-    //       date: record.billDate,
-    //       description: record.description,
-    //       amount: `$${record.amount}`,
-    //     });
-    //   });
-    // });
+
     doc.table(table, {
-      prepareHeader: () => doc.font("Helvetica-Bold").fontSize(11),
-      prepareRow: (row, indexColumn, indexRow, rectRow, rectCell) => {
-        doc.font("Helvetica").fontSize(11);
-      },
+      padding: 5,
+      prepareHeader: () => doc.font('bold').fillColor('white'),
+      prepareRow: () => doc.font('regular').fillColor('black')
     });
 
     // Menambahkan garis pembatas warna hijau
-    doc
-      .lineWidth(2)
-      .moveTo(50, doc.y)
-      .lineTo(pageWidth - 50, doc.y)
-      .stroke("green");
-    doc.moveDown(2);
-
-    doc.fontSize(11).text("Gedung Lingian, Universitas Telkom, Jl.\ntelekomunikasi, No. 01, Terusan\nBuahBatu, Bandung, Jawa Barat 40257;\nPhone, +62 8112072999",
+    doc.lineWidth(1).moveTo(doc.x, doc.y).lineTo(pageWidth - doc.x, doc.y).stroke("green");
+    doc.moveDown(1)
+    doc.text("Gedung Lingian, Universitas Telkom, Jl.\ntelekomunikasi, No. 01, Terusan\nBuahBatu, Bandung, Jawa Barat 40257;\nPhone, +62 8112072999",
       { align: "left" }
-    ).moveDown();
+    )
     doc.end();
 
+    stream.on("finish", () => {
+      res.download(path.resolve(stream.path))
+    });
   } catch (err) {
+    console.log(err)
     return error(res, err.message)
   }
 };
 
-module.exports = { generatePDF };
+module.exports = { getPDF };

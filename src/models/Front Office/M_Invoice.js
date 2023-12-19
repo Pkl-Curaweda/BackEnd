@@ -346,11 +346,7 @@ const printInvoice = async (id, reservationId) => {
 
       const orders = await prisma.orderDetail.findMany({ //?Now the order is based on the date, so the date will not only be the date of reservation.created_at
         where: {
-          order: { guestId: reserver.guestId },
-          created_at: {
-            gte: `${date}T00:00:00.000Z`,
-            lte: `${date}T23:59:59.999Z`,
-          }
+          order: { guestId: reserver.guestId }
         },
         select: {
           qty: true,

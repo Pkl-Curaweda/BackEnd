@@ -6,7 +6,7 @@ const { getAllReport } = require("../controllers/Reservation/C_Report");
 const {getInvoice,testInvoice,getSummary} = require("../controllers/Reservation/C_Invoice");
 const {getHelperDetail,postHelperDetail,putNewReservationData,deleteReservation,getReportDetail,getInvoiceDetail} = require("../controllers/Reservation/C_Detail");
 const { auth } = require("../middlewares/AuthMiddleware");
-const { generatePDF } = require("../controllers/Reservation/C_PrintInvoice");
+const { generatePDF, getPDF } = require("../controllers/Reservation/C_PrintInvoice");
 
 const R_Reservation = new Router();
 
@@ -37,6 +37,6 @@ R_Reservation.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 
 //? PRINT INVOICE
-R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", generatePDF);
+R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", getPDF);
 
 module.exports = R_Reservation;
