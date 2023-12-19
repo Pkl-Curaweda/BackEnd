@@ -428,8 +428,14 @@ const AddNewIdCard = async (data) => {
   }
 }
 
-const changeSpecialTreatment = async (data) => {
-
+const changeSpecialTreatment = async (specialTreatmentId) => {
+  try{
+    
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
 }
 
 module.exports = {

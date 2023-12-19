@@ -5,11 +5,11 @@
  * @returns {import('express').Response}
  */
 function success(res, message, data) {
-    return res.json({
-        success: true,
-        message,
-        data
-    })
+  return res.json({
+    success: true,
+    message,
+    data,
+  });
 }
 
 /**
@@ -20,11 +20,11 @@ function success(res, message, data) {
  * @returns {import('express').Response}
  */
 function error(res, message, code = 400, data) {
-    return res.status(code).json({
-        success: false,
-        message,
-        data
-    });
+  return res.status(code).json({
+    success: false,
+    message,
+    data,
+  });
 }
 
-module.exports = { success, error }
+module.exports = { success, error };

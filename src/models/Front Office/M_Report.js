@@ -276,16 +276,12 @@ const getReportDetailData = async (date, displayOption) => {
       }
     }
 
-    const rooms = await prisma.room.findMany({
-      select: { id: true, roomType: true, bedSetup: true },
-    });
-    rooms.forEach((room) => {
-      const { id, roomType, bedSetup } = room;
+    const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
+    rooms.forEach(room => {
+    const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
-      let key = `room_${id}`,
-        percent = percentages[key];
-      if (percentages[key] > 1)
-        percent = dates.length / percentages[`room_${id}`];
+      let key = `room_${id}`, percent = percentages[key];
+      if(percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent };
       }
