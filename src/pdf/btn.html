@@ -1,0 +1,27 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Unduh PDF</title>
+</head>
+<body>
+  <h1>Unduh PDF</h1>
+  <button onclick="unduhPDF()">Unduh Hasil PDF</button>
+
+  <script>
+    function unduhPDF() {
+      // Ganti URL sesuai dengan lokasi generatePDF.js dan hasil.pdf pada server Anda
+      const url = '/hasil.pdf';
+
+      // Mengarahkan ke file PDF untuk diunduh
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'hasil.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
