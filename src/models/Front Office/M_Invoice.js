@@ -232,10 +232,10 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
           where: {
             id: uniqueId,
             service: { id },
-            // created_at: {
-            //     gte: `${date}T00:00:00.000Z`,
-            //     lte: `${date}T23:59:59.999Z`
-            // }
+            created_at: {
+                gte: `${date}T00:00:00.000Z`,
+                lte: `${date}T23:59:59.999Z`
+            }
           },
           select: {
             qty: true,
@@ -346,7 +346,11 @@ const printInvoice = async (id, reservationId) => {
 
       const orders = await prisma.orderDetail.findMany({ //?Now the order is based on the date, so the date will not only be the date of reservation.created_at
         where: {
-          order: { guestId: reserver.guestId }
+          order: { guestId: reserver.guestId },
+          // created_at:{
+          //   gte: `${date}T00:00:00.000Z`,
+          //   lte: `${date}T23:59:59.999Z`
+          // }
         },
         select: {
           qty: true,
@@ -361,7 +365,7 @@ const printInvoice = async (id, reservationId) => {
       
       orders.forEach(order => {
         invoices.push({
-          date,
+          date: '',
           desc: order.service.name,
           amount: order.qty * order.service.price
         })

@@ -8,36 +8,14 @@ const getPDF = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
   try {
     const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
-    const doc = new PDFDocument({ font: 'src/pdf/Inter-Regular.ttf', size: 'A4' });
+    const doc = new PDFDocument({ font: 'src/pdf/Inter-Regular.ttf', size: 'LEGAL', margin: { top: 30, bottom: 20, right: 50, left: 50 } });
     const stream = fs.createWriteStream("src/pdf/example.pdf");
 
     doc.pipe(stream);
     doc.registerFont('regular', 'src/pdf/Inter-Regular.ttf');
     doc.registerFont('bold', 'src/pdf/Lato-Bold.ttf');
     const pageWidth = doc.page.width;
-    // const x = (pageWidth - 100) / 2;
-    // const y = 20; // Jarak dari atas halaman
 
-    // Mendapatkan informasi dari gambar
-    // const image = fs.readFileSync("src/pdf/lingian-logo-colored.png");
-    // Menghitung posisi untuk menempatkan gambar di tengah atas halaman PDF
-    // const x = (pageWidth - 100) / 2;
-    // const y = 20; // Jarak dari atas halaman
-
-    // Path ke file gambar yang akan ditambahkan
-    // const imagePath = "../../image/lingian-logo-colored.png.png"; // Ubah path sesuai dengan lokasi gambar Anda
-
-    // Mendapatkan informasi dari gambar
-    // const image = fs.readFileSync(imagePath);
-
-    // Mendapatkan ukuran halaman PDF
-
-
-    // Menambahkan gambar ke halaman PDF di posisi yang telah dihitung
-    // doc.image(image, x, y, { width: 100, height: 100 });
-
-    // Pindahkan kursor ke posisi di bawah gambar
-    // doc.image(image, x, y, { width: 100, height: 100 });
     doc.image("src/pdf/lingian-logo-colored.png", (pageWidth - 100) / 2, 20, { width: 100, height: 100 });
     doc.moveDown(5);
     doc.fontSize(11);
@@ -53,13 +31,13 @@ const getPDF = async (req, res) => {
       continued: true
     })
       .font('bold').text(`${invoiceData.resourceName}`)
-    doc.moveUp(1);
+    doc.moveUp(2);
 
     doc.font('regular').text(`Guest Name: `, { //TODO: Need to change this one
       align: "right",
       continued: true
-    })
-      .font('bold').text(`${invoiceData.guestName}`, {
+    }).moveDown(1)
+    doc.font('bold').text(`${invoiceData.guestName}`, {
         align: 'right',
       })
     doc.moveDown();
@@ -79,21 +57,26 @@ const getPDF = async (req, res) => {
       continued: true
     })
       .font('bold').text(`${invoiceData.departureDate}`)
-    doc.moveDown(2);
+    doc.moveDown(1);
 
     let width = (pageWidth - 100) * 0.2
     const table = {
       headers: [
         { label: "Date", property: "date", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
-        { label: "Description", property: "desc", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width: (pageWidth - 100 - (width * 2)) },
+        { label: "", property: "", width: 2 },
+        { label: "Description", property: "desc", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width: (pageWidth - width - 74) * 0.6 },
+        { label: "", property: "", width: 2 },
         { label: "Amount", property: "amount", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
       ],
       datas: []
     };
+    let arrayColor = ['#ffffff', '#777777']
+    let i = 0
     const invoices = invoiceData.invoices
-    invoices.forEach(invoice => {
+    invoices.forEach((invoice, index) => {
+      
       table.datas.push({
-        options: { padding: 2 },
+        options: { padding: 2, columnColor: arrayColor[index % arrayColor.length] },
         ...invoice
       });
     })
