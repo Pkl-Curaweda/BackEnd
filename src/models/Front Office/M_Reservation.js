@@ -45,7 +45,7 @@ const orderByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
-        query.whereQuery = { reservation: { reserver: { guest: { some: { name: filter} } } } }
+        query.orderQuery = { reservation: { reserver: { guest: { name: filter} } } }
         break;
       default:
         query.whereQuery = { reservation: { reserver: { resourceName: { contains: filter } } } }
@@ -338,7 +338,9 @@ const DetailCreateReservationHelper = async () => {
 //?DELETE
 const deleteReservationById = async (id) => {
   try {
-    await deleteResvRoomByReservationId(id);
+    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: { select: { id: true } } } })
+    const { resvRooms } = reservation
+    await deleteResvRoomByReservationId(id, resvRooms);
     const deletedReservation = await prisma.reservation.delete({ where: { id } });
     return deletedReservation
   } catch (err) {
@@ -428,12 +430,8 @@ const ChangeReservationProgress = async (id, changeTo) => {
 
 const AddNewIdCard = async (data) => {
   try {
-    console.log(data)
-    const { reservationId, resvRoomId } = data
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } } } })
     data.cardId = encrypt(data.cardId)
-    await prisma.guest.update({ where: { id: resvRoom.reservation.reserver.guestId }, data: { address: data.address } })
-    delete data.resvRoomId, data.address
+    delete data.resvRoomId
     const createdIdCard = await prisma.idCard.create({ data })
     return createdIdCard
   } catch (err) {

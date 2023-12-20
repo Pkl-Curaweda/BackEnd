@@ -127,7 +127,6 @@ const generateBalanceAndTotal = async (option = { balance: false, total: false }
 
         if (option.balance && option.balance != false) {
             const resvPayments = resvRoom.reservation.ResvPayment
-            console.log(option, resvPayments)
             resvPayments.forEach(payment => balance = balance + payment.total)
         }
 

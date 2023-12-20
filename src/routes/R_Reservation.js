@@ -30,13 +30,12 @@ R_Reservation.post("/roomavail/create-log", CreateLog);
 R_Reservation.get("/filter-roomAvail", getFilterRoomAvail);
 
 //?REPORT PAGE
-R_Reservation.get("/report", getAllReport);
+R_Reservation.get("/report/:displayOption?", getAllReport);
 
 //?INVOICE
 R_Reservation.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice);
-
-//? PRINT INVOICE
 R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", getPDF);
+
 
 module.exports = R_Reservation;

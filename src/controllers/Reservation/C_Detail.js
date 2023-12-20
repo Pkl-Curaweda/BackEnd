@@ -67,7 +67,9 @@ const getCreateResevationHelper = async (req, res) => {
 const getEditReservationHelper = async (req, res) => {
   try {
     const { reservationId, resvRoomId } = req.params;
-    const detail = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
+    let detail = { reservation: undefined, data: undefined }
+    detail.reservation = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
+    detail.data = await DetailCreateReservationHelper();
     return success(res, 'Helper Running', detail)
   } catch (err) {
     return error(res, err.message)
@@ -76,11 +78,11 @@ const getEditReservationHelper = async (req, res) => {
 
 const getReportDetail = async (req, res) => {
   const { displayOption = "day" } = req.params;
-  const { date = new Date().toISOString().split("T")[0]} = req.query
-  try{
+  const { date = new Date().toISOString().split("T")[0] } = req.query
+  try {
     const detail = await getReportDetailData(date, displayOption)
     return success(res, 'Operation Success', detail)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -90,10 +92,10 @@ const getInvoiceDetail = async (req, res) => {
   const { ids } = req.query;
   const id = parseInt(ids.split('-')[0]);
   const uniqueId = parseInt(ids.split('-')[1])
-  try{
+  try {
     const detail = await GetInvoiceDetailByArt(parseInt(reservationId), parseInt(resvRoomId), { date, id, uniqueId })
     return success(res, 'Operation Success', detail)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -179,11 +181,11 @@ const deleteReservation = async (req, res) => {
 };
 
 
-module.exports = { 
-  getHelperDetail, 
-  postHelperDetail, 
-  putNewReservationData, 
-  deleteReservation, 
+module.exports = {
+  getHelperDetail,
+  postHelperDetail,
+  putNewReservationData,
+  deleteReservation,
   getReportDetail,
   getInvoiceDetail
 }

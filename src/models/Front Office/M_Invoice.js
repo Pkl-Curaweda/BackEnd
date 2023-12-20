@@ -1,20 +1,9 @@
+const e = require("express");
 const { prisma } = require("../../../prisma/seeder/config");
-const {
-  ThrowError,
-  PrismaDisconnect,
-  countNight,
-  generateDateBetweenStartAndEnd,
-  generateBalanceAndTotal,
-} = require("../../utils/helper");
+const {ThrowError, PrismaDisconnect,generateDateBetweenStartAndEnd,generateBalanceAndTotal } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
-const GetInvoiceByResvRoomId = async (
-  reservationId,
-  resvRoomId,
-  sortIdentifier,
-  page,
-  perPage
-) => {
+const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage) => {
   try {
     let invoices = [],
       startIndex,
@@ -51,14 +40,10 @@ const GetInvoiceByResvRoomId = async (
     });
     const { guestId } = resvRoom.reservation.reserver;
     arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
-    departureDate = resvRoom.reservation.departureDate
-      .toISOString()
-      .split("T")[0];
+    departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
     const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
-    startIndex = Math.max(0, (page - 1) * perPage);
-    endIndex = Math.min(dates.length - 1, startIndex + perPage - 1);
 
-    for (let i = startIndex; i <= endIndex; i++) {
+    for (let i = dates.length - 1; i >= 0; i--) {
       const searchedDate = new Date(dates[i]);
       const searchDate = searchedDate.toISOString().split("T")[0];
       //?ROOM PRICE / DAYS
@@ -120,11 +105,11 @@ const GetInvoiceByResvRoomId = async (
         },
       });
 
-      payments.forEach((payment) => {
+      payments.forEach((payment, index) => {
         //?ANY PAYMENT IN THIS DATE
         invoices.push({
           art: 999,
-          uniqueId: payment.id,
+          uniqueId: index + 1,
           qty: 1,
           desc: "Payment",
           rate: payment.total,
@@ -133,10 +118,19 @@ const GetInvoiceByResvRoomId = async (
         });
       });
     }
+
+    const lastPage = Math.ceil(dates.length / perPage);
+    
+    // Calculate startIndex and endIndex based on page and perPage
+    startIndex = Math.max(0, (page - 1) * perPage);
+    endIndex = Math.min(dates.length - 1, startIndex + perPage - 1);
+
+    // Slice the invoices array based on calculated startIndex and endIndex
+    invoices = invoices.slice(startIndex, endIndex + 1);
+
     if (sortIdentifier != undefined)
       invoices = sortInvoiceData(invoices, sortIdentifier);
 
-    const lastPage = Math.ceil(dates.length / perPage);
     return {
       invoices,
       meta: {
@@ -160,6 +154,11 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
         let detail;
         const { date, id, uniqueId } = args
         const balanceTotal = await generateBalanceAndTotal({ balance: true, total: true }, reservationId, resvRoomId)
+        let addressComment = await prisma.reservation.findFirst({ where: { id: reservationId }, select: { idCard: { select: {  address: true } }, reserver: { select: { billComment: true } } } })
+        addressComment = { 
+          address: addressComment.idCard.address || "" ,
+          comment: addressComment.reserver.billComment || ""
+        }
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({
             where: { id: resvRoomId, reservationId },
             select: {
@@ -217,8 +216,8 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                     art: 999,
                     qty: 1,
                     desc: "Payment",
-                    rate: payments[uniqueId].total,
-                    amount: payments[uniqueId].total,
+                    rate: payments[uniqueId -1 ].total,
+                    amount: payments[uniqueId - 1].total,
                     billDate: date
                 }
                 break;
@@ -255,7 +254,7 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                 break;
         }
 
-    return { detail, ...balanceTotal };
+    return { detail, ...balanceTotal, ...addressComment };
   } catch (err) {
     ThrowError(err);
   } finally {

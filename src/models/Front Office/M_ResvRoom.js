@@ -52,10 +52,10 @@ const createNewResvRoom = async (id, data) => {
   }
 }
 
-const deleteResvRoomByReservationId = async (reservationId) => {
+const deleteResvRoomByReservationId = async (reservationId, resvRooms = []) => {
   try {
-    const resvRooms = await prisma.resvRoom.findMany({ where: { reservationId }, select: { id: true } })
     resvRooms.forEach(async resvRoom => {
+      await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoom.id } })
       await prisma.roomMaid.deleteMany({ where: { resvRoomId: resvRoom.id } })
       await prisma.roomChange.deleteMany({ where: { resvRoomId: resvRoom.id } })
       await prisma.resvRoom.delete({ where: { id: resvRoom.id } })
