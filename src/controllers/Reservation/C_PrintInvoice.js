@@ -2,7 +2,6 @@ const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
 const path = require("path");
 const { error, success } = require("../../utils/response");
-const { generatePDF } = require("../../pdf/PrintPDF");
 const { printInvoice } = require("../../models/Front Office/M_Invoice");
 
 const getPDF = async (req, res) => {
