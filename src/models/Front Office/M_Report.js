@@ -1,5 +1,11 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
+const {
+  ThrowError,
+  PrismaDisconnect,
+  countNight,
+  generateDateBetweenNowBasedOnDays,
+  generateDateBetweenStartAndEnd,
+} = require("../../utils/helper");
 
 //? REPORT
 const findReportReservation = async () => {
@@ -29,7 +35,7 @@ const findReportReservation = async () => {
       }
       value.totalRoom++;
     }
-    value.occ = value.occupied / value.totalRoom * 100;
+    value.occ = (value.occupied / value.totalRoom) * 100;
     value.arr = value.roomRevenue / value.occupied;
 
     //value.totalAvailableSatuBulan (date, room avail)
@@ -43,7 +49,10 @@ const findReportReservation = async () => {
 //? GET ALL REPORT DATA
 const getReportData = async (page, perPage, disOpt, sort, date) => {
   try {
-    let reports = [], dates, startIndex, endIndex;
+    let reports = [],
+      dates,
+      startIndex,
+      endIndex;
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
 
@@ -64,7 +73,7 @@ const getReportData = async (page, perPage, disOpt, sort, date) => {
     endIndex = Math.min(dates.length - 1, endIndex);
 
     for (let i = startIndex; i <= endIndex; i++) {
-      const searchDate = dates[i]
+      const searchDate = dates[i];
 
       const logAvailability = await prisma.logAvailability.findFirst({
         where: {
@@ -114,28 +123,60 @@ const getReportData = async (page, perPage, disOpt, sort, date) => {
       reports.push(storedData);
     }
 
-    if (sort) {
-      switch (sort) {
-        case "desc":
-          reports = reports.sort((a, b) => b.roomRevenue - a.roomRevenue)
-          break;
-        default:
-          reports = reports.sort((a, b) => a.roomRevenue - b.roomRevenue)
-          break;
-      }
+    switch (disOpt) {
+      case "perDay":
+        data = reports;
+        break;
+      case "perWeek":
+        data = {};
+        const currentDate = new Date();
+        const sevenDaysAgo = new Date(currentDate);
+        sevenDaysAgo.setDate(currentDate.getDate() - 7);
+        reports.forEach((report) => {
+          const reportDate = new Date(report.date);
+          const weekNumber = Math.ceil(
+            (reportDate.getDate() + reportDate.getMonth() * 30) / 7
+          );
+          if (!data[weekNumber]) {
+            data[weekNumber] = [];
+          }
+          data[weekNumber].push({ ...report });
+        });
+        break;
+
+      case "perMonth":
+        data = monthNames.map((monthName) => {
+          const monthIndex = monthNames.indexOf(monthName);
+          const monthData = reports.filter(
+            (report) => new Date(report.date).getMonth() === monthIndex
+          );
+          return {
+            [monthName]: monthData.map(({ date, ...rest }) => ({
+              date: date || `${currentYear}-${monthIndex + 1}-${day + 1}`,
+              ...rest,
+            })),
+          };
+        });
+        break;
+
+      case "perYear":
+        data = {};
+        reports.forEach((report) => {
+          const year = new Date(report.date).getFullYear();
+          if (!data[year]) {
+            data[year] = [];
+          }
+          data[year].push({ ...report });
+        });
+        break;
+
+      default:
+        data = reports;
     }
-    const lastPage = Math.ceil(dates.length / perPage);
 
     return {
-      reports,
-      meta: {
-        total: dates.length,
-        currPage: page,
-        lastPage,
-        perPage,
-        prev: page > 1 ? page - 1 : null,
-        next: page < lastPage ? page + 1 : null,
-      },
+      data,
+      pagination: pagination,
     };
   } catch (err) {
     ThrowError(err)
@@ -169,10 +210,10 @@ const getReportDetailData = async (date, displayOption) => {
         endDate = new Date(searchedDate.setDate(lastDate))
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
       case "year":
-        const currentYear = new Date(date).getFullYear()
+        const currentYear = new Date(date).getFullYear();
         startDate = `${currentYear}-01-01`;
-        endDate = `${currentYear}-12-31`
-        dates = generateDateBetweenStartAndEnd(startDate, endDate)
+        endDate = `${currentYear}-12-31`;
+        dates = generateDateBetweenStartAndEnd(startDate, endDate);
         break;
     }
 
@@ -185,7 +226,7 @@ const getReportDetailData = async (date, displayOption) => {
           },
         },
         select: { roomHistory: true },
-        orderBy: { created_at: 'desc' },
+        orderBy: { created_at: "desc" },
       });
       if (logAvailability != null) {
         Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
@@ -195,7 +236,8 @@ const getReportDetailData = async (date, displayOption) => {
             total.RESERVATION++;
             total[roomType]++;
             const percentageKeyExists = percentages.hasOwnProperty(key);
-            percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
+            percentages[key] =
+              (percentageKeyExists ? percentages[key] : 0) + 100;
           } else {
             if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
           }
@@ -205,17 +247,17 @@ const getReportDetailData = async (date, displayOption) => {
 
     const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
     rooms.forEach(room => {
-      const { id, roomType, bedSetup } = room
+    const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
-      if (percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
+      if(percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
       if (!detail.hasOwnProperty(detailKey)) {
-        detail[detailKey] = { id, roomType, bedSetup, percent }
+        detail[detailKey] = { id, roomType, bedSetup, percent };
       }
-    })
-    return detail
+    });
+    return detail;
   } catch (err) {
-    ThrowError(err)
+    ThrowError(err);
   } finally {
     await PrismaDisconnect();
   }
@@ -227,4 +269,4 @@ module.exports = {
   findReportReservation,
   getReportData,
   getReportDetailData,
-}
+};

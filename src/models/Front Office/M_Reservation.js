@@ -159,8 +159,12 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
               },
             },
             resvStatus: {
-              select: { description: true, rowColor: true, textColor: true },
+              select: {
+                rowColor: true,
+                textColor: true
+              }
             },
+            borderColor: true,
             manyNight: true,
             arrivalDate: true,
             departureDate: true,
@@ -198,7 +202,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     await PrismaDisconnect();
   }
 };
-
 
 //? DETAILS RESERVATION
 const getDetailById = async (id, reservationId) => {
@@ -425,8 +428,12 @@ const ChangeReservationProgress = async (id, changeTo) => {
 
 const AddNewIdCard = async (data) => {
   try {
+    console.log(data)
+    const { reservationId, resvRoomId } = data
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } } } })
     data.cardId = encrypt(data.cardId)
-    delete data.resvRoomId
+    await prisma.guest.update({ where: { id: resvRoom.reservation.reserver.guestId }, data: { address: data.address } })
+    delete data.resvRoomId, data.address
     const createdIdCard = await prisma.idCard.create({ data })
     return createdIdCard
   } catch (err) {
@@ -441,7 +448,7 @@ const changeSpecialTreatment = async (specialTreatmentId) => {
     
   }catch(err){
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
