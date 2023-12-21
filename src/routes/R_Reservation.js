@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { getArrivalGuestData} = require("../controllers/Reservation/C_ArrivalGuest");
+const { getArrivalGuestData, putChangeTreatment} = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
 const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controllers/Reservation/C_RoomAvailability");
 const { getAllReport } = require("../controllers/Reservation/C_Report");
@@ -20,6 +20,7 @@ R_Reservation.delete("/detail/reservation/:reservationId/:resvRoomId/delete",del
 
 //?ARRIVAL GUEST LIST
 R_Reservation.get("/arrival", getArrivalGuestData);
+R_Reservation.put("/arrival", putChangeTreatment);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
