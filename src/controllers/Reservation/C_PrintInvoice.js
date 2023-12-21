@@ -2,7 +2,8 @@ const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
 const path = require("path");
 const { error, success } = require("../../utils/response");
-const { printInvoice } = require("../../models/Front Office/M_Invoice");
+const { printInvoice, findBillPayment } = require("../../models/Front Office/M_Invoice");
+const { ThrowError } = require("../../utils/helper");
 
 const getPDF = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
@@ -104,4 +105,21 @@ const getPDF = async (req, res) => {
   }
 };
 
-module.exports = { getPDF };
+const getBillPayment = async (req, res) => {
+  const { reservationId, resvRoomId } = req.query;
+  try {
+    const invoiceData = await findBillPayment(parseInt(resvRoomId), parseInt(reservationId));
+    
+    return success(res, 'Operation Success', invoiceData);
+
+  } catch (err) {
+    return ThrowError(err);
+  }
+}
+
+
+
+
+
+
+module.exports = { getPDF, getBillPayment };

@@ -292,6 +292,8 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
   }
   return invoice;
 };
+
+
 const printInvoice = async (id, reservationId) => {
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({ //Doganti ke resvRoom soalnya data yang bakal diambil ini dari 1 reservation bukan seluruh data yang ada di reservation
@@ -478,10 +480,98 @@ const printInvoice = async (id, reservationId) => {
   }
 };
 
+//? INVOICE PAGE9714 RIGHT
+const findBillPayment = async (id, reservationId) => {
+  try {
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({
+      where: {
+        id, reservationId
+      },
+      select: {
+        reservation: {
+          select: {
+            id: true,
+            arrivalDate: true,
+            departureDate: true,
+            reserver: {
+              select: {
+                guest: {
+                  select: {
+                    name: true,
+                    contact: true,
+                  }
+                }
+              }
+            }
+          }
+        },
+        arrangment: {
+          select: {
+            rate: true,
+          }
+        }
+      }
+    });
+
+    let invoices = [];
+    let totalAmount = 0;
+    const { reservation, arrangment } = resvRoom;
+    const { reserver } = reservation;
+    const arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
+    const departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
+
+    const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
+
+    for (const date of dates) {
+      let roomPrice = {
+        date,
+        desc: "Room Rate",
+        amount: arrangment.rate
+      };
+      invoices.push(roomPrice);
+      totalAmount += roomPrice.amount;
+
+      const orders = await prisma.orderDetail.findMany({
+        where: {
+          order: { guestId: reserver.guestId },
+        },
+        select: {
+          qty: true,
+          service: {
+            select: {
+              name: true,
+              price: true,
+            },
+          }
+        }
+      });
+
+      orders.forEach(order => {
+        invoices.push({
+          date: '',
+          desc: 'Total Amount',
+          amount: totalAmount
+        });
+      });
+    }
+
+    return {
+      noPesanan: `${reservationId}-${id}`,
+      guestName: reserver.guest.name,
+      guestContact: reserver.guest.contact,
+      invoices,
+    };
+  } catch (err) {
+    ThrowError(err);
+  } finally {
+    await PrismaDisconnect();
+  }
+};
 
 
 module.exports = {
   GetInvoiceByResvRoomId,
   GetInvoiceDetailByArt,
   printInvoice,
+  findBillPayment,
 };
