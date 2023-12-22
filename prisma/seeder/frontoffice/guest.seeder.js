@@ -11,6 +11,8 @@ const guests = {
 };
 
 async function guestSeed() {
+	const salt = await bcrypt.genSalt();
+    guests.password = await bcrypt.hash(guests.password, salt);
 	const { id } = await prisma.guest.upsert({
 		where: { username: guests.username },
 		update: guests,

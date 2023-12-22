@@ -32,7 +32,7 @@ const GetCurrentGuest = async (req, res) => {
 const PostLogin = async (req, res) => {
     try {
         const loginMethod = req.params.method;
-        const loginData = loginMethod === "qr" ? req.query.encryptedData : req.body;
+        const loginData = loginMethod === "qr" ? req.params.encrypt : req.body;
 
         const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 day
         const guestAndGeneratedToken = await GuestLogin(loginMethod, loginData);

@@ -28,15 +28,6 @@ const getAllStatus = async () => {
                   rowColor: true,
                   textColor: true
                 }
-              },
-              reserver: {
-                select: {
-                  guest: {
-                    select: {
-                      name: true
-                    }
-                  }
-                }
               }
             }
           }
@@ -45,7 +36,6 @@ const getAllStatus = async () => {
       const key = `room_${roomId}`;
       if(resvRoom != null){
         floorPlan[key] = {
-          "guestName": resvRoom.reservation.reserver.guest.name,
           "resvStatus": resvRoom.reservation.resvStatus
         };
       }else{

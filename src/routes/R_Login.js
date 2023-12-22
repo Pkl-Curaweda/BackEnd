@@ -14,6 +14,6 @@ R_Login.get('/user/me', auth , getCurrentUser);
 R_Login.get("/guest/", GetAllGuest);
 R_Login.get("/guest/qr/:id", GetQRCode);
 R_Login.post("/guest/create", PostNewGuest);
-R_Login.post("/guest/login/:method", PostLogin);
+R_Login.post("/guest/login/:method/:encrypt?", PostLogin);
 
 module.exports = R_Login;

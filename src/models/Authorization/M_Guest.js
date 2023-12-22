@@ -62,24 +62,24 @@ const GuestLogin = async (method, data) => {
 
 const CreateGuestQrCode = async (guestData) => {
   const storedData = {
-      username: guestData.username,
-      password: "password",
+    username: guestData.username,
+    password: "password",
   };
   const path = `${process.env.QR_PATH}QR-${guestData.username}.png`;
   if (!fs.existsSync(path)) {
-      const stringfyData = JSON.stringify(storedData);
-      const encryptedData = encrypt(stringfyData);
-      const storedQR = "http://localhost:3000/auth/guest/login/qr?encryptedData=" + encryptedData;
-      qr.toFile(path, storedQR, (err) => {
-          if (err) console.log(err);
-      });
+    const stringfyData = JSON.stringify(storedData);
+    const encryptedData = encrypt(stringfyData);
+    const storedQR = "http://localhost:3000/auth/guest/login/qr/" + encryptedData;
+    qr.toFile(path, storedQR, (err) => {
+      if (err) console.log(err);
+    });
   }
   return path;
 };
 
 const GetAllGuests = async () => {
   try {
-    const guests = await prisma.guest.findMany({ select: {id: true, username: true, name: true, contact: true } });
+    const guests = await prisma.guest.findMany({ select: { id: true, username: true, name: true, contact: true } });
     return guests;
   } catch (err) {
     ThrowError(err)
