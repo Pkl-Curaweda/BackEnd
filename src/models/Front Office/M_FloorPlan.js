@@ -4,44 +4,17 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const getAllStatus = async () => {
   try {
-    const roomIdList = [];
-    const todayDate = new Date().toISOString().split("T")[0];
-    const rooms = await prisma.room.findMany({ select: { id: true } });
-    rooms.forEach(room => {
-      roomIdList.push(room.id);
-    });
-    const floorPlan = {};
-    for (const roomId of roomIdList) {
-      const resvRoom = await prisma.resvRoom.findFirst({
-        where: {
-          created_at: {
-            gte: `${todayDate}T00:00:00.000Z`,
-            lte: `${todayDate}T23:59:59.999Z`
-          },
-          roomId
-        },
-        select: {
-          reservation: {
-            select: {
-              resvStatus: {
-                select: {
-                  rowColor: true,
-                  textColor: true
-                }
-              }
-            }
+    const floorPlan = await prisma.room.findMany({
+      select: {
+        id: true,
+        roomStatus: {
+          select: {
+            rowColor: true, 
+            textColor: true
           }
         }
-      })
-      const key = `room_${roomId}`;
-      if(resvRoom != null){
-        floorPlan[key] = {
-          "resvStatus": resvRoom.reservation.resvStatus
-        };
-      }else{
-        floorPlan[key] = ""
       }
-    }
+    })
     return floorPlan
   } catch (err) {
     ThrowError(err);

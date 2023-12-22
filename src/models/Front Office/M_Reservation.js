@@ -45,7 +45,7 @@ const orderByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
-        query.orderQuery = { reservation: { reserver: { guest: { name: filter} } } }
+        query.orderQuery = { reservation: { reserver: { guest: { name: filter } } } }
         break;
       default:
         query.whereQuery = { reservation: { reserver: { resourceName: { contains: filter } } } }
@@ -54,7 +54,7 @@ const orderByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "room") {
     switch (sortBy) {
       case "name":
-        query.whereQuery = { roomMaids: { some:  { user: { name: { contains: filter } } } } }
+        query.whereQuery = { roomMaids: { some: { user: { name: { contains: filter } } } } }
         break;
       case 'type':
         query.whereQuery = { room: { roomType: filter } }
@@ -164,6 +164,13 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
                 textColor: true
               }
             },
+            specialTreatmentId: true,
+            specialTreatment: {
+              select: {
+                rowColor: true,
+                textColor: true
+              }
+            },
             borderColor: true,
             manyNight: true,
             arrivalDate: true,
@@ -181,20 +188,28 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     })
 
     let reservationsArray = [];
-    reservations.forEach((reservation) => {
-      const reservationId = reservation.reservationId;
-      const index = reservationsArray.findIndex((item) => item.reservationId === reservationId);
-      delete reservation.reservationId;
+    reservations.forEach((resv) => {
+      const reservationId = resv.reservationId;
+      const reservation = resv.reservation
+      console.log(reservation)
+      if (reservation.specialTreatmentId != null) {
+        const specialTreatment = reservation.specialTreatment
+        console.log(specialTreatment)
+        resv.reservation.resvStatus.rowColor = specialTreatment.rowColor;
+        resv.reservation.resvStatus.textColor = specialTreatment.textColor;
+      }
+      delete resv.reservationId
+      delete resv.reservation.specialTreatmentId
+      delete resv.reservation.specialTreatment
       if (index === -1) {
         reservationsArray.push({
           reservationId,
-          reservation: [reservation],
+          reservation: [resv],
         });
       } else {
-        reservationsArray[index].reservation.push(reservation);
+        reservationsArray[index].reservation.push(resv);
       }
     });
-
     return { reservations: reservationsArray, roomBoys, meta };
   } catch (err) {
     ThrowError(err);
@@ -370,6 +385,7 @@ const editReservation = async (reservationId, resvRoomId, data) => {
               update: {
                 name,
                 contact
+
               }
             }
           }
@@ -396,31 +412,42 @@ const editReservation = async (reservationId, resvRoomId, data) => {
 
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
-    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true } });
+    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { roomId: true } } } });
 
     const currentDate = new Date();
     const oldBorderColor = reservation.borderColor;
     const progressColor = ["ffff", "16a75c", "ffff"] //?Need to change the checkout border
+    const progressName = ['Reservation', 'Check In', 'Check Out']
+    const resvRooms = reservation.resvRooms
+    let progressIndex = 0, roomStatusId = 0;
     switch (changeTo) {
-      case "reservation":
-        reservation.borderColor = progressColor[0];
-        reservation.onGoingReservation = true
+      case 'reservation':
+        progressIndex = 0
         break;
-      case "checkin":
-        reservation.borderColor = progressColor[1];
-        reservation.onGoingReservation = true
-        reservation.checkInDate = currentDate
+      case 'checkin':
+        progressIndex = 1
         break;
-      case "checkout":
-        reservation.borderColor = progressColor[2];
-        reservation.onGoingReservation = false
-        reservation.checkoutDate = currentDate
+      case 'checkout':
+        progressIndex = 2
         break;
       default:
         throw Error("No Progress Sync");
     }
+    if (changeTo = ! 'reservation') {
+      roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
+      resvRooms.forEach(async room => {
+        await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
+      })
+    }
+    delete reservation.resvRooms
+    reservation.inHouseIndicator = changeTo != 'checkin' ? false : true
+    reservation.borderColor = progressColor[progressIndex];
+    reservation.onGoingReservation = changeTo != 'checkout' ? true : false
+    if (changeTo === 'checkin') reservation.checkInDate = currentDate
+    if (changeTo === 'checkout') reservation.checkoutDate = currentDate
+
     const updatedReservation = await prisma.reservation.update({ where: { id }, data: reservation })
-    return { oldBorderColor, newBorderColor: updatedReservation.borderColor }
+    return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor }
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -441,10 +468,13 @@ const AddNewIdCard = async (data) => {
   }
 }
 
-const changeSpecialTreatment = async (specialTreatmentId) => {
-  try{
-    
-  }catch(err){
+const changeSpecialTreatment = async (reservationId, specialTreatmentId) => {
+  try {
+    const treatment = ['VIP', 'INCOGNITO']
+    if (specialTreatmentId !== 1 && specialTreatmentId !== 2) throw new Error('No Treatment Applied')
+    await prisma.reservation.update({ where: { id: reservationId }, data: { specialTreatmentId: specialTreatmentId } })
+    return treatment[specialTreatmentId - 1]
+  } catch (err) {
     ThrowError(err)
   } finally {
     await PrismaDisconnect()
@@ -459,5 +489,6 @@ module.exports = {
   editReservation,
   ChangeReservationProgress,
   DetailCreateReservationHelper,
-  AddNewIdCard
+  AddNewIdCard,
+  changeSpecialTreatment
 };
