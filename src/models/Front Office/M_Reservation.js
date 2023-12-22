@@ -6,7 +6,6 @@ const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRo
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
-const { specialTreatmentSeed } = require("../../../prisma/seeder/frontoffice/specialTreatment.seeder");
 
 const orderByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -46,7 +45,7 @@ const orderByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "rese") {
     switch (sortBy) {
       case "name":
-        query.orderQuery = { reservation: { reserver: { guest: { name: filter } } } }
+        query.orderQuery = { reservation: { reserver: { guest: { name: filter} } } }
         break;
       default:
         query.whereQuery = { reservation: { reserver: { resourceName: { contains: filter } } } }
@@ -55,7 +54,7 @@ const orderByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "room") {
     switch (sortBy) {
       case "name":
-        query.whereQuery = { roomMaids: { some: { user: { name: { contains: filter } } } } }
+        query.whereQuery = { roomMaids: { some:  { user: { name: { contains: filter } } } } }
         break;
       case 'type':
         query.whereQuery = { room: { roomType: filter } }
@@ -165,13 +164,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
                 textColor: true
               }
             },
-            specialTreatmentId: true,
-            specialTreatment: {
-              select: {
-                rowColor: true,
-                textColor: true
-              }
-            },
             borderColor: true,
             manyNight: true,
             arrivalDate: true,
@@ -189,28 +181,17 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     })
 
     let reservationsArray = [];
-    reservations.forEach((resv) => {
-      const reservationId = resv.reservationId;
-      const reservation = resv.reservation
-      console.log(reservation)
-      if (reservation.specialTreatmentId != null) {
-        const specialTreatment = reservation.specialTreatment
-        console.log(specialTreatment)
-        resv.reservation.resvStatus.rowColor = specialTreatment.rowColor;
-        resv.reservation.resvStatus.textColor = specialTreatment.textColor;
-      }
+    reservations.forEach((reservation) => {
+      const reservationId = reservation.reservationId;
       const index = reservationsArray.findIndex((item) => item.reservationId === reservationId);
-      delete resv.reservationId, resv.reservation.specialTreatmentId, resv.reservation.specialTreatment;
-      delete resv.reservation.specialTreatmentId
-      delete resv.reservation.specialTreatment
-
+      delete reservation.reservationId;
       if (index === -1) {
         reservationsArray.push({
           reservationId,
-          reservation: [resv],
+          reservation: [reservation],
         });
       } else {
-        reservationsArray[index].reservation.push(resv);
+        reservationsArray[index].reservation.push(reservation);
       }
     });
 
@@ -251,7 +232,7 @@ const getDetailById = async (id, reservationId) => {
             arrivalDate: true,
             departureDate: true,
             resvStatus: {
-              select: { description: true },
+              select: { id: true, description: true },
             },
             reservationRemarks: true
           }
@@ -460,13 +441,10 @@ const AddNewIdCard = async (data) => {
   }
 }
 
-const changeSpecialTreatment = async (reservationId, specialTreatmentId) => {
-  try {
-    const treatment = ['VIP', 'INCOGNITO']
-    if (specialTreatmentId !== 1 && specialTreatmentId !== 2) throw new Error('No Treatment Applied')
-    await prisma.reservation.update({ where: { id: reservationId }, data: { specialTreatmentId: specialTreatmentId } })
-    return treatment[specialTreatmentId - 1]
-  } catch (err) {
+const changeSpecialTreatment = async (specialTreatmentId) => {
+  try{
+    
+  }catch(err){
     ThrowError(err)
   } finally {
     await PrismaDisconnect()
@@ -481,6 +459,5 @@ module.exports = {
   editReservation,
   ChangeReservationProgress,
   DetailCreateReservationHelper,
-  AddNewIdCard,
-  changeSpecialTreatment
+  AddNewIdCard
 };
