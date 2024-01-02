@@ -188,29 +188,29 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     })
 
     let reservationsArray = [];
+    const reservationMap = new Map();
     reservations.forEach((resv) => {
       const reservationId = resv.reservationId;
       const reservation = resv.reservation
-      console.log(reservation)
       if (reservation.specialTreatmentId != null) {
         const specialTreatment = reservation.specialTreatment
-        console.log(specialTreatment)
         resv.reservation.resvStatus.rowColor = specialTreatment.rowColor;
         resv.reservation.resvStatus.textColor = specialTreatment.textColor;
       }
       delete resv.reservationId
       delete resv.reservation.specialTreatmentId
       delete resv.reservation.specialTreatment
-      if (index === -1) {
-        reservationsArray.push({
+
+      if (!reservationMap.has(reservationId)) {
+        reservationMap.set(reservationId, {
           reservationId,
-          reservation: [resv],
+          reservation: []
         });
-      } else {
-        reservationsArray[index].reservation.push(resv);
       }
+    
+      reservationMap.get(reservationId).reservation.push(resv);
     });
-    return { reservations: reservationsArray, roomBoys, meta };
+    return { reservations: Array.from(reservationMap.values()), roomBoys, meta };
   } catch (err) {
     ThrowError(err);
   } finally {
