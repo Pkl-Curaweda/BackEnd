@@ -5,10 +5,13 @@ const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controlle
 const { getAllReport } = require("../controllers/Reservation/C_Report");
 const {getInvoice,testInvoice,getSummary} = require("../controllers/Reservation/C_Invoice");
 const {getHelperDetail,postHelperDetail,putNewReservationData,deleteReservation,getReportDetail,getInvoiceDetail} = require("../controllers/Reservation/C_Detail");
-const { auth } = require("../middlewares/AuthMiddleware");
-const { generatePDF, getPDF, getBillPayment } = require("../controllers/Reservation/C_PrintInvoice");
+const { getPDF, getBillPayment } = require("../controllers/Reservation/C_PrintInvoice");
+const { getDashboard } = require("../controllers/Reservation/C_Dashboard");
 
 const R_Reservation = new Router();
+
+//?DASHBOARD
+R_Reservation.get("/", getDashboard);
 
 //?DETAIL RESERVATION
 R_Reservation.get("/detail/reservation/:reservationId/:resvRoomId/:action?",getHelperDetail);

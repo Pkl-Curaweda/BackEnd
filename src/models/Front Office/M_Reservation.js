@@ -187,7 +187,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       select: { name: true }
     })
 
-    let reservationsArray = [];
     const reservationMap = new Map();
     reservations.forEach((resv) => {
       const reservationId = resv.reservationId;

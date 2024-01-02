@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+require('dotenv').config();
 
 const key = crypto.createHash('sha512').update(process.env.ENCRYPTION_KEY).digest('hex').substring(0, 32)
 const iv = crypto.createHash('sha512').update(process.env.ENCRYPTION_IV).digest('hex').substring(0, 16)
