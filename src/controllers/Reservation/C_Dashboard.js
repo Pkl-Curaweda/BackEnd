@@ -1,15 +1,15 @@
+const { prisma } = require("../../../prisma/seeder/config");
 const dashboard = require("../../models/Front Office/M_Dashboard")
-const { PrismaDisconnect, ThrowError } = require("../../utils/helper")
+const { PrismaDisconnect, ThrowError } = require("../../utils/helper");
+const { error, success } = require("../../utils/response");
 
 const getDashboard = async (req, res) => {
-    let { page = 1, perPage = 5 } = req.params
-    try{
-        const data = await dashboard.get('2023/01/02', page, perPage);
-        return data
-    }catch (err){
-        ThrowError(err)
-    }finally{
-        await PrismaDisconnect();
+    let { page = 1, perPage = 5, date } = req.params
+    try {
+        const dsbd = await dashboard.get(page, perPage, date);
+        return success(res, 'Operation Success', dsbd)
+    } catch (err) {
+      return error(res, err.message)
     }
 }
 

@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, paginate, generateBalanceAndTotal } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, paginateFO } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
@@ -115,7 +115,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     }
     if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
 
-    const { reservations, meta } = await paginate(prisma.resvRoom, { page, name: "reservations", perPage }, {
+    const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
         ...(dateQuery && { reservation: { arrivalDate } }),
