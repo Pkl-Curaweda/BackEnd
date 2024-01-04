@@ -42,4 +42,5 @@ const getFloorPlanDataBasedOnDate = async (searchedDate) => {
     await PrismaDisconnect();
   }
 }
+
 module.exports = { getAllStatus, getFloorPlanDataBasedOnDate };

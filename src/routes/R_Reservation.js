@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const { getArrivalGuestData, putChangeTreatment} = require("../controllers/Reservation/C_ArrivalGuest");
-const { getFloorPlan } = require("../controllers/Reservation/C_FloorPlan");
+const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Reservation/C_FloorPlan");
 const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controllers/Reservation/C_RoomAvailability");
 const { getAllReport } = require("../controllers/Reservation/C_Report");
 const {getInvoice,testInvoice,getSummary} = require("../controllers/Reservation/C_Invoice");
@@ -27,6 +27,8 @@ R_Reservation.put("/arrival", putChangeTreatment);
 
 //?FLOOR PLAN
 R_Reservation.get("/floorplan", getFloorPlan);
+R_Reservation.get("/floorplan/detail/:id?", getFloorPLanDetail)
+R_Reservation.post("/floorplan/detail/:id/:stId", postStat)
 
 //?lOG AVAILABILITY
 R_Reservation.get("/roomavail/:filter?", getRoomAvailability);

@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require('body-parser');
 const morgan = require('morgan')
 const cors = require('cors')
+
+// routers
 const R_Login = require("./routes/R_Login");
 const R_Reservation = require("./routes/R_Reservation");
 const roomRouter = require('./routes/room.route');
@@ -24,6 +26,7 @@ const port = process.env.PORT || 3000;
 const origins = process.env.ALLOWED_ORIGINS || [];
 
 //middlewares
+app.use('/public', express.static('public'))
 app.use(morgan('combined'))
 app.use(cookieParser());
 app.use(express.json());
@@ -38,7 +41,7 @@ app.use(
   }),
 );
 
-
+//endpoints
 // app.get("*", checkUser)
 app.use("/auth", R_Login);
 app.use("/page", R_Reservation);
@@ -52,6 +55,11 @@ app.use('/profile', profileRouter);
 app.use('/subType', subTypeRouter);
 app.use('/guest', guestRouter);
 app.use('/services', servicesRouter);
+
+//error handler
+app.use((err, req, res, next) => {
+  console.log(err);
+});
 
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);

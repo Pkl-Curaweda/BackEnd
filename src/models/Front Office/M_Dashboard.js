@@ -1,31 +1,24 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays } = require("../../utils/helper");
+const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays, paginate, paginateFO } = require("../../utils/helper");
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 
-const get = async (skip, take, date) => {
+const get = async (page, perPage, date) => {
     try {
         const current = new Date();
         date = date || current.toISOString().split("T")[0]
         currTime = `${current.getHours()}:${current.getMinutes()}`
         currDate = current.toDateString();
-        let recResv = {
-            newReservation: 0, //?New reservation from?
-            availableRoom: 0,
-            checkIn: 0,
-            checkOut: 0,
-            occRate: 0
-        }
-
-        const availableRoom = await getAllAvailableRoom()
-        const { ci, co } = await getCheckInOut();
+        const newDt = new Date(date)
+        const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
         const hk = await getHouseKeepingRoomData();
-        recResv.availableRoom = availableRoom.length
-        recResv.occRate = availableRoom.length / 10 * 100
-        recResv.checkIn = ci
-        recResv.checkOut = co
-
-        const chrt7day = await get7dayChart();
-        const htResv = await prisma.resvRoom.findMany({
+        const currData = await getCurrentDayData(date, hk.ttl)
+        const { resvChart, hkChart } = await getChart();
+        resvChart[dtName] = {
+            nw: currData.newReservation,
+            ci: currData.checkIn,
+            co: currData.checkOut
+        }
+        const htResv = await paginateFO(prisma.resvRoom, { page, name: "reservation", perPage }, { 
             where: {
                 created_at: {
                     gte: `${date}T00:00:00.000Z`,
@@ -44,10 +37,9 @@ const get = async (skip, take, date) => {
                         }
                     }
                 }
-            },
-            skip, take
+            }
         })
-        return { currTime, currDate, recResv, htResv, hk, chrt7day }
+        return { currTime, currDate, currData, resv: htResv, resvChart, hkChart, hk }
     } catch (err) {
         ThrowError(err);
     } finally {
@@ -55,16 +47,11 @@ const get = async (skip, take, date) => {
     }
 }
 
-const get7dayChart = async () => {
-    let resvChart = {}, hkChart = { }
-    try{
+const getChart = async () => {
+    let resvChart = {}, hkChart = {}
+    try {
         const dts = generateDateBetweenNowBasedOnDays('past', 7)
-        dts.shift();
-        console.log(dts)
-        dts.forEach(async (dt, ind) => {
-            newDt = new Date(dt)
-            const dtName =  newDt.toLocaleDateString('en-US', {weekday: 'long'});
-            console.log(dtName)
+        for(dt of dts) {
             const rsv = await prisma.resvRoom.findMany({
                 where: {
                     created_at: {
@@ -72,57 +59,122 @@ const get7dayChart = async () => {
                         lte: `${dt}T23:59:59.999Z`,
                     }
                 },
-                select: {
-                    reservation: {
-                        select: {  
-                            checkInDate: true,
-                            departureDate: true
-                        }
-                    },
-                    roomId: true
-                }
+                select: { roomId: true }
             })
-            const ciCo = await getCheckInOut(rsv)
-            rsv.forEach(rs => {
-                const { roomId } = rs;
+            console.log(rsv)
+            for (rs of rsv) {
+                console.log(rs)
+                const { roomId } = rs
                 const keyExist = hkChart.hasOwnProperty(roomId);
-                if(!keyExist) hkChart[roomId] = 0;
-                else hkChart[roomId] = (keyExist ? hkChart[roomId]: 0) + 1
+                hkChart[roomId] = !keyExist ? 1 : hkChart[roomId]++
+            }
+        }
+
+        dts.shift()
+        dts.reverse();
+        for (dt of dts) {
+            newDt = new Date(dt)
+            const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
+            const rsv = await prisma.resvRoom.findMany({
+                where: {
+                    created_at: {
+                        gte: `${dt}T00:00:00.000Z`,
+                        lte: `${dt}T23:59:59.999Z`,
+                    }
+                },
+                select: { roomId: true }
             })
-        })
-        console.log(resvChart, hkChart)
-    }catch(err){
+            const [nw, ci, co] = await prisma.$transaction([
+                prisma.resvRoom.count({
+                    where: {
+                        reservation: {
+                            onGoingReservation: true,
+                            created_at: {
+                                gte: `${dt}T00:00:00.000Z`,
+                                lte: `${dt}T23:59:59.999Z`,
+                            }
+                        }
+                    }
+                }),
+                prisma.resvRoom.count({
+                    where: {
+                        reservation: {
+                            onGoingReservation: true,
+                            checkInDate: {
+                                gte: `${dt}T00:00:00.000Z`,
+                                lte: `${dt}T23:59:59.999Z`,
+                            }
+                        }
+                    }
+                }),
+                prisma.resvRoom.count({
+                    where: {
+                        reservation: {
+                            onGoingReservation: true,
+                            checkoutDate: {
+                                gte: `${dt}T00:00:00.000Z`,
+                                lte: `${dt}T23:59:59.999Z`,
+                            }
+                        }
+                    }
+                }),
+            ])
+            
+            resvChart[dtName] = { nw, ci, co }
+        }
+        return { resvChart, hkChart }
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect();
     }
 }
 
-const getCheckInOut = async (mdl) => {
-    let ci = 0, co = 0, onGoResv;
+const getCurrentDayData = async (dt, ttlRoom) => {
+    let recResv = { newReservation: 0, availableRoom: 0, checkIn: 0, checkOut: 0, occRate: 0 }
     try {
-        if(mdl){ 
-            onGoResv = mdl
-        }else{
-            onGoResv = await prisma.resvRoom.findMany({
+        const avRoom = await getAllAvailableRoom()
+        const [nw, ci, co] = await prisma.$transaction([
+            prisma.resvRoom.count({
                 where: {
-                    reservation: { onGoingReservation: true }
-                },
-                select: {
                     reservation: {
-                        select: { checkInDate: true, checkoutDate: true }
+                        onGoingReservation: true,
+                        created_at: {
+                            gte: `${dt}T00:00:00.000Z`,
+                            lte: `${dt}T23:59:59.999Z`,
+                        }
+                    }
+                }
+            }),
+            prisma.resvRoom.count({
+                where: {
+                    reservation: {
+                        onGoingReservation: true,
+                        checkInDate: {
+                            gte: `${dt}T00:00:00.000Z`,
+                            lte: `${dt}T23:59:59.999Z`,
+                        }
+                    }
+                }
+            }),
+            prisma.resvRoom.count({
+                where: {
+                    reservation: {
+                        onGoingReservation: true,
+                        checkoutDate: {
+                            gte: `${dt}T00:00:00.000Z`,
+                            lte: `${dt}T23:59:59.999Z`,
+                        }
                     }
                 }
             })
-        }
-        onGoResv.forEach(resv => {
-            const { reservation } = resv;
-            if(reservation.checkInDate != null){
-                if(reservation.checkoutDate != null) co++
-                ci++
-            } 
-        })
-        return { ci, co };
+        ])
+        recResv.availableRoom = avRoom.length
+        recResv.checkIn = ci
+        recResv.checkOut = co
+        recResv.newReservation = nw
+        recResv.occRate = recResv.availableRoom / ttlRoom * 100
+        return recResv
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -132,9 +184,9 @@ const getCheckInOut = async (mdl) => {
 
 const getHouseKeepingRoomData = async () => {
     let status = { vc: 0, vcu: 0, vd: 0, oc: 0, od: 0, ttl: 0 };
-    try{
+    try {
         const rooms = await prisma.room.findMany({ select: { roomStatus: { select: { shortDescription: true } } } })
-        rooms.forEach(room => {
+        for (room of rooms) {
             const shtDesc = room.roomStatus.shortDescription
             switch (shtDesc) {
                 case 'VC':
@@ -155,12 +207,13 @@ const getHouseKeepingRoomData = async () => {
                 default:
                     break;
             }
-        })
+
+        }
         status.ttl = rooms.length
         return status
-    }catch (err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect();
     }
 }

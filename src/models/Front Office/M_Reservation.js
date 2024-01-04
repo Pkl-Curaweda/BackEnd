@@ -425,9 +425,11 @@ const ChangeReservationProgress = async (id, changeTo) => {
         break;
       case 'checkin':
         progressIndex = 1
+        reservation.checkInDate = currentDate
         break;
       case 'checkout':
         progressIndex = 2
+        reservation.checkoutDate = currentDate
         break;
       default:
         throw Error("No Progress Sync");
@@ -442,11 +444,10 @@ const ChangeReservationProgress = async (id, changeTo) => {
     reservation.inHouseIndicator = changeTo != 'checkin' ? false : true
     reservation.borderColor = progressColor[progressIndex];
     reservation.onGoingReservation = changeTo != 'checkout' ? true : false
-    if (changeTo === 'checkin') reservation.checkInDate = currentDate
-    if (changeTo === 'checkout') reservation.checkoutDate = currentDate
 
+    console.log(reservation)
     const updatedReservation = await prisma.reservation.update({ where: { id }, data: reservation })
-    return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor }
+    return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor, checkInDate: updatedReservation.checkInDate, checkOutDate: updatedReservation.checkoutDate }
   } catch (err) {
     ThrowError(err)
   } finally {

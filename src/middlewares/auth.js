@@ -11,9 +11,9 @@ const auth = (roles) => async (req, res, next) => {
     try {
         const { authorization } = req.headers;
         if (!authorization) return error(res, 'Forbidden authorization token is not found', 403)
-        const accessToken = req.headers['authorization'].split(' ')[1];
-        const refreshToken = req.cookies['refresh_token'];
 
+        const accessToken = authorization.split(' ')[1];
+        const refreshToken = req.cookies['refresh_token'];
         await prisma.userToken.findFirstOrThrow({ where: { refreshToken } })
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
         const userData = await prisma.user.findUniqueOrThrow({
@@ -33,11 +33,17 @@ const auth = (roles) => async (req, res, next) => {
             }
         })
         req.user = userData
+        if (roles !== undefined) {
+            const isAllowed = roles.some((role) => role === user.role.name);
+            if (!isAllowed) {
+                return error(res, 'Forbidden, you are not allowed access this resource', 403);
+            }
+        }
+        next();
     } catch (err) {
         console.log(err)
         return error(res, err.message, 401);
     }
-    next();
 }
 
 module.exports = { auth };
