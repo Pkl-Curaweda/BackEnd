@@ -1,10 +1,10 @@
-import express from 'express'
-import { create, findAll } from './ooo-room.controller.js'
-import { createOooRoomValidation, getOooRoomValidation } from './ooo-room.validation.js'
+const express = require('express');
+const { create, findAll } = require('./ooo-room.controller.js');
+const { getOooRoomValidation, createOooRoomValidation } = require('./ooo-room.validation.js');
 
 const router = express.Router()
 
 router.get('/', getOooRoomValidation , findAll)
 router.post('/', createOooRoomValidation, create)
 
-export default router
+module.exports = router

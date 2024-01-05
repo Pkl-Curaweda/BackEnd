@@ -1,19 +1,6 @@
-import express from 'express'
-
-import {
-  create,
-  remove,
-  findOne,
-  findAll,
-  update,
-  document
-} from './user.controller.js'
-
-import {
-  createUserValidation,
-  getUserValidation,
-  updateUserValidation,
-} from './user.validation.js'
+const express = require('express');
+const { create, remove, findOne, findAll, update, document } = require('./user.controller.js');
+const { createUserValidation, getUserValidation, updateUserValidation } = require('./user.validation.js');
 
 const router = express.Router()
 
@@ -24,4 +11,4 @@ router.post('/', createUserValidation, create)
 router.put('/:id', updateUserValidation, update)
 router.delete('/:id', remove)
 
-export default router
+module.exports = router

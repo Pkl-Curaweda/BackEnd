@@ -1,9 +1,9 @@
-import prisma from '#db/db.js'
+const prisma = require('../db/db')
 
 /**
  * @param {string} model
  */
-export function fieldExist(model) {
+function fieldExist(model) {
   /**
    * @param {string} field
    * @return {boolean}
@@ -16,7 +16,7 @@ export function fieldExist(model) {
  * @param {string} field
  * @param {?number} except
  */
-export function recordUnique(model, field, exceptId = 0) {
+function recordUnique(model, field, exceptId = 0) {
   /**
    * @param {string} value
    * @return {Promise<boolean>}
@@ -36,7 +36,7 @@ export function recordUnique(model, field, exceptId = 0) {
  * @param {string} model
  * @param {string} field
  */
-export function recordExist(model, field) {
+function recordExist(model, field) {
   /*
    * @param {string} val
    * @return {Promise<boolean>}
@@ -51,3 +51,5 @@ export function recordExist(model, field) {
     return record !== null
   }
 }
+
+module.exports = { fieldExist, recordUnique, recordExist }

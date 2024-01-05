@@ -1,10 +1,9 @@
-import { z } from 'zod'
-import { error } from '#utils/response.js'
-
+const { z } = require('zod');
+const { error } = require('../utils/response.js');
 /**
  * @param {object} schema
  */
-export default function validate(schema) {
+function validate(schema) {
   /**
    * @param {import('express').Request} req
    * @param {import('express').Response} res
@@ -36,3 +35,5 @@ export default function validate(schema) {
     next()
    }
 }
+
+module.exports = validate

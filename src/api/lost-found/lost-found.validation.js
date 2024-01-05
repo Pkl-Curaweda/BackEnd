@@ -1,8 +1,8 @@
-import { z } from 'zod'
-import validate from '#middleware/validation.js'
-import { fieldExist, recordExist } from '#utils/db-validation.js'
+const { z } = require('zod');
+const validate = require('../../middlewares/validation');
+const { fieldExist, recordExist } = require('../../utils/db-validation');
 
-export const getLostFoundValidation = validate({
+ const getLostFoundValidation = validate({
   page: z.coerce.number().optional().default(1),
   show: z.coerce.number().optional().default(10),
   sort: z.enum([
@@ -13,7 +13,7 @@ export const getLostFoundValidation = validate({
   date: z.coerce.date().optional(),
 })
 
-export const createLostFoundValidation = validate({
+ const createLostFoundValidation = validate({
   reportedDate: z.coerce.date(),
   time: z.string().refine(time => /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(time), {
     message: 'Time must be in format hh:mm:ss'
@@ -24,3 +24,4 @@ export const createLostFoundValidation = validate({
   description: z.string(),
   location: z.string(),
 })
+module.exports = { getLostFoundValidation, createLostFoundValidation }

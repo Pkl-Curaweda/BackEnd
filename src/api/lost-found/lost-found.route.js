@@ -1,21 +1,22 @@
-import crypto from 'crypto'
-import path from 'path'
-import express from 'express'
-import multer from 'multer'
+const crypto = require('crypto');
+const path = require('path');
+const express = require('express');
+const multer = require('multer');
 
-import {
+const {
   create,
   findAll,
   findOne,
   remove,
   update
-} from './lost-found.controller.js'
+} = require('./lost-found.controller.js');
 
-import {
+const {
   createLostFoundValidation,
   getLostFoundValidation
-} from './lost-found.validation.js'
-import { error } from '#utils/response.js'
+} = require('./lost-found.validation.js');
+
+const { error } = require('#utils/response.js');
 
 const router = express.Router()
 
@@ -54,4 +55,4 @@ router.post('/', upload.single('image'), (req, res, next) => {
 router.put('/:id', update)
 router.delete('/:id', remove)
 
-export default router
+module.exports =  router

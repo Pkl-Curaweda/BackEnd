@@ -1,4 +1,4 @@
-import prisma from '#db/db.js'
+const prisma = require('../../db/db')
 
 /**
  * @typedef {object} GetAllLostFoundOption
@@ -163,7 +163,7 @@ async function softDelete(id) {
   })
 }
 
-export default {
+module.exports =  {
   all,
   get,
   create,

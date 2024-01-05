@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser } = require("../controllers/C_UserLogin");
-const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controllers/C_GuestLogin");
+const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser } = require("../controllers/C_User");
+const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controllers/C_Guest");
 const { auth } = require("../middlewares/auth");
 const R_Login = Router();
 

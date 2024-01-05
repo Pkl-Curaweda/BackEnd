@@ -1,7 +1,9 @@
-import { z } from 'zod'
-import validate from '#middleware/validation.js'
+const { z } = require('zod');
+const validate = require('../../middlewares/validation');
 
-export const loginValidation = validate({
+const loginValidation = validate({
   email: z.string().email(),
   password: z.string(),
 })
+
+module.exports = loginValidation

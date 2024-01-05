@@ -1,13 +1,13 @@
-import express from 'express'
-import { login, refresh, logout, me } from './auth.controller.js'
-import { loginValidation } from './auth.validation.js'
-import auth from '#middleware/auth.js'
+const express = require('express')
+const { login, refresh, logout, me } = require('./auth.controller.js')
+const { loginValidation } = require('./auth.validation.js')
+const auth = require('../../middlewares/auth.js')
 
 const router = express.Router()
 
-router.post('/login', loginValidation, login)
+router.post('/login', login)
 router.post('/refresh', refresh)
-router.post('/logout', auth, logout)
-router.get('/me', auth, me)
+router.post('/logout', logout)
+router.get('/me',  me)
 
-export default router
+module.exports = router

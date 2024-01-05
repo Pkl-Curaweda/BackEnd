@@ -48,7 +48,7 @@ const findReportReservation = async () => {
 };
 
 //? GET ALL REPORT DATA
-const getReportData = async (page, perPage, disOpt, sort, date) => {
+const getReportData = async (disOpt, page, perPage, sort, date) => {
   try {
     let reports = [], dates, startIndex, endIndex, data = [], totalRoom = 0, searchDates = [];
     startIndex = (page - 1) * perPage;

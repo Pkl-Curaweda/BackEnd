@@ -75,4 +75,12 @@ const postLogout = async (req, res) => {
     }
 }
 
+const getNotification = async (req, res) => {
+    try{
+      
+    }catch(err){
+      return error(res, err.message)
+    }
+  }
+
 module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }

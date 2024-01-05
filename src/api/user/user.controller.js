@@ -1,12 +1,12 @@
-import bcrypt from 'bcrypt'
-import userRepository from './user.repository.js'
-import { error, success } from '#utils/response.js'
+const bcrypt = require('bcrypt');
+const userRepository = require('./user.repository.js');
+const { error, success } = require('#utils/response.js');
 
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findAll(req, res) {
+async function findAll(req, res) {
   try {
     const { users, total } = await userRepository.all(req.query)
     const lastPage = Math.ceil(total / req.query.show);
@@ -25,7 +25,7 @@ export async function findAll(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findOne(req, res) {
+async function findOne(req, res) {
   try {
     const user = await userRepository.get(req.params.id)
     return success(res, 'Get user success', user)
@@ -38,7 +38,7 @@ export async function findOne(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function create(req, res) {
+async function create(req, res) {
   try {
     req.body.password = await bcrypt.hash(req.body.password, 10)
     const user = await userRepository.create(req.body)
@@ -52,7 +52,7 @@ export async function create(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function update(req, res) {
+async function update(req, res) {
   try {
     if (req.body.password) {
       req.body.password = await bcrypt.hash(req.body.password, 10)
@@ -69,7 +69,7 @@ export async function update(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function remove(req, res) {
+async function remove(req, res) {
   try {
     const user = await userRepository.remove(req.params.id)
     return success(res, 'Delete user success', user)
@@ -82,7 +82,7 @@ export async function remove(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function document(req, res) {
+async function document(req, res) {
   try {
     const { users } = await userRepository.all(req.query)
 
@@ -99,3 +99,5 @@ export async function document(req, res) {
   }
 
 }
+
+module.exports = { findAll, document, remove, update, create, findOne }

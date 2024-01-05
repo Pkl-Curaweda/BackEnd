@@ -1,13 +1,13 @@
-import prisma from "#db/db.js";
-import oooRoomRepository from './ooo-room.repository.js'
-import { error, success } from "#utils/response.js";
+const oooRoomRepository = require('./ooo-room.repository.js');
+const { error, success } = require("#utils/response.js");
+
 
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
 
-export async function findAll(req, res) {
+ async function findAll(req, res) {
   try {
     const { oooRooms, total } = await oooRoomRepository.all(req.query)
     const lastPage = Math.ceil( total / req.query.show)
@@ -22,7 +22,7 @@ export async function findAll(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function create(req, res) {
+ async function create(req, res) {
   try{
   const oooRoom = await oooRoomRepository.createOooRoom(req.body)
   return success(res, 'Create ooo room success', oooRoom)
@@ -32,3 +32,5 @@ export async function create(req, res) {
     return error(res, 'Create ooo room failed')
   }
 }
+
+module.exports = { findAll, create }

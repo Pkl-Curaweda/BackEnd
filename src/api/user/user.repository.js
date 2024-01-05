@@ -1,4 +1,4 @@
-import prisma from '#db/db.js'
+const prisma = require('#db/db.js');
 
 /**
  * @typedef {object} GetAllUserOption
@@ -145,7 +145,7 @@ async function remove(id) {
   })
 }
 
-export default {
+module.exports = {
   all,
   get,
   create,

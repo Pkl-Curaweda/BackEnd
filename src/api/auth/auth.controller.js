@@ -1,15 +1,14 @@
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
-import prisma from '#db/db.js'
-import { randomStr } from '#utils/string.js'
-import { success, error } from '#utils/response.js'
-import { encrypt, decrypt } from '#utils/encryption.js'
-
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const prisma = require('#db/db.js');
+const { randomStr } = require('#utils/string.js');
+const { success, error } = require('#utils/response.js');
+const { encrypt, decrypt } = require('#utils/encryption.js');
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function login(req, res) {
+async function login(req, res) {
   const { email, password } = req.body
 
   const user = await prisma.user.findUnique({ where: { email } })
@@ -51,7 +50,7 @@ export async function login(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function refresh(req, res) {
+ async function refresh(req, res) {
   let refreshToken;
 
   try {
@@ -97,7 +96,7 @@ export async function refresh(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function logout(req, res) {
+async function logout(req, res) {
   try {
     const refreshToken = decrypt(req.cookies.refresh_token)
     await prisma.userToken.delete({ where: { refreshToken } })
@@ -113,6 +112,8 @@ export async function logout(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export function me(req, res) {
+ function me(req, res) {
   return success(res, 'Me success', req.user)
 }
+
+module.exports = { login, refresh, logout, me }

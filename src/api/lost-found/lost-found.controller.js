@@ -1,11 +1,11 @@
-import { error, success } from '#utils/response.js';
-import lostFoundRepository from './lost-found.repository.js'
+const { error, success } = require('#utils/response.js');
+const lostFoundRepository = require('./lost-found.repository');
 
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findAll(req, res) {
+ async function findAll(req, res) {
   try {
     const { lostFounds, total, found, lost, onProgress } = await lostFoundRepository.all(req.query)
     const lastPage = Math.ceil(total / req.query.show);
@@ -27,7 +27,7 @@ export async function findAll(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findOne(req, res) {
+ async function findOne(req, res) {
   try {
     const lostFound = await lostFoundRepository.get(req.params.id)
     return success(res, 'Get lost and found success', lostFound)
@@ -40,7 +40,7 @@ export async function findOne(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function create(req, res) {
+ async function create(req, res) {
   try {
     req.file.filename = process.env.APP_URL + '/public/lost-found/' + req.file.filename
     const lostFound = await lostFoundRepository.create(req.body, req.file.filename, req.user.id)
@@ -55,7 +55,7 @@ export async function create(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function update(req, res) {
+ async function update(req, res) {
   try {
     const lostFound = await lostFoundRepository.update(req.params.id, req.body)
     return success(res, 'Update lost and found success', lostFound)
@@ -68,7 +68,7 @@ export async function update(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function remove(req, res) {
+ async function remove(req, res) {
   try {
     const lostFound = await lostFoundRepository.remove(req.params.id)
     return success(res, 'Delete lost and found success', lostFound)
@@ -76,3 +76,5 @@ export async function remove(req, res) {
     return error(res, 'Lost and found not found', 404)
   }
 }
+
+module.exports = { findAll, findOne, create, update, remove }

@@ -1,4 +1,4 @@
-  import prisma from '#db/db.js'
+const prisma = require('../../db/db')
 
 /**
  * @typedef {object} GetAlloooRoomOption
@@ -134,7 +134,7 @@ async function remove(id) {
   }
 }
 
-export default {
+module.exports =  {
   all,
   createOooRoom,
   update,

@@ -16,7 +16,7 @@ const productReqRouter = require('./routes/productReq.route');
 const profileRouter = require('./routes/profile.route');
 const orderRouter = require('./routes/order.route');
 const subTypeRouter = require('./routes/subType.route');
-
+const route = require('./routes/route')
 // configs
 const config = require('./configs/general.config');
 
@@ -47,6 +47,7 @@ app.use("/auth", R_Login);
 app.use("/page", R_Reservation);
 app.use('/auth', authRouter);
 app.use('/order', orderRouter);
+app.use('/hk', route)
 // app.use(middleware(['Admin', 'Super Admin']));
 app.use('/room', roomRouter);
 app.use('/guest', guestRouter);

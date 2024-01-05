@@ -1,18 +1,18 @@
-import express from 'express'
+const express = require('express');
 
-import {
+const {
   create,
   remove,
   findOne,
   findAll,
   update
-} from './extrabed.controller.js'
+} = require('./extrabed.controller.js');
 
-import {
+const {
   getExtraBedValidation,
   createExtrabedValidation,
   updateExtrabedValidation,
-} from './extrabed.validation.js'
+} = require('./extrabed.validation.js');
 
 const router = express.Router()
 
@@ -22,4 +22,4 @@ router.post('/', createExtrabedValidation, create)
 router.put('/:id', updateExtrabedValidation, update)
 router.delete('/:id', remove)
 
-export default router
+module.exports = router

@@ -1,5 +1,4 @@
 const express = require('express');
-
 const router = express.Router();
 const auth = require('../services/auth.service');
 // const middleware = require('../InRoomService-Backend/src/middlewares/auth.middleware');

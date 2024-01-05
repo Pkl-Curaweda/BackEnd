@@ -2,7 +2,7 @@
  * @param {number} length
  * @return {string}
  */
-export function randomStr(length) {
+function randomStr(length) {
 
   const chars ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = ''
@@ -13,3 +13,5 @@ export function randomStr(length) {
 
   return result;
 }
+
+module.exports = { randomStr }

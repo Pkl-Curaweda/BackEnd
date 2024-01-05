@@ -1,11 +1,12 @@
-import prisma from '#db/db.js'
-import { error, success } from '#utils/response.js'
+const prisma = require('#db/db.js');
+const { error, success } = require('#utils/response.js');
+
 
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findAll(req, res) {
+ async function findAll(req, res) {
   const {
     page,
     show,
@@ -42,7 +43,7 @@ export async function findAll(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function findOne(req, res) {
+ async function findOne(req, res) {
   try {
     const extraBed = await prisma.extraBed.findUniqueOrThrow({
       where: {
@@ -61,7 +62,7 @@ export async function findOne(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function create(req, res) {
+ async function create(req, res) {
   try {
     const extraBed = await prisma.extraBed.create({
       data: req.body
@@ -78,7 +79,7 @@ export async function create(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function update(req, res) {
+ async function update(req, res) {
   try {
     const extraBed = await prisma.extraBed.update({
       where: {
@@ -98,7 +99,7 @@ export async function update(req, res) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export async function remove(req, res) {
+ async function remove(req, res) {
   try {
     await prisma.extraBed.delete({
       where: {
@@ -111,3 +112,5 @@ export async function remove(req, res) {
 
   return success(res, 'Delete extrabed success')
 }
+
+module.exports = { findAll, findOne, create, update, remove }

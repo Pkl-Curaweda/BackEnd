@@ -1,8 +1,9 @@
-import validate from "#middleware/validation.js"
-import { fieldExist, recordExist } from '#utils/db-validation.js'
-import { z } from 'zod'
+const validate = require('../../middlewares/validation');
+const { fieldExist, recordExist } = require('#utils/db-validation.js');
+const { z } = require('zod');
 
-export const getOooRoomValidation = validate({
+
+ const getOooRoomValidation = validate({
   page: z.coerce.number().optional().default(1),
   show: z.coerce.number().optional().default(10),
   sort: z.string().optional().refine(fieldExist('oooRoom')).default('id'),
@@ -11,7 +12,7 @@ export const getOooRoomValidation = validate({
   until: z.coerce.date().optional(),
 })
 
-export const createOooRoomValidation = validate({
+ const createOooRoomValidation = validate({
   roomId: z.coerce.number().refine(recordExist('room', 'id'),{
     message: 'Room does not exist'
   }),
@@ -29,3 +30,5 @@ export const createOooRoomValidation = validate({
     message: 'Department does not exist'
   })
 })
+
+module.exports = {  getOooRoomValidation, createOooRoomValidation }

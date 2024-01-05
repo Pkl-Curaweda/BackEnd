@@ -1,4 +1,3 @@
-const e = require("express");
 const { prisma } = require("../../../prisma/seeder/config");
 const {ThrowError, PrismaDisconnect,generateDateBetweenStartAndEnd,generateBalanceAndTotal } = require("../../utils/helper");
 

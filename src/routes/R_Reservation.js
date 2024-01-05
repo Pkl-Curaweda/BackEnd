@@ -2,10 +2,9 @@ const { Router } = require("express");
 const { getArrivalGuestData, putChangeTreatment} = require("../controllers/Reservation/C_ArrivalGuest");
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Reservation/C_FloorPlan");
 const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controllers/Reservation/C_RoomAvailability");
-const { getAllReport } = require("../controllers/Reservation/C_Report");
-const {getInvoice,testInvoice,getSummary} = require("../controllers/Reservation/C_Invoice");
+const { getAllReport, getReportPDF } = require("../controllers/Reservation/C_Report");
+const {getInvoice,testInvoice,getSummary, getBillPayment, getInvoicePDF} = require("../controllers/Reservation/C_Invoice");
 const {getHelperDetail,postHelperDetail,putNewReservationData,deleteReservation,getReportDetail,getInvoiceDetail} = require("../controllers/Reservation/C_Detail");
-const { getPDF, getBillPayment } = require("../controllers/Reservation/C_PrintInvoice");
 const { getDashboard } = require("../controllers/Reservation/C_Dashboard");
 
 const R_Reservation = new Router();
@@ -37,11 +36,12 @@ R_Reservation.get("/filter-roomAvail", getFilterRoomAvail);
 
 //?REPORT PAGE
 R_Reservation.get("/report/:displayOption?", getAllReport);
+R_Reservation.get("/report/:displayOption/print", getReportPDF)
 
 //?INVOICE
 R_Reservation.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_Reservation.get("/invoice/:reservationId/:resvRoomId", getInvoice);
-R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", getPDF);
+R_Reservation.get("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
 R_Reservation.get("/invoice", getBillPayment);
 
 module.exports = R_Reservation;

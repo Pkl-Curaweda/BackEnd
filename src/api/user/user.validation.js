@@ -1,8 +1,8 @@
-import { z } from 'zod'
-import validate from '#middleware/validation.js'
-import { fieldExist, recordExist, recordUnique } from '#utils/db-validation.js'
+const { z } = require('zod');
+const validate = require('../../middlewares/validation');
+const { fieldExist, recordExist, recordUnique } = require('#utils/db-validation.js');
 
-export const getUserValidation = validate({
+const getUserValidation = validate({
   page: z.coerce.number().optional().default(1),
   show: z.coerce.number().optional().default(10),
   query: z.string().optional().default(''),
@@ -13,7 +13,7 @@ export const getUserValidation = validate({
   roleId: z.coerce.number().optional()
 })
 
-export const createUserValidation = validate({
+const createUserValidation = validate({
   name: z.string(),
   gender: z.enum(['MALE', 'FEMALE']),
   phone: z.string(),
@@ -32,7 +32,7 @@ export const createUserValidation = validate({
   }),
 })
 
-export const updateUserValidation = validate(
+const updateUserValidation = validate(
   id => ({
     name: z.string().optional(),
     gender: z.enum(['MALE', 'FEMALE']).optional(),
@@ -52,3 +52,5 @@ export const updateUserValidation = validate(
     }).optional(),
   })
 )
+
+module.exports = { getUserValidation, createUserValidation, updateUserValidation }
