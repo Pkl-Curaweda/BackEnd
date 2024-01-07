@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const {ThrowError, PrismaDisconnect,generateDateBetweenStartAndEnd,generateBalanceAndTotal } = require("../../utils/helper");
+const {ThrowError, PrismaDisconnect,generateDateBetweenStartAndEnd,generateBalanceAndTotal, countDPP } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage) => {
@@ -559,7 +559,7 @@ const findBillPayment = async (id, reservationId) => {
       noPesanan: `${reservationId}-${id}`,
       guestName: reserver.guest.name,
       guestContact: reserver.guest.contact,
-      invoices,
+      invoices
     };
   } catch (err) {
     ThrowError(err);

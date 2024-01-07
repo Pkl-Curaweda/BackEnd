@@ -233,7 +233,7 @@ model ResvRoom {
   roomId           Int
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
-  billComment      String?         @db.Text
+  billComment      String?        @db.Text
   voucherNo        Int            @unique
   roomMaids        RoomMaid[]
   roomChanges      RoomChange[]
@@ -283,6 +283,7 @@ model ResvPayment {
   paymentMethod String
   orders        Json
   total         Float
+  dpp           Float       @default(0)
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }

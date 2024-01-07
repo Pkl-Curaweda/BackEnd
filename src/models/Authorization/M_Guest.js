@@ -65,7 +65,7 @@ const CreateGuestQrCode = async (guestData) => {
     username: guestData.username,
     password: "password",
   };
-  const path = `${process.env.QR_PATH}\QR-${guestData.username}.png`;
+  const path = `${process.env.QR_PATH}QR-${guestData.username}.png`;
   if (!fs.existsSync(path)) {
     const stringfyData = JSON.stringify(storedData);
     const encryptedData = encrypt(stringfyData);

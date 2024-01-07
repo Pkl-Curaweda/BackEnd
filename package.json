@@ -27,14 +27,15 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "node-schedule": "^2.1.1",
     "nodemon": "^3.0.1",
     "pdfkit-table": "^0.1.99",
     "qrcode": "^1.5.3",
-    "zod": "^3.22.4",
-    "fs": "^0.0.1-security",
-    "test": "^3.3.0"
+    "test": "^3.3.0",
+    "zod": "^3.22.4"
   }
 }

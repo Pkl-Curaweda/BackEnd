@@ -43,7 +43,7 @@ const getInvoicePDF = async (req, res) => {
   try {
     const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
     const doc = new PDFDocument({ font: 'src/pdf/Inter-Regular.ttf', size: 'LEGAL', margin: { top: 30, bottom: 20, right: 50, left: 50 } });
-    const stream = fs.createWriteStream("src/pdf/example.pdf");
+    const stream = fs.createWriteStream("src/pdf/invoicePdf.pdf");
 
     doc.pipe(stream);
     doc.registerFont('regular', 'src/pdf/Inter-Regular.ttf');

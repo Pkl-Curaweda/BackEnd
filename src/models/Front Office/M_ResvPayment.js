@@ -1,6 +1,6 @@
 const { tr } = require("@faker-js/faker");
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, countDPP } = require("../../utils/helper")
 
 const getBillingSummary = async (id, reservationId) => {
     try{
@@ -78,6 +78,7 @@ const getBillingSummary = async (id, reservationId) => {
                 })
             })
         }
+        const dpp = countDPP(invoices)
         let add = {
             billNumber: `${reservationId}-${resvRoom.voucherNo}`,
             reservationResource: resvRoom.reservation.resourceName,
@@ -86,7 +87,8 @@ const getBillingSummary = async (id, reservationId) => {
         }
         return {
             add,
-            invoices
+            invoices,
+            dpp
         }
     }catch(err){
         ThrowError(err)

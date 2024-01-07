@@ -111,6 +111,16 @@ const GenerateUsernameAndPassword = async (guestName) => {
     }
 }
 
+const countDPP = (model) => {
+  try{
+    let ra = model.reduce((total, pay) => total + pay.amount, 0);
+    ra = (100/111) * ra
+    return ra
+  }catch(err){
+    ThrowError(err)
+  }
+}
+
 const generateBalanceAndTotal = async (option = { balance: false, total: false }, reservationId, id) => {
     try {
         let balance = 0, total = 0;
@@ -551,5 +561,6 @@ module.exports = {
     generateToken,
     encrypt,
     decrypt,
+    countDPP,
     paginate,
 };
