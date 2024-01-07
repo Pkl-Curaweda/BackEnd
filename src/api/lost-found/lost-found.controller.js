@@ -1,4 +1,4 @@
-const { error, success } = require('#utils/response.js');
+const { error, success } = require('../../utils/response.js');
 const lostFoundRepository = require('./lost-found.repository');
 
 /**

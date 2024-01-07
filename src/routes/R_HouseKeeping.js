@@ -1,9 +1,9 @@
 const express = require('express')
-const auth = require('../api/auth/auth.route')
+const auth = require('../api/auth/auth.route.js')
 const user = require('../api/user/user.route.js')
 const oooRoom = require('../api/ooo-room/ooo-room.route.js')
-const lostFound = require( '../api/lost-found/lost-found.route.js')
-const extrabed = require( '../api/extrabed/extrabed.route.js')
+const lostFound = require('../api/lost-found/lost-found.route.js')
+const extrabed = require('../api/extrabed/extrabed.route.js')
 // import authMiddleware from '#middleware/auth.js'
 
 const router = express.Router()

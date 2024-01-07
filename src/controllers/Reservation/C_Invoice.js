@@ -9,13 +9,7 @@ const getInvoice = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
   const { page = 1, perPage = 5, sort } = req.query;
   try {
-    const invoices = await GetInvoiceByResvRoomId(
-      parseInt(reservationId),
-      parseInt(resvRoomId),
-      sort,
-      parseInt(page),
-      parseInt(perPage)
-    );
+    const invoices = await GetInvoiceByResvRoomId(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage));
     return success(res, "Operation Success", invoices);
   } catch (err) {
     return error(res, err.message);
@@ -25,10 +19,7 @@ const getInvoice = async (req, res) => {
 const getSummary = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
   try {
-    const billSummary = await getBillingSummary(
-      parseInt(resvRoomId),
-      parseInt(reservationId)
-    );
+    const billSummary = await getBillingSummary(parseInt(resvRoomId), parseInt(reservationId));
     return success(res, "Operation Success", billSummary);
   } catch (err) {
     return error(res, err.message);

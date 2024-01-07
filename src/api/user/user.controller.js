@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const userRepository = require('./user.repository.js');
-const { error, success } = require('#utils/response.js');
+const { error, success } = require('../../utils/response.js');
 
 /**
  * @param {import('express').Request} req

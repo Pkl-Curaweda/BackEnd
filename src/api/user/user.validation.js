@@ -1,6 +1,6 @@
 const { z } = require('zod');
 const validate = require('../../middlewares/validation');
-const { fieldExist, recordExist, recordUnique } = require('#utils/db-validation.js');
+const { fieldExist, recordExist, recordUnique } = require('../../utils/db-validation.js');
 
 const getUserValidation = validate({
   page: z.coerce.number().optional().default(1),

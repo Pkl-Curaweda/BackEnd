@@ -1,5 +1,5 @@
 const oooRoomRepository = require('./ooo-room.repository.js');
-const { error, success } = require("#utils/response.js");
+const { error, success } = require("../../utils/response.js");
 
 
 /**

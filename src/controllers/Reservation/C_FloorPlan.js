@@ -1,5 +1,4 @@
-const { prisma } = require("#configs/prisma.config.js");
-const room = require("#models/House Keeping/M_Room.js");
+const room = require("../../models/House Keeping/M_Room.js");
 const floorplan = require("../../models/Front Office/M_FloorPlan.js");
 const { success, error } = require("../../utils/response.js");
 

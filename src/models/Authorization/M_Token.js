@@ -80,7 +80,6 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
         expired_at
       }
     })
-    console.log(newRefreshToken)
     return newRefreshToken;
   } catch (err) {
     ThrowError(err);

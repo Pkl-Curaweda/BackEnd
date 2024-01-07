@@ -1,9 +1,9 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const prisma = require('#db/db.js');
-const { randomStr } = require('#utils/string.js');
-const { success, error } = require('#utils/response.js');
-const { encrypt, decrypt } = require('#utils/encryption.js');
+const prisma = require('../../db/db');
+const { randomStr } = require('../../utils/string.js');
+const { success, error } = require('../../utils/response.js');
+const { encrypt, decrypt } = require('../../utils/encryption.js');
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res

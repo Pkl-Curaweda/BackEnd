@@ -1,5 +1,5 @@
 const validate = require('../../middlewares/validation');
-const { fieldExist, recordExist } = require('#utils/db-validation.js');
+const { fieldExist, recordExist } = require('../../utils/db-validation.js');
 const { z } = require('zod');
 
 

@@ -1,5 +1,5 @@
-const prisma = require('#db/db.js');
-const { error, success } = require('#utils/response.js');
+const prisma = require('../../db/db.js');
+const { error, success } = require('../../utils/response.js');
 
 
 /**

@@ -211,6 +211,7 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
                         total: true
                     }
                 })
+                if(payments.length === 0) throw new Error("No Payment Recorded");
                 detail = {
                     art: 999,
                     qty: 1,

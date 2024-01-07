@@ -1,4 +1,4 @@
-const prisma = require('#db/db.js');
+const prisma = require('../../db/db.js');
 
 /**
  * @typedef {object} GetAllUserOption
@@ -41,16 +41,7 @@ const select = {
  * @return {Promise<GetAllUserResult>}
  */
 async function all(option) {
-  const {
-    page,
-    show,
-    query,
-    sort,
-    order,
-    from,
-    to,
-    roleId
-  } = option
+  const { page, show, query, sort, order, from, to, roleId } = option
 
   const where = {
     AND: [

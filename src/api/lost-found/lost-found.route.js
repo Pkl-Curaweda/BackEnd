@@ -3,20 +3,11 @@ const path = require('path');
 const express = require('express');
 const multer = require('multer');
 
-const {
-  create,
-  findAll,
-  findOne,
-  remove,
-  update
-} = require('./lost-found.controller.js');
+const {create,findAll,findOne,remove,update} = require('./lost-found.controller.js');
 
-const {
-  createLostFoundValidation,
-  getLostFoundValidation
-} = require('./lost-found.validation.js');
+const {createLostFoundValidation,getLostFoundValidation} = require('./lost-found.validation.js');
 
-const { error } = require('#utils/response.js');
+const { error } = require('../../utils/response.js');
 
 const router = express.Router()
 

@@ -1,18 +1,7 @@
 const express = require('express');
 
-const {
-  create,
-  remove,
-  findOne,
-  findAll,
-  update
-} = require('./extrabed.controller.js');
-
-const {
-  getExtraBedValidation,
-  createExtrabedValidation,
-  updateExtrabedValidation,
-} = require('./extrabed.validation.js');
+const { create, remove, findOne, findAll, update } = require('./extrabed.controller.js');
+const { getExtraBedValidation, createExtrabedValidation, updateExtrabedValidation } = require('./extrabed.validation.js');
 
 const router = express.Router()
 
