@@ -1,4 +1,4 @@
-const prisma = require('../db/db')
+const { prisma } = require("../../prisma/seeder/config");
 
 /**
  * @param {string} model

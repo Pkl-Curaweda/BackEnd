@@ -13,7 +13,11 @@ const getAllUsers = async (req, res) => {
 }
 
 const getCurrentUser = async (req, res) => {
-    return success(res, 'Operation Success', req.user);
+    try{
+        return success(res, 'Operation Success', req.user);
+    }catch(err){
+        return error(res, err.message)
+    }
 }
 
 const getNewUserRefreshToken = async (req, res) => {

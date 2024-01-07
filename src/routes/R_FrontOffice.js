@@ -1,11 +1,11 @@
 const { Router } = require("express");
-const { getArrivalGuestData, putChangeTreatment} = require("../controllers/Reservation/C_ArrivalGuest");
-const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Reservation/C_FloorPlan");
-const {CreateLog,getFilterRoomAvail,getRoomAvailability} = require("../controllers/Reservation/C_RoomAvailability");
-const { getAllReport, getReportPDF } = require("../controllers/Reservation/C_Report");
-const {getInvoice,testInvoice,getSummary, getBillPayment, getInvoicePDF} = require("../controllers/Reservation/C_Invoice");
-const {getHelperDetail,postHelperDetail,putNewReservationData,deleteReservation,getReportDetail,getInvoiceDetail} = require("../controllers/Reservation/C_Detail");
-const { getDashboard } = require("../controllers/Reservation/C_Dashboard");
+const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Front Office/C_ArrivalGuest");
+const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
+const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
+const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
+const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF } = require("../controllers/Front Office/C_Invoice");
+const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail } = require("../controllers/Front Office/C_Detail");
+const { getDashboard } = require("../controllers/Front Office/C_Dashboard");
 
 const R_FrontOffice = new Router();
 
@@ -13,12 +13,12 @@ const R_FrontOffice = new Router();
 R_FrontOffice.get("/", getDashboard);
 
 //?DETAIL RESERVATION
-R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?",getHelperDetail);
+R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", getHelperDetail);
 R_FrontOffice.get("/detail/report/:displayOption?", getReportDetail);
-R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId/:date",getInvoiceDetail);
-R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?",postHelperDetail);
-R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit",putNewReservationData);
-R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete",deleteReservation);
+R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId/:date", getInvoiceDetail);
+R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", postHelperDetail);
+R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", putNewReservationData);
+R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", deleteReservation);
 
 //?ARRIVAL GUEST LIST
 R_FrontOffice.get("/arrival", getArrivalGuestData);

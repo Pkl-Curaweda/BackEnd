@@ -8,14 +8,14 @@ const { phoneValidation, emailValidation, nikValidation } = require('../validati
 const { roomInputValidation } = require('../validations/room.validation');
 const { serviceInputValidation } = require('../validations/service.validation');
 
-const auth = require('../services/auth.service');
-const guest = require('../services/guest.service');
-const order = require('../services/order.service');
-const productReqService = require('../services/productReq.service');
-const profile = require('../services/profile.service');
-const room = require('../services/room.service');
-const services = require('../services/services.service');
-const subType = require('../services/subType.service');
+const auth = require('../controllers/In Room Service/auth.service');
+const guest = require('../controllers/In Room Service/C_Guest');
+const order = require('../controllers/In Room Service/C_Order');
+const productReqService = require('../controllers/In Room Service/C_ProductReq');
+const profile = require('../controllers/In Room Service/C_Profile');
+const room = require('../controllers/In Room Service/C_Room');
+const services = require('../controllers/In Room Service/C_Service');
+const subType = require('../controllers/In Room Service/C_SubType');
 
 const R_InRoomService = express();
 
@@ -31,7 +31,7 @@ const options = { storage, fileFilter };
 // //Emd Auth
 
 R_InRoomService.get('/Test', (req, res) => {
-    res.json({data: "Nibba" })
+    res.json({ data: "Nibba" })
 })
 
 //Start Guest
@@ -49,9 +49,9 @@ R_InRoomService.delete('/order/delete/:id', order.remove);
 //Start ProductReq
 R_InRoomService.post('/productReq/create', uploadFile(options, 'picture'), productReqInputValidation, productReqService.create);
 R_InRoomService.get('/productReq/', productReqService.getAll);
-R_InRoomService.get('/productReq/:id', productReqService.getProductReqById);
 R_InRoomService.get('/productReq/status/:status', productReqService.getProductReqByStatus);
-R_InRoomService.put('/productReq/update/:id',uploadFile(options, 'picture'),productReqInputValidation,productReqService.update,);
+R_InRoomService.get('/productReq/:id', productReqService.getProductReqById);
+R_InRoomService.put('/productReq/update/:id', uploadFile(options, 'picture'), productReqInputValidation, productReqService.update,);
 R_InRoomService.delete('/productReq/delete/:id', productReqService.remove);
 R_InRoomService.post('/productReq/accept/:id', productReqService.acceptProductReq);
 R_InRoomService.post('/productReq/reject/:id', productReqService.rejectProductReq);
