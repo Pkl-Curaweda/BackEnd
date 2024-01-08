@@ -10,7 +10,8 @@ const R_Login = require("./routes/R_Login");
 const R_FrontOffice = require("./routes/R_FrontOffice");
 const R_HouseKeeping = require('./routes/R_HouseKeeping')
 const R_InRoomService = require("./routes/R_InRoomService");
-
+const dashboard = require('./models/Front Office/M_Dashboard');
+const { success, error } = require("./utils/response");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -27,13 +28,22 @@ app.use(cors({
   credentials: true
 }))
 app.use(bodyParser.urlencoded({
-    extended: true,
-  }),
+  extended: true,
+}),
 );
 
 //??Start Endpoints
 // app.get("*", checkUser)
 app.use("/auth", R_Login);
+app.get('/dashboard', async (req, res) => {
+  let { page = 1, perPage = 5, date } = req.query
+  try {
+    const dsbd = await dashboard.get(parseInt(page), parseInt(perPage), date);
+    return success(res, 'Operation Success', dsbd)
+  } catch (err) {
+    return error(res, err.message)
+  }
+})
 app.use("/fo", R_FrontOffice);
 app.use('/hk', R_HouseKeeping)
 app.use('/irs', R_InRoomService)

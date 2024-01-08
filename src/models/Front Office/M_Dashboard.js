@@ -18,6 +18,7 @@ const get = async (page, perPage, date) => {
             ci: currData.checkIn,
             co: currData.checkOut
         }
+        const searchedDate  = date
         const htResv = await paginateFO(prisma.resvRoom, { page, name: "reservation", perPage }, { 
             where: {
                 created_at: {
@@ -27,6 +28,8 @@ const get = async (page, perPage, date) => {
             },
             select: {
                 reservationId: true,
+                roomId: true,
+                created_at: true,
                 reservation: {
                     select: {
                         reserver: {
@@ -39,7 +42,7 @@ const get = async (page, perPage, date) => {
                 }
             }
         })
-        return { currTime, currDate, currData, resv: htResv, resvChart, hkChart, hk }
+        return { currTime, currDate, currData, resv: { searchedDate, ...htResv }, resvChart, hkChart, hk }
     } catch (err) {
         ThrowError(err);
     } finally {
@@ -61,7 +64,6 @@ const getChart = async () => {
                 },
                 select: { roomId: true }
             })
-            console.log(rsv)
             for (rs of rsv) {
                 console.log(rs)
                 const { roomId } = rs
@@ -173,7 +175,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
         recResv.checkIn = ci
         recResv.checkOut = co
         recResv.newReservation = nw
-        recResv.occRate = recResv.availableRoom / ttlRoom * 100
+        recResv.occRate = ( ttlRoom - recResv.availableRoom) / ttlRoom * 100
         return recResv
     } catch (err) {
         ThrowError(err)

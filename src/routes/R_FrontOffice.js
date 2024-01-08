@@ -5,12 +5,9 @@ const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../contr
 const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
 const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail } = require("../controllers/Front Office/C_Detail");
-const { getDashboard } = require("../controllers/Front Office/C_Dashboard");
 
 const R_FrontOffice = new Router();
 
-//?DASHBOARD
-R_FrontOffice.get("/", getDashboard);
 
 //?DETAIL RESERVATION
 R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", getHelperDetail);

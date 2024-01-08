@@ -2,9 +2,9 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
-const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search) => {
+const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
-    let invoices = [], startIndex, endIndex, arrivalDate, departureDate;
+    let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates;
     let resvRoom = await prisma.resvRoom.findFirstOrThrow({
       where: { id: resvRoomId, reservationId },
       select: {
@@ -34,9 +34,15 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       },
     });
     const { guestId } = resvRoom.reservation.reserver;
-    arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
-    departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
-    const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
+    if(date){
+      const startDate = date.split('T')[0];
+      const endDate = date.split('T')[1];
+      dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    }else{
+      arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
+      departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
+      dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
+    }
 
     for (let i = dates.length - 1; i >= 0; i--) {
       const searchedDate = new Date(dates[i]);
@@ -124,12 +130,17 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
     // Slice the invoices array based on calculated startIndex and endIndex
     invoices = invoices.slice(startIndex, endIndex + 1);
+
     if (search != undefined) invoices = searchInvoice(invoices, search)
-    if (sortIdentifier != undefined)
-      invoices = sortInvoiceData(invoices, sortIdentifier);
+    if (sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier);
 
     return {
       invoices,
+      added: {
+        roomNo: resvRoom.roomId,
+        roomBoys: resvRoom.roomMaids[0],
+        voucherNo: resvRoom.voucherNo
+      },
       meta: {
         total: dates.length,
         currPage: page,
@@ -148,9 +159,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
 const searchInvoice = (m, s) => {
   try {
-    return m.filter((invoice) => {
-      invoice.desc.toLowerCase().includes(s.toLowerCase())
-    });
+    return m.filter((invoice) => { return invoice.desc.toLowerCase().includes(s.toLowerCase());});
   } catch (err) {
     ThrowError(err)
   }
