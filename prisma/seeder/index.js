@@ -9,6 +9,7 @@ const { departmentSeed } = require("./housekeeping/department.seeder");
 
 async function main() {
   /* user seeed */
+  console.log('Hello')
   await roleSeed(); // important to seed role first before user
   await userSeed();
   await departmentSeed()

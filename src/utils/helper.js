@@ -1,4 +1,3 @@
-const { randomInt } = require("crypto");
 const jwt = require('jsonwebtoken');
 const { z } = require('zod');
 const crypto = require('crypto');
@@ -85,7 +84,7 @@ function countNight(arrivalDate, departureDate) {
 const generateVoucherNo = async () => {
   let uniqueVoucherNo, existingResvRoom;
   do {
-    uniqueVoucherNo = randomInt(1000)
+    uniqueVoucherNo = crypto.randomInt(1000)
     existingResvRoom = await prisma.resvRoom.findFirst({
       where: {
         voucherNo: uniqueVoucherNo
