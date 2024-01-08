@@ -7,9 +7,9 @@ const { error, success } = require("../../utils/response");
 
 const getInvoice = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
-  const { page = 1, perPage = 5, sort } = req.query;
+  const { page = 1, perPage = 5, sort, search } = req.query;
   try {
-    const invoices = await GetInvoiceByResvRoomId(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage));
+    const invoices = await GetInvoiceByResvRoomId(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage), search);
     return success(res, "Operation Success", invoices);
   } catch (err) {
     return error(res, err.message);
@@ -27,7 +27,7 @@ const getSummary = async (req, res) => {
 };
 
 const getBillPayment = async (req, res) => {
-  const { reservationId, resvRoomId } = req.query;
+  const { reservationId = 1, resvRoomId = 1 } = req.query;
   try {
     const invoiceData = await findBillPayment(parseInt(resvRoomId), parseInt(reservationId));
 

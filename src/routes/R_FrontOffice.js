@@ -42,6 +42,6 @@ R_FrontOffice.get("/report/:displayOption/print", getReportPDF)
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
-R_FrontOffice.get("/invoice", getBillPayment);
+// R_FrontOffice.get("/invoice", getBillPayment);
 
 module.exports = R_FrontOffice;
