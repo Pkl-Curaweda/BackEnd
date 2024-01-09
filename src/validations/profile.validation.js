@@ -1,5 +1,6 @@
 const { z } = require('zod');
 const { validate } = require('../utils/helper');
+const { recordUnique } = require('../utils/db-validation')
 
 const phoneInputScheme = z.object({
   body: z.object({
@@ -25,8 +26,22 @@ const nikInputScheme = z.object({
   }),
 });
 
+const updateProfileValidation = validate(
+  id => ({
+    name: z.string(),
+    gender: z.enum(['MALE', 'FEMALE']),
+    phone: z.string(),
+    picture: z.string().optional(),
+    birthday: z.coerce.date().optional(),
+    nik: z.string().optional(),
+    email: z.string().email().refine(recordUnique('user', 'email', id), {
+      message: 'Email already exist'
+    }),
+  })
+)
+
 const phoneValidation = validate(phoneInputScheme);
 const emailValidation = validate(emailInputScheme);
 const nikValidation = validate(nikInputScheme);
 
-module.exports = { phoneValidation, emailValidation, nikValidation };
+module.exports = { phoneValidation, emailValidation, nikValidation, updateProfileValidation };

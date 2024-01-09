@@ -124,11 +124,9 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
     const lastPage = Math.ceil(dates.length / perPage);
 
-    // Calculate startIndex and endIndex based on page and perPage
     startIndex = Math.max(0, (page - 1) * perPage);
     endIndex = Math.min(dates.length - 1, startIndex + perPage - 1);
 
-    // Slice the invoices array based on calculated startIndex and endIndex
     invoices = invoices.slice(startIndex, endIndex + 1);
 
     if (search != undefined) invoices = searchInvoice(invoices, search)

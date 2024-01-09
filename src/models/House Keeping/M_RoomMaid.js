@@ -3,7 +3,7 @@ const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 
 const assignRoomMaid = async (resvRoomId) => {
-    try{
+    try {
         const users = await prisma.user.findMany({
             where: { role: { id: 3 } },
             select: { id: true }
@@ -24,11 +24,149 @@ const assignRoomMaid = async (resvRoomId) => {
             }
         })
         return roomMaid
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
 
-module.exports = { assignRoomMaid }
+/**
+ * @typedef {object} GetAllRoomMaidOption
+ * @property {number} page
+ * @property {number} show
+ * @property {string} query
+ * @property {string} sort
+ * @property {'asc'|'desc'} order
+ * @property {Date} from
+ * @property {Date} to
+ */
+
+/**
+ * @typedef {object} GetAllRoomMaidResult
+ * @property {number} total
+ * @property {import('@prisma/client').User[]} users
+ */
+
+/**
+ * @param {GetAllRoomMaidOption} option
+ * @throws {Error}
+ * @return {Promise<GetAllRoomMaidResult>}
+ */
+async function all(option) {
+    const {
+        page,
+        show,
+        query,
+        sort,
+        order,
+        departure,
+        arrival
+    } = option
+
+    const where = {
+        AND: [
+            {
+                OR: [
+                    { username: { contains: query } },
+                    { email: { contains: query } },
+                    { name: { contains: query } },
+                ]
+            },
+            {
+                birthday: {
+                    gte: from,
+                    lte: to,
+                },
+            },
+            {
+                roleId
+            }
+        ],
+    }
+
+    const [total, users] = await prisma.$transaction([
+        prisma.roomMaid.count({ where }),
+        prisma.roomMaid.findMany({
+            take: show,
+            skip: (page - 1) * show,
+            where: {
+                resvRoom: {
+                    reservation: {
+                        departureDate: {
+                            lte: departure
+                        },
+                        arrivalDate: {
+                            gte: arrival
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                [sort]: order,
+            },
+            select
+        })
+    ])
+
+    return { users, total }
+}
+
+/**
+ * @param {string} id
+ * @throws {Error}
+ * @return {Promise<import('@prisma/client').User>}
+ */
+async function get(id) {
+    return await prisma.user.findUniqueOrThrow({
+        where: {
+            id: parseInt(id)
+        },
+        select
+    })
+}
+
+/**
+ * @param {import('@prisma/client').User} user
+ * @throws {Error}
+ * @return {Promise<import('@prisma/client').User>}
+ */
+async function create(user) {
+    return await prisma.user.create({
+        data: user,
+        select
+    })
+}
+
+/**
+ * @param {string} id
+ * @param {import('@prisma/client').User} user
+ * @throws {Error}
+ * @return {Promise<import('@prisma/client').User>}
+ */
+async function update(id, user) {
+    return await prisma.user.update({
+        where: {
+            id: parseInt(id)
+        },
+        data: user,
+        select
+    })
+}
+
+/**
+ * @param {string} id
+ * @throws {Error}
+ * @return {Promise<import('@prisma/client').User>}
+ */
+async function remove(id) {
+    return await prisma.user.delete({
+        where: {
+            id: parseInt(id)
+        },
+        select
+    })
+}
+
+
+module.exports = { assignRoomMaid, all, get, create, update, remove }
