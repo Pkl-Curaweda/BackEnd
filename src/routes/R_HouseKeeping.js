@@ -70,8 +70,8 @@ router.get('/me', auth.me)
 //End Auth
 
 //Start Profile
-router.get('/profile/:id', profile.get)
-router.put('/profile/:id', updateProfileValidation, profile.update)
+router.get('/profile/:id/', profile.get)
+router.put('/profile/:id', profile.update)
 //End Profile
 
 //Start OOO Room
@@ -119,7 +119,7 @@ router.get('/discrepancy', getDiscrepancyValidation, discrepancy.index)
 //End Discrepancy
 
 //Start Room  Maid
-router.get('/room-maid', getRoomMaidValidation, roomMaid.findAll)
+router.get('/room-maid', roomMaid.findAll)
 router.get('/room-maid/:id', roomMaid.findOne)
 //End Room Maid
 

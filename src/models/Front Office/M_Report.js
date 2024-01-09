@@ -332,7 +332,7 @@ const getReportDetailData = async (date, displayOption) => {
         detail[detailKey] = { id, roomType, bedSetup, percent };
       }
     });
-    return detail;
+    return { detail, total };
   } catch (err) {
     ThrowError(err);
   } finally {

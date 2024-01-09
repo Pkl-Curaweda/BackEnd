@@ -1,3 +1,4 @@
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const { prisma } = require("../../../prisma/seeder/config");
 
 /**
@@ -43,40 +44,40 @@ const select = {
  * @return {Promise<GetAllLostFoundResult>}
  */
 async function all(option) {
-  const {
-    page,
-    show,
-    // sort,
-    // order,
-    description,
-    date,
-  } = option
+  try {
+    const { page, show, description, date } = option
 
-  const where = {
-    description: {
-      contains: description,
-    },
-    reportedDate: date,
-    deleted: false,
-  }
-
-  const [total, lostFounds, found, lost, onProgress] = await prisma.$transaction([
-    prisma.lostFound.count({ where }),
-    prisma.lostFound.findMany({
-      take: show,
-      skip: (page - 1) * show,
-      where,
-      orderBy: {
-        roomId: 'asc',
+    const where = {
+      description: {
+        contains: description,
       },
-      select
-    }),
-    prisma.lostFound.count({ where: { status: 'FOUND' } }),
-    prisma.lostFound.count({ where: { status: 'LOST' } }),
-    prisma.lostFound.count({ where: { status: 'ONPROGRESS' } }),
-  ])
+      reportedDate: date,
+      deleted: false,
+    }
 
-  return { lostFounds, total, found, lost, onProgress }
+    const [total, lostFounds, found, lost, onProgress] = await prisma.$transaction([
+      prisma.lostFound.count({ where }),
+      prisma.lostFound.findMany({
+        take: show,
+        skip: (page - 1) * show,
+        where,
+        orderBy: {
+          roomId: 'asc',
+        },
+        select
+      }),
+      prisma.lostFound.count({ where: { status: 'FOUND' } }),
+      prisma.lostFound.count({ where: { status: 'LOST' } }),
+      prisma.lostFound.count({ where: { status: 'ONPROGRESS' } }),
+    ])
+
+    return { lostFounds, total, found, lost, onProgress }
+
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
 }
 
 /**
@@ -85,13 +86,19 @@ async function all(option) {
  * @return {Promise<import('@prisma/client').LostFound>}
  */
 async function get(id) {
-  return await prisma.lostFound.findUniqueOrThrow({
-    where: {
-      id: +id,
-      deleted: false,
-    },
-    select
-  })
+  try {
+    return await prisma.lostFound.findUniqueOrThrow({
+      where: {
+        id: +id,
+        deleted: false,
+      },
+      select
+    })
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
 }
 
 /**
@@ -102,30 +109,36 @@ async function get(id) {
  * @return {Promise<import('@prisma/client').LostFound>}
  */
 async function create(lostFound, image, userId) {
-  const roomId = lostFound.roomId
-  delete lostFound.roomId
-  return await prisma.lostFound.create({
-    data: {
-      ...lostFound,
-      image,
-      room: {
-        connect: {
-          id: roomId,
+  try{
+    const roomId = lostFound.roomId
+    delete lostFound.roomId
+    return await prisma.lostFound.create({
+      data: {
+        ...lostFound,
+        image,
+        room: {
+          connect: {
+            id: roomId,
+          }
+        },
+        pic: {
+          connect: {
+            id: +userId
+          }
+        },
+        user: {
+          connect: {
+            id: +userId
+          }
         }
       },
-      pic: {
-        connect: {
-          id: +userId
-        }
-      },
-      user: {
-        connect: {
-          id: +userId
-        }
-      }
-    },
-    select
-  })
+      select
+    })
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
 }
 
 /**
@@ -163,7 +176,7 @@ async function softDelete(id) {
   })
 }
 
-module.exports =  {
+module.exports = {
   all,
   get,
   create,

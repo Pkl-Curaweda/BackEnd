@@ -7,14 +7,7 @@ const { error, success } = require('../../utils/response.js');
  * @param {import('express').Response} res
  */
 async function findAll(req, res) {
-  const {
-    page,
-    show,
-    sort,
-    order,
-    from,
-    to,
-  } = req.query
+  const { page, show, sort, order, from, to, } = req.query
 
   const where = {
     date: {
