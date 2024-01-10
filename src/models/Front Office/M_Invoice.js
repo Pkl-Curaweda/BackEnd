@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
@@ -34,11 +34,11 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       },
     });
     const { guestId } = resvRoom.reservation.reserver;
-    if(date){
+    if (date) {
       const startDate = date.split('T')[0];
       const endDate = date.split('T')[1];
       dates = generateDateBetweenStartAndEnd(startDate, endDate)
-    }else{
+    } else {
       arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
       departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
       dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
@@ -157,9 +157,48 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
 
 const searchInvoice = (m, s) => {
   try {
-    return m.filter((invoice) => { return invoice.desc.toLowerCase().includes(s.toLowerCase());});
+    return m.filter((invoice) => { return invoice.desc.toLowerCase().includes(s.toLowerCase()); });
   } catch (err) {
     ThrowError(err)
+  }
+}
+
+const addNewInvoice = async (o, reservationId, resvRoomId) => {
+  try {
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
+    const subtotal = await generateSubtotal(o)
+    const order = await prisma.order.create({
+      data: {
+        guestId: resvRoom.reservation.reserver.guestId,
+        roomId: resvRoom.roomId,
+        subtotal,
+        ppn: subtotal * 0.1,
+        fees: generateTotal(subtotal),
+        orderDetails: {
+          createMany: {
+            data: await Promise.all(
+              o.map(async (item) => ({
+                serviceId: parseInt(item.serviceId, 10),
+                price: await generateItemPrice(item.serviceId, item.qty),
+                qty: parseInt(item.qty, 10)
+              }))
+            )
+          }
+        }
+      },
+      include: {
+        orderDetails: {
+          include: {
+            service: true
+          }
+        }
+      }
+    })
+    return order
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
   }
 }
 
@@ -589,4 +628,5 @@ module.exports = {
   GetInvoiceDetailByArt,
   printInvoice,
   findBillPayment,
+  addNewInvoice
 };

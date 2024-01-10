@@ -19,7 +19,6 @@ async function findOne(req, res) {
   try {
     const accessToken = getAccessToken(req);
     const decoded = verifyToken(accessToken);
-    console.log(decoded);
     const { id } = req.params;
     const order = await prisma.order.findUnique({
       where: {
@@ -89,6 +88,7 @@ async function create(req, res) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.message, res);
     }
+    console.log(error)
     return errorResponse(res, 'Internal server error', error.message, 500);
   }
 }

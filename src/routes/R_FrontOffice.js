@@ -3,7 +3,7 @@ const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Fron
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
 const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
-const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF } = require("../controllers/Front Office/C_Invoice");
+const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF, postNewInvoice } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail } = require("../controllers/Front Office/C_Detail");
 
 const R_FrontOffice = new Router();
@@ -39,6 +39,7 @@ R_FrontOffice.get("/report/:displayOption/print", getReportPDF)
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
+R_FrontOffice.post("/invoice/:reservationId/:resvRoomId", postNewInvoice)
 // R_FrontOffice.get("/invoice", getBillPayment);
 
 module.exports = R_FrontOffice;

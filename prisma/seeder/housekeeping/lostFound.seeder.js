@@ -3,12 +3,13 @@ const { prisma } = require("../config");
 const lostFounds = [
   {
     roomId: 1,
-    reference: "Test reference",
-    time: new Date(),
-    reported: new Date(),
+    picId: 2,
+    userId: 1,
+    time: "03:04",
+    reportedDate: new Date(),
     location: "Lobby",
+    image: "https://random.imagecdn.app/500/300",
     description: "Room cleaned thoroughly, ready for next guest.",
-    picture: "https://random.imagecdn.app/500/300",
     created_at: new Date(),
     updated_at: new Date(),
   },

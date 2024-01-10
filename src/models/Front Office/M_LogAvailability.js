@@ -89,7 +89,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
         let roomAverage = {}
         Object.keys(averages).forEach((average) => {
             const avg = averages[average];
-            roomAverage[average] = avg / logData.length;
+            roomAverage[average] = avg / logData.length * 100;
         });
         const lastPage = Math.ceil(dates.length / perPage);
         return {

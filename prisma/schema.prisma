@@ -49,6 +49,12 @@ enum cardIdentifier {
   SIM
 }
 
+enum LostFoundStatus {
+  LOST
+  FOUND
+  ONPROGRESS
+}
+
 // Front Office Area ==========================================================
 
 model Guest {
@@ -93,6 +99,9 @@ model User {
   roomMaids   RoomMaid[]
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
+
+ lostFounds    LostFound[]  @relation("LostFound_user")
+  lostFoundsPic LostFound[]  @relation("LostFound_pic")
 }
 
 model UserToken {
@@ -378,17 +387,22 @@ model ExtraBed {
 }
 
 model LostFound {
-  id          Int      @id @default(autoincrement())
-  room        Room     @relation(fields: [roomId], references: [id])
-  roomId      Int
-  reference   String
-  time        DateTime
-  reported    DateTime
-  location    String
-  picture     String
-  description String   @db.Text
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           Int             @id @default(autoincrement())
+  room         Room            @relation(fields: [roomId], references: [id])
+  roomId       Int
+  pic          User            @relation("LostFound_pic", fields: [picId], references: [id])
+  picId        Int
+  user         User            @relation("LostFound_user", fields: [userId], references: [id])
+  userId       Int
+  time         String
+  reportedDate DateTime        @db.Date
+  location     String
+  image        String
+  status       LostFoundStatus @default(value: LOST)
+  description  String          @db.Text
+  created_at   DateTime        @default(now())
+  updated_at   DateTime        @updatedAt
+  deleted      Boolean         @default(false)
 }
 
 // End House Keeping Area =====================================================
