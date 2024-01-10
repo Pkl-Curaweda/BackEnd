@@ -66,12 +66,13 @@ const createService = async (req, res) => {
   try {
     const accessToken = getAccessToken(req);
     const decoded = verifyToken(accessToken);
+    console.log(req.body)
     const { name, price, desc, serviceTypeId, subTypeId } = req.body;
     const picture = req.file.filename;
     const pictureUrl = generateAssetUrl(picture);
     const service = await prisma.service.create({
       data: {
-        userId: decoded.role.name === 'MITRA' ? decoded.id : 1,
+        userId: 1,
         name,
         price: parseInt(price, 10),
         desc,
@@ -107,7 +108,7 @@ const updateService = async (req, res) => {
     const service = await prisma.service.update({
       where: { id: parseInt(id, 10) },
       data: {
-        userId: decoded.role.name === 'MITRA' ? decoded.id : 1,
+        userId: 1,
         name,
         price: parseInt(price, 10),
         desc,

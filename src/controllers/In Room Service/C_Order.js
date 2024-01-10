@@ -51,13 +51,13 @@ async function findOne(req, res) {
  */
 async function create(req, res) {
   try {
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
+    // const accessToken = getAccessToken(req);
+    // const decoded = verifyToken(accessToken);
     const subtotal = await generateSubtotal(req.body.items);
     const order = await prisma.order.create({
       data: {
-        guestId: decoded.id,
-        roomId: decoded.roomId ?? 1, // 1 for temporary roomId because we don't have roomId yet in the payload
+        guestId: 1,
+        roomId: 1, // 1 for temporary roomId because we don't have roomId yet in the payload
         subtotal,
         ppn: subtotal * 0.1,
         fees: 1000,

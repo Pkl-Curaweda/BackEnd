@@ -7,7 +7,7 @@ const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 
-const orderByIdentifier = (sortAndOrder) => {
+const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
   const sortIdentifier = sortAndOrder.split(' ')[0]
   const sortBy = sortAndOrder.split(' ')[1];
@@ -59,7 +59,6 @@ const orderByIdentifier = (sortAndOrder) => {
       case 'type':
         query.whereQuery = { room: { roomType: filter } }
         break;
-
       case 'bedSetup':
         query.whereQuery = { room: { bedSetup: filter } }
         break;
@@ -113,7 +112,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         }
       }
     }
-    if (sortAndOrder != "") orderBy = orderByIdentifier(sortAndOrder);
+    if (sortAndOrder != "") orderBy = orderReservationByIdentifier(sortAndOrder);
 
     const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
@@ -415,7 +414,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
 
     const currentDate = new Date();
     const oldBorderColor = reservation.borderColor;
-    const progressColor = ["ffff", "16a75c", "ffff"] //?Need to change the checkout border
+    const progressColor = ["#16a75c", "#fffc06", "#fe0001"] //?Need to change the checkout border
     const progressName = ['Reservation', 'Check In', 'Check Out']
     const resvRooms = reservation.resvRooms
     let progressIndex = 0, roomStatusId = 0;
@@ -457,7 +456,6 @@ const ChangeReservationProgress = async (id, changeTo) => {
 
 const AddNewIdCard = async (data) => {
   try {
-    data.cardId = encrypt(data.cardId)
     delete data.resvRoomId
     const createdIdCard = await prisma.idCard.create({ data })
     return createdIdCard
@@ -490,5 +488,6 @@ module.exports = {
   ChangeReservationProgress,
   DetailCreateReservationHelper,
   AddNewIdCard,
+  orderReservationByIdentifier,
   changeSpecialTreatment
 };

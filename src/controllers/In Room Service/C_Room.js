@@ -1,7 +1,8 @@
 const bodyParser = require('body-parser');
 const Express = require('express');
+require('dotenv').config()
 const { prisma } = require("../../../prisma/seeder/config")
-const { errorResponse, successResponse, deleteAsset, getFilePath, generateAssetUrl, paginate, } = require('../../utils/helper');
+const { errorResponse, successResponse, deleteAsset, getFilePath, generateAssetUrl, paginate, ThrowError, PrismaDisconnect, } = require('../../utils/helper');
 
 const app = Express();
 app.use(bodyParser.json());
@@ -40,31 +41,35 @@ async function createData(req, res) {
   try {
     const {
       roomType,
-      roomStatus,
       roomStatusId,
       roomCapacityId,
       floor,
       bedSetup,
       description,
       occupied_status,
-      rate,
+      rateCodeId,
     } = req.body;
 
     const filesaved = req.file ? req.file.filename : '';
-    const pictureUrl = `${process.env.BASE_URL}/public/assets/images/${filesaved}`;
+    const pictureUrl = `${process.env.BASE_URL}/public/assets/room/${filesaved}`;
 
     const data = await prisma.room.create({
       data: {
         roomType,
         roomImage: pictureUrl,
-        roomStatus,
-        roomStatusId: parseInt(roomStatusId, 10),
-        roomCapacityId: parseInt(roomCapacityId, 10),
+        roomStatus: {
+          connect: { id: parseInt(roomStatusId) }
+        },
+        roomCapacity: {
+          connect: { id: parseInt(roomCapacityId) }
+        },
         floor: parseInt(floor, 10),
         bedSetup,
         description,
         occupied_status: occupied_status === 'true',
-        rate: parseInt(rate, 10),
+        rateCode: {
+          connect: { id: rateCodeId }
+        }
       },
     });
 
@@ -81,21 +86,22 @@ async function createData(req, res) {
 }
 
 async function updateData(req, res) {
-  const roomId = parseInt(req.params.id, 10);
-  const {
-    roomType,
-    roomStatusId,
-    roomCapacityId,
-    floor,
-    bedSetup,
-    description,
-    occupied_status,
-    rate,
-  } = req.body;
-
-  const picture = req.file ?? null;
-  const pictureUrl = picture !== null ? generateAssetUrl(picture) : null;
   try {
+
+    const roomId = parseInt(req.params.id, 10);
+    const {
+      roomType,
+      roomStatusId,
+      roomCapacityId,
+      floor,
+      bedSetup,
+      description,
+      occupied_status,
+      rateCodeId,
+    } = req.body;
+
+    const picture = req.file ? req.file.filename : '';
+    const pictureUrl = picture !== null ? `${process.env.BASE_URL}/public/assets/room/${picture}` : null;
     const data = await prisma.room.findUnique({
       where: {
         id: roomId,
@@ -112,21 +118,28 @@ async function updateData(req, res) {
       },
       data: {
         roomType,
-        roomImage: pictureUrl !== null ? pictureUrl : data.roomImage,
-        roomStatusId: parseInt(roomStatusId, 10),
-        roomCapacityId: parseInt(roomCapacityId, 10),
+        roomImage: pictureUrl,
+        roomStatus: {
+          connect: { id: parseInt(roomStatusId) }
+        },
+        roomCapacity: {
+          connect: { id: parseInt(roomCapacityId) }
+        },
         floor: parseInt(floor, 10),
         bedSetup,
         description,
         occupied_status: occupied_status === 'true',
-        rate: parseInt(rate, 10),
+        rateCode: {
+          connect: { id: rateCodeId }
+        }
       },
     });
     if (picture !== null) {
       deleteAsset(oldPicturePath);
     }
     return successResponse(res, `Room ${roomId} has been updated successfully`, response, 200);
-  } catch (error) {
+  } catch (err) {
+    ThrowError(err)
     return errorResponse(res, 'An error occurred while updating the Room', '', 500);
   }
 }

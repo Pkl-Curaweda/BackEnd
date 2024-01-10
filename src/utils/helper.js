@@ -311,7 +311,7 @@ function verifyToken(token) {
   try {
     const payload = jwt.verify(token, process.env.SECRET_CODE);
     if (!payload.sub || !payload.sub.trim() || !payload) throw new Error('Invalid token');
-    return parseInt(payload.sub);
+    return parseInt(payload);
   } catch (error) {
     return error;
   }
@@ -528,7 +528,20 @@ function generateSignature(payload, method, url) {
 }
 /* Order Helper End */
 
+const splitDateTime = (date) => {
+  try {
+    date = new Date(date).toISOString();
+    return {
+      date: date.split('T')[0],
+      time: date.split('T')[1]
+    };
+  } catch (err) {
+    ThrowError(err)
+  }
+}
+
 module.exports = {
+  splitDateTime,
   PrismaDisconnect,
   generateExpire,
   generateDateBetweenNowBasedOnDays,

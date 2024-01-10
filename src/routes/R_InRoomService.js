@@ -68,8 +68,8 @@ R_InRoomService.put('/profile/updateNIK', nikValidation, profile.updateNIK);
 //Start Room
 R_InRoomService.get('/room/', room.getAllData);
 R_InRoomService.get('/room/:id', room.getData);
-R_InRoomService.post('/room/create', uploadFile(options, 'roomImage'), roomInputValidation, room.createData);
-R_InRoomService.put('/room/update/:id', uploadFile(options, 'roomImage'), roomInputValidation, room.updateData);
+R_InRoomService.post('/room/create', uploadFile(options, 'roomImage'), room.createData);
+R_InRoomService.put('/room/update/:id', uploadFile(options, 'roomImage'), room.updateData);
 R_InRoomService.delete('/room/delete/:id', room.deleteData);
 //End Room
 

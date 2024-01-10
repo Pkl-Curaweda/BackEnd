@@ -31,6 +31,7 @@ const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
 const discrepancy = require('../controllers/House Keeping/C_Discrepency.js')
 const roomMaid = require('../controllers/House Keeping/C_RoomMaid.js')
 const stock = require('../controllers/House Keeping/C_Stock.js')
+const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js')
 
 
 const router = express.Router()
@@ -61,6 +62,7 @@ const upload = multer({
 })
 //End Multer
 
+router.get('/', arrivalDeparture.getArrivalDepartureData)
 
 //Start Auth
 router.post('/login', auth.login)

@@ -5,11 +5,7 @@ const getArrivalGuestData = async (req, res) => {
   try {
     const { sortOrder = "", disOpt = "", name = "", date = "", page = 1, perPage = 5 } = req.query;
     const { reservations, roomBoys, meta } = await getAllReservation(sortOrder, disOpt, name, date, parseInt(page), parseInt(perPage));
-    return success(res, "Operation Success", {
-      reservations,
-      roomBoys,
-      meta
-    });
+    return success(res, "Operation Success", {reservations,roomBoys, meta });
   } catch (err) {
     return error(res, err.message)
   }

@@ -6,13 +6,10 @@ const db = new PrismaClient();
 async function create(req, res) {
   try {
     const accessToken = getAccessToken(req);
-
     // Decode the refresh token
     const decoded = verifyToken(accessToken);
-
     // Retrieve user ID from the decoded token
     const userId = decoded.id;
-
     const { title, typeId, desc, price, statusProductReq, serviceTypeId } = req.body;
 
     if (!title || !userId || !typeId || !desc || !price || !serviceTypeId) {

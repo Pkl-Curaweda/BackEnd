@@ -2,7 +2,6 @@ const { prisma } = require("../../config");
 const { generateId } = require("./uniqueHandler");
 
 const transactions = [{
-    id: "TR-01",
     name: "Transaction Name",
     status: "PENDING",
     paymentId: 1,
@@ -14,7 +13,6 @@ const transactions = [{
 const transactionSeeder = async (orderId) => {
     for (const transaction of transactions) {
         
-        transaction.id = generateId();
         transaction.orderId = orderId
         await prisma.transaction.upsert({
             where: {
