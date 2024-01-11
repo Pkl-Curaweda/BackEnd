@@ -6,6 +6,7 @@ const {
   countNight,
   generateDateBetweenNowBasedOnDays,
   generateDateBetweenStartAndEnd,
+  formatDecimal,
 } = require("../../utils/helper");
 
 //? REPORT
@@ -70,7 +71,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       endIndex = Math.min(dates.length - 1, endIndex);
     } else {
       startIndex = 0,
-      endIndex = dates.length - 1
+        endIndex = dates.length - 1
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
@@ -91,7 +92,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         },
       });
 
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0;
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, taxService = 0;
       if (logAvailability && logAvailability.roomHistory) {
         for (const history in logAvailability.roomHistory) {
           if (logAvailability.roomHistory[history] != 0) roomAvailable++;
@@ -102,9 +103,13 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           totalRoom++;
         }
       }
-
-      occ = (occupied / totalRoom) * 100 || 0;
-      arr = roomRevenue / occupied || 0;
+      occ = totalRoom !== 0 ? formatDecimal((occupied / totalRoom) * 100) : 0;
+      arr = occupied !== 0 ? formatDecimal(roomRevenue / occupied) : 0;
+      added.rm_avail = roomAvailable;
+      added.rno = occupied;
+      added.occ = added.rm_avail !== 0 ? formatDecimal((added.rno / added.rm_avail) * 100) : 0;
+      added.rev = roomRevenue
+      added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno) * 100) : 0;
 
       const storedData = {
         date: searchDate,
@@ -113,8 +118,16 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         occ,
         roomRevenue,
         arr,
+        added: {
+          ident: "DTD",
+          rm_avail: added.rm_avail,
+          rno: added.rno,
+          occ: added.occ,
+          rev: added.rev,
+          arr: added.arr,
+        },
+        taxService
       };
-
       reports.push(storedData);
     }
 
@@ -125,71 +138,84 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           const subArray = dates.slice(i, i + 7);
           weeks.push(subArray);
         }
-        console.log(weeks)
         weeks.forEach((week) => {
-          const weekData = {
+          let sendedData = {
             roomAvailable: 0,
             occupied: 0,
-            roomRevenue: 0
+            roomRevenue: 0,
+            occ: 0,
+            arr: 0,
+            added: {
+              ident: "",
+              rm_avail: 0,
+              rno: 0,
+              occ: 0,
+              rev: 0,
+              arr: 0,
+            },
+            taxService: 0
           }
           week.forEach(day => {
             const report = reports.filter(report => report.date === day);
             report.forEach(report => {
-              weekData.roomAvailable += report.roomAvailable,
-                weekData.occupied += report.occupied,
-                weekData.roomRevenue += report.roomRevenue
+              console.log(report)
+              sendedData.roomAvailable += report.roomAvailable;
+              sendedData.occupied += report.occupied;
+              sendedData.roomRevenue += report.roomRevenue
             })
+            sendedData.added.ident = "WTD"
+            sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+            sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
+            sendedData.added.rm_avail = sendedData.roomAvailable;
+            sendedData.added.rno = sendedData.occupied;
+            sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
+            sendedData.added.rev = sendedData.roomRevenue
+            sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
           })
-          weekData.occ = (weekData.occupied / totalRoom) * 100 || 0;
-          weekData.arr = weekData.roomRevenue / weekData.occupied || 0;
-
           data.push({
             date: `${week[0]} - ${week[week.length - 1]}`,
-            ...weekData
+            ...sendedData
           })
         })
-
-        // for (week of weeks) {
-        // }
-        // console.log(weeks)
-        // const currentDate = new Date();
-        // const sevenDaysAgo = new Date(currentDate);
-        // sevenDaysAgo.setDate(currentDate.getDate() - 7);
-        // reports.forEach((report) => {
-        //   const reportDate = new Date(report.date);
-        //   const weekNumber = Math.ceil(
-        //     (reportDate.getDate() + reportDate.getMonth() * 30) / 7
-        //   );
-        //   if (!data[weekNumber]) {
-        //     data[weekNumber] = [];
-        //   }
-        //   data[weekNumber].push({ ...report });
-        // });
         break;
 
       case "month":
         const months = [...new Set(dates.map(date => new Date(date).getMonth()))];
         for (month of months) {
-          const monthData = {
+          let sendedData = {
             roomAvailable: 0,
             occupied: 0,
-            roomRevenue: 0
+            roomRevenue: 0,
+            occ: 0,
+            arr: 0,
+            added: {
+              ident: "",
+              rm_avail: 0,
+              rno: 0,
+              occ: 0,
+              rev: 0,
+              arr: 0,
+            },
+            taxService: 0
           }
-          const report = reports.filter(
-            (report) => new Date(report.date).getMonth() === month
-          );
+          const report = reports.filter((report) => new Date(report.date).getMonth() === month);
           report.forEach(report => {
-            monthData.roomAvailable += report.roomAvailable,
-              monthData.occupied += report.occupied,
-              monthData.roomRevenue += report.roomRevenue
+            sendedData.roomAvailable += report.roomAvailable,
+              sendedData.occupied += report.occupied,
+              sendedData.roomRevenue += report.roomRevenue
           })
-
-          monthData.occ = (monthData.occupied / totalRoom) * 100 || 0;
-          monthData.arr = monthData.roomRevenue / monthData.occupied || 0;
+          sendedData.added.ident = "WTD"
+          sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+          sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
+          sendedData.added.rm_avail = sendedData.roomAvailable;
+          sendedData.added.rno = sendedData.occupied;
+          sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
+          sendedData.added.rev = sendedData.roomRevenue
+          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
 
           data.push({
             date: monthNames[month],
-            ...monthData
+            ...sendedData
           })
         }
         break;
@@ -197,34 +223,43 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       case "year":
         const years = [...new Set(dates.map(date => new Date(date).getFullYear()))]; //?Get all the existed year that are  inside of the dates
         for (year of years) {
-          const yearData = {
+          let sendedData = {
             roomAvailable: 0,
             occupied: 0,
-            roomRevenue: 0
+            roomRevenue: 0,
+            occ: 0,
+            arr: 0,
+            added: {
+              ident: "",
+              rm_avail: 0,
+              rno: 0,
+              occ: 0,
+              rev: 0,
+              arr: 0,
+            },
+            taxService: 0
           }
           const report = reports.filter(
             (report) => new Date(report.date).getFullYear() === year
           );
           report.forEach(report => {
-            yearData.roomAvailable += report.roomAvailable,
-              yearData.occupied += report.occupied,
-              yearData.roomRevenue += report.roomRevenue
+            sendedData.roomAvailable += report.roomAvailable,
+              sendedData.occupied += report.occupied,
+              sendedData.roomRevenue += report.roomRevenue
           })
-
-          yearData.occ = (yearData.occupied / totalRoom) * 100 || 0;
-          yearData.arr = yearData.roomRevenue / yearData.occupied || 0;
-
+          sendedData.added.ident = "WTD"
+          sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+          sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
+          sendedData.added.rm_avail = sendedData.roomAvailable;
+          sendedData.added.rno = sendedData.occupied;
+          sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
+          sendedData.added.rev = sendedData.roomRevenue
+          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
           data.push({
             date: year,
-            ...yearData
+            ...sendedData
           })
         }
-        // const searchYears = yearsInData.length < 3
-        // reports.forEach((report) => {
-        //   const year = new Date(report.date).getFullYear();
-        //   if (!data[year]) data[year] = [];
-        //   data[year].push({ ...report });
-        // });
         break;
 
       default:
@@ -241,10 +276,10 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           break;
       }
     }
-    if(disOpt) perPage = dates.length
+    if (disOpt) perPage = dates.length
     const lastPage = Math.ceil(dates.length / perPage);
 
-    return { 
+    return {
       reports: data,
       meta: {
         total: dates.length,
@@ -327,7 +362,7 @@ const getReportDetailData = async (date, displayOption) => {
       const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
-      if (percentages[key] > 1) percent = dates.length / percentages[`room_${id}`]
+      if (percentages[key] > 1) percent = dates.length / percentages[`room_${id}`] * 100
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent };
       }

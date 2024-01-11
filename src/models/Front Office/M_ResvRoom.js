@@ -17,7 +17,7 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
     return reservedRoom;
   } catch (err) {
     ThrowError(err)
-} finally {
+  } finally {
     await PrismaDisconnect();
   }
 };
@@ -28,7 +28,10 @@ const createNewResvRoom = async (id, data) => {
     const resvRoom = await prisma.resvRoom.create({
       data: {
         reservation: {
-          connect: { id }
+          connect: {
+            id,
+            resvStatus: { id: data.resvStatusId }
+          }
         },
         room: {
           connect: {
@@ -65,7 +68,7 @@ const deleteResvRoomByReservationId = async (reservationId, resvRooms = []) => {
       await prisma.oooRoom.deleteMany({ where: { reservationId: ooo.reservationId } })
     })
 
-    const clean = await prisma.cleanRoom.findMany({ where: { reservationId}, select: { reservationId: true } })
+    const clean = await prisma.cleanRoom.findMany({ where: { reservationId }, select: { reservationId: true } })
     clean.forEach(async clean => {
       await prisma.cleanRoom.deleteMany({ where: { reservationId: clean.reservationId } })
     })

@@ -540,9 +540,24 @@ const splitDateTime = (date) => {
   }
 }
 
+function formatDecimal(input) {
+  const parts = input.toString().split('.');
+  const integerPart = parts[0];
+  let decimalPart = parts[1];
+
+  if (decimalPart) {
+    decimalPart = decimalPart.replace(/\./g, ''); // Replace dot with an empty string
+    decimalPart = decimalPart.length > 1 ? decimalPart.slice(0, 1) : decimalPart;
+  }
+
+  const formattedNumber = decimalPart ? `${integerPart}.${decimalPart}` : integerPart;
+  return parseFloat(formattedNumber);
+}
+
 module.exports = {
   splitDateTime,
   PrismaDisconnect,
+  formatDecimal,
   generateExpire,
   generateDateBetweenNowBasedOnDays,
   generateDateBetweenStartAndEnd,

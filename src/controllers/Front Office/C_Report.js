@@ -16,7 +16,6 @@ const getAllReport = async (req, res) => {
   }
 };
 
-
 const getReportPDF = async (req, res) => {
   const { displayOption } = req.params
   const { date, page = 1, perPage = 5, sort } = req.query;

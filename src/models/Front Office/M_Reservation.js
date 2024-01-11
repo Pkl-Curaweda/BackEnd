@@ -305,7 +305,7 @@ const CreateNewReservation = async (data) => {
         manyNight,
         resvStatus: {
           connect: {
-            id: 1
+            id: data.resvStatusId
           }
         },
         reservationRemarks: data.reservationRemarks
@@ -444,7 +444,6 @@ const ChangeReservationProgress = async (id, changeTo) => {
     reservation.borderColor = progressColor[progressIndex];
     reservation.onGoingReservation = changeTo != 'checkout' ? true : false
 
-    console.log(reservation)
     const updatedReservation = await prisma.reservation.update({ where: { id }, data: reservation })
     return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor, checkInDate: updatedReservation.checkInDate, checkOutDate: updatedReservation.checkoutDate }
   } catch (err) {
