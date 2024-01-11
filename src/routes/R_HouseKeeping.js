@@ -31,7 +31,8 @@ const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
 const discrepancy = require('../controllers/House Keeping/C_Discrepency.js')
 const roomMaid = require('../controllers/House Keeping/C_RoomMaid.js')
 const stock = require('../controllers/House Keeping/C_Stock.js')
-const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js')
+const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js');
+const { route } = require('./R_Login.js');
 
 
 const router = express.Router()
@@ -112,7 +113,7 @@ router.delete('/extrabeds/:id', extrabed.remove)
 //End Extra Bed
 
 //Start Clean Dirty Room
-router.get("/clean-dirty", getCleanDirtyRoomValidation, cleanDirty.findAll);
+router.get('/clean-dirty', cleanDirty.get)
 router.put("/clean-dirty/:id", updateRoomStatusValidation, cleanDirty.updateStatus)
 //End Clean Dirty Room
 

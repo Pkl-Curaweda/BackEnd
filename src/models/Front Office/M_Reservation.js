@@ -205,7 +205,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           reservation: []
         });
       }
-    
+
       reservationMap.get(reservationId).reservation.push(resv);
     });
     return { reservations: Array.from(reservationMap.values()), roomBoys, meta };
@@ -363,10 +363,21 @@ const deleteReservationById = async (id) => {
   }
 };
 
+const checkCurrentStatus = async (id) => {
+  try {
+    const currStat = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvStatus: { select: { id: true } } } })
+    return currStat.resvStatus.id
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
 //? EDIT DATA
 const editReservation = async (reservationId, resvRoomId, data) => {
   try {
-    let { nameContact, arrangmentCode, resourceName, manyAdult, manyChild, manyBaby, arrivalDate, departureDate, reservationRemarks } = data, name, contact, manyNight;
+    let { nameContact, arrangmentCode, resourceName, manyAdult, manyChild, manyBaby, arrivalDate, departureDate, reservationRemarks, resvStatusId } = data, name, contact, manyNight;
     name = nameContact.split('/')[0];
     contact = nameContact.split('/')[1];
     manyNight = countNight(arrivalDate, departureDate)
@@ -387,6 +398,9 @@ const editReservation = async (reservationId, resvRoomId, data) => {
               }
             }
           }
+        },
+        resvStatus: {
+          connect: { id: resvStatusId }
         },
         manyAdult,
         manyChild,
@@ -410,11 +424,11 @@ const editReservation = async (reservationId, resvRoomId, data) => {
 
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
+    let currentStat;
     const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { roomId: true } } } });
-
     const currentDate = new Date();
     const oldBorderColor = reservation.borderColor;
-    const progressColor = ["#16a75c", "#fffc06", "#fe0001"] //?Need to change the checkout border
+    const progressColor = ["#16a75c", "#fffc06", "#fe0001"]
     const progressName = ['Reservation', 'Check In', 'Check Out']
     const resvRooms = reservation.resvRooms
     let progressIndex = 0, roomStatusId = 0;
@@ -424,10 +438,16 @@ const ChangeReservationProgress = async (id, changeTo) => {
         break;
       case 'checkin':
         progressIndex = 1
+        if(oldBorderColor === progressColor[1]) throw Error("Already Check In")
+        currentStat = await checkCurrentStatus(id)
+        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate
         break;
       case 'checkout':
         progressIndex = 2
+        if(oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
+        currentStat = await checkCurrentStatus(id)
+        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkoutDate = currentDate
         break;
       default:
@@ -488,5 +508,6 @@ module.exports = {
   DetailCreateReservationHelper,
   AddNewIdCard,
   orderReservationByIdentifier,
-  changeSpecialTreatment
+  changeSpecialTreatment,
+  checkCurrentStatus
 };

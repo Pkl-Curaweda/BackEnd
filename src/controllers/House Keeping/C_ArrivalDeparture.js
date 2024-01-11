@@ -3,9 +3,9 @@ const { error, success } = require("../../utils/response")
 const arrivalDeparture = require('../../models/House Keeping/M_ArrivalDeparture')
 
 const getArrivalDepartureData = async (req, res) => {
-    const { page, perPage, sortOrder, search, date } = req.query
+    const { page, perPage, sortOrder, search, arrival, depart } = req.query
     try{
-        const data = await arrivalDeparture.get(page, perPage, search, sortOrder, date)
+        const data = await arrivalDeparture.get(page, perPage, search, sortOrder, arrival, depart)
         return success(res, 'Success', data)
     }catch(err){
         return error(res, err.message)

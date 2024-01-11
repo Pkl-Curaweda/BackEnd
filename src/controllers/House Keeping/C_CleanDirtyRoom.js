@@ -33,4 +33,13 @@ async function updateStatus(req, res){
   }
 }
 
-module.exports = { findAll, updateStatus }
+const get = async  (req, res) => {
+  try{
+    const data = await roomRepository.getCleanDirtyData()
+    return success(res, 'Clean Dirty Room Data', data)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
+
+module.exports = { findAll, updateStatus, get }

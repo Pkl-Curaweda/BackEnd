@@ -14,6 +14,7 @@ const get = async (page, perPage, date) => {
         const currData = await getCurrentDayData(date, hk.ttl)
         const { resvChart, hkChart } = await getChart();
         resvChart[dtName] = {
+            ident: dtName,
             nw: currData.newReservation,
             ci: currData.checkIn,
             co: currData.checkOut
@@ -77,15 +78,6 @@ const getChart = async () => {
         for (dt of dts) {
             newDt = new Date(dt)
             const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
-            const rsv = await prisma.resvRoom.findMany({
-                where: {
-                    created_at: {
-                        gte: `${dt}T00:00:00.000Z`,
-                        lte: `${dt}T23:59:59.999Z`,
-                    }
-                },
-                select: { roomId: true }
-            })
             const [nw, ci, co] = await prisma.$transaction([
                 prisma.resvRoom.count({
                     where: {
@@ -122,7 +114,7 @@ const getChart = async () => {
                 }),
             ])
             
-            resvChart[dtName] = { nw, ci, co }
+            resvChart[dtName] = { ident: dtName, nw, ci, co }
         }
         return { resvChart, hkChart }
     } catch (err) {

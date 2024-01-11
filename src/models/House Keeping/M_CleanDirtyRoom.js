@@ -16,6 +16,24 @@ const { prisma } = require('../../../prisma/seeder/config')
  * @property {import('@prisma/client').Room[]} rooms
  */
 
+const getCleanDirtyData = async () => {
+    let room;
+    try {
+        const rs = await prisma.room.findMany({ select: { roomStatus: { select: { shortDescription: true } } } })
+        const main = {};
+
+        rs.forEach(room => {
+            const status = room.roomStatus.shortDescription;
+            main[status] = (main[status] || 0) + 1;
+        });
+        return main, room
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const select = {
     id: true,
     roomStatus: {
@@ -108,4 +126,4 @@ async function update(id, roomStatusId, userId) {
     }
 }
 
-module.exports = { all, update }
+module.exports = { all, update, getCleanDirtyData }
