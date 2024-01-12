@@ -1,6 +1,6 @@
 const { GetInvoiceDetailByArt } = require("../../models/Front Office/M_Invoice.js");
 const { getReportDetailData } = require("../../models/Front Office/M_Report.js");
-const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard } = require("../../models/Front Office/M_Reservation.js");
+const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard } = require("../../models/Front Office/M_Reservation.js");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom.js");
 const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange.js");
 const { success, error } = require("../../utils/response.js");
@@ -100,6 +100,17 @@ const getInvoiceDetail = async (req, res) => {
   }
 }
 
+const getPreviousCard = async (req, res) => {
+  console.log(req.params)
+  const { reservationId } = req.params;
+  try {
+    const idCard = await GetPreviousIdCard(parseInt(reservationId))
+    return success(res, 'Operation Success', idCard)
+  } catch (err) {
+    return error(res, err.message)
+  }
+}
+
 //*   POST REQUEST
 const postNewReservation = async (req, res) => {
   const body = req.body;
@@ -187,5 +198,6 @@ module.exports = {
   putNewReservationData,
   deleteReservation,
   getReportDetail,
-  getInvoiceDetail
+  getInvoiceDetail,
+  getPreviousCard
 }

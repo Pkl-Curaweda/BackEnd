@@ -33,6 +33,12 @@ const get = async (page, perPage, date) => {
                 created_at: true,
                 reservation: {
                     select: {
+                        resvStatus: {
+                            select: {
+                                rowColor: true,
+                                textColor: true
+                            }
+                        },
                         reserver: {
                             select: {
                                 resourceName: true,

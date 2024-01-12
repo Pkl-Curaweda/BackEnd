@@ -1,4 +1,4 @@
-const { ThrowError, PrismaDisconnect } = require('../../utils/helper')
+const { ThrowError, PrismaDisconnect, splitDateTime } = require('../../utils/helper')
 const { prisma } = require('../../../prisma/seeder/config')
 
 /**
@@ -16,17 +16,54 @@ const { prisma } = require('../../../prisma/seeder/config')
  * @property {import('@prisma/client').Room[]} rooms
  */
 
-const getCleanDirtyData = async () => {
-    let room;
+const sortOrderCleanDirty = (sortOrder) => {
+    let roomOrder, reservationOrder;
     try {
-        const rs = await prisma.room.findMany({ select: { roomStatus: { select: { shortDescription: true } } } })
-        const main = {};
-
-        rs.forEach(room => {
-            const status = room.roomStatus.shortDescription;
-            main[status] = (main[status] || 0) + 1;
+        const [ident, ascDesc] = sortOrder.split(' ');
+        console.log(ascDesc)
+        if(ascDesc !== "asc" && ascDesc !== "desc") throw "Please use the correct order"
+        console.log(ident)
+        switch (ident) {
+            case 'roomId':
+                roomOrder = { id: ascDesc }
+                break;
+            case 'roomType':
+                roomOrder = { roomType: ascDesc }
+                break;
+            default:
+                throw 'No Order Matched'
+        }
+        return { roomOrder, reservationOrder }
+    } catch (err) {
+        ThrowError(err)
+    }
+}
+const getCleanDirtyData = async (sortOrder) => {
+    let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 };
+    try {
+        if (sortOrder != undefined ) sortOrder = sortOrderCleanDirty(sortOrder)
+        let { roomOrder = undefined, reservationOrder = undefined } = sortOrder
+        console.log(roomOrder, res)
+        const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
+        rs.forEach(async r => {
+            const resv = await prisma.resvRoom.findFirst({ where: { roomId: r.id }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' } })
+            if (resv != null) {
+                room.push({
+                    roomNo: r.id,
+                    roomStatus: r.roomStatus.longDescription,
+                    guestName: resv.reservation.reserver.guest.name,
+                    arrival: splitDateTime(resv.reservation.arrivalDate).date,
+                    departure: splitDateTime(resv.reservation.departureDate).date,
+                    pic: resv.roomMaids
+                })
+                console.log(room)
+            }
+            const status = r.roomStatus.shortDescription;
+            if (main.hasOwnProperty(status)) {
+                main[status]++;
+            }
         });
-        return main, room
+        return { room, main }
     } catch (err) {
         ThrowError(err)
     } finally {

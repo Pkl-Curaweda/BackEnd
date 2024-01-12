@@ -473,6 +473,17 @@ const ChangeReservationProgress = async (id, changeTo) => {
   }
 }
 
+const GetPreviousIdCard = async (reservationId) => {
+  try{
+    const idCard = await prisma.idCard.findFirst({ where: { reservationId }, select: { name: true, cardIdentifier: true, cardId: true, address: true } })
+    return idCard
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 const AddNewIdCard = async (data) => {
   try {
     delete data.resvRoomId
@@ -509,5 +520,6 @@ module.exports = {
   AddNewIdCard,
   orderReservationByIdentifier,
   changeSpecialTreatment,
-  checkCurrentStatus
+  checkCurrentStatus,
+  GetPreviousIdCard
 };
