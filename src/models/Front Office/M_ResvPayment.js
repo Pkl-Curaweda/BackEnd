@@ -1,4 +1,3 @@
-const { tr } = require("@faker-js/faker");
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, countDPP } = require("../../utils/helper")
 
@@ -97,4 +96,20 @@ const getBillingSummary = async (id, reservationId) => {
     }
 }
 
-module.exports = { getBillingSummary }
+const createResvPayment = async (reservationId, resvRoomId, data) => {
+    try{
+        await prisma.resvRoom.findFirstOrThrow({ where: { reservationId, id: resvRoomId } });
+        const resvPay = await prisma.resvPayment.create({ data: {  
+            reservationId,
+            ...data
+        } })
+        return resvPay
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+
+module.exports = { getBillingSummary, createResvPayment }

@@ -39,8 +39,9 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       const endDate = date.split('T')[1];
       dates = generateDateBetweenStartAndEnd(startDate, endDate)
     } else {
+      const currDate = new Date()
       arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
-      departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
+      departureDate = currDate.toISOString().split('T')[0]
       dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
     }
 
@@ -83,7 +84,10 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       orders.forEach((order) => {
         //?ORDER / DAYS
         invoices.push({
-          art: order.service.id,
+          art: {
+            label: "In Room",
+            id: order.service.id,
+          },
           uniqueId: order.id,
           qty: order.qty,
           desc: order.service.name,
@@ -118,19 +122,20 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
           amount: payment.total,
           billDate: searchDate,
         });
+        console.log(invoices)
       });
     }
 
-
-    const lastPage = Math.ceil(dates.length / perPage);
+    const total = invoices.length
+    const lastPage = Math.ceil(invoices.length / perPage);
 
     startIndex = Math.max(0, (page - 1) * perPage);
-    endIndex = Math.min(dates.length - 1, startIndex + perPage - 1);
+    endIndex = Math.min(invoices.length - 1, startIndex + perPage - 1);
+    if (search != undefined) invoices = searchInvoice(invoices, search)
+    if (sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier);
 
     invoices = invoices.slice(startIndex, endIndex + 1);
 
-    if (search != undefined) invoices = searchInvoice(invoices, search)
-    if (sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier);
 
     return {
       invoices,
@@ -140,7 +145,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         voucherNo: resvRoom.voucherNo
       },
       meta: {
-        total: dates.length,
+        total,
         currPage: page,
         lastPage,
         perPage,
@@ -242,6 +247,8 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
     switch (id) {
       case 998:
         //?ROOM PRICE / DAYS
+        const checkDate = await generateDateBetweenStartAndEnd(resvRoom.reservation.arrivalDate, resvRoom.reservation.departureDate)
+        if (!checkDate.includes(date)) throw Error('Unknown Date');
         detail = {
           art: id,
           qty: 1,
@@ -347,6 +354,17 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
   return invoice;
 };
 
+const putInvoiceData = async (reservationId, resvRoomId, args) => {
+  const { date, id, uniqueId } = args
+  try{
+
+
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
 
 const printInvoice = async (id, reservationId) => {
   try {
@@ -534,7 +552,6 @@ const printInvoice = async (id, reservationId) => {
   }
 };
 
-//? INVOICE PAGE9714 RIGHT
 const findBillPayment = async (id, reservationId) => {
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({

@@ -92,7 +92,17 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         },
       });
 
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, taxService = 0;
+      const tPayment = await prisma.resvPayment.findMany({
+        where: {
+          created_at: {
+            gte: `${searchDate}T00:00:00.000Z`,
+            lte: `${searchDate}T23:59:59.999Z`,
+          }
+        },
+        select: { total: true, tax: true }
+      })
+
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalTaxed = 0, totalPayment = 0;
       if (logAvailability && logAvailability.roomHistory) {
         for (const history in logAvailability.roomHistory) {
           if (logAvailability.roomHistory[history] != 0) roomAvailable++;
@@ -110,7 +120,11 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       added.occ = added.rm_avail !== 0 ? formatDecimal((added.rno / added.rm_avail) * 100) : 0;
       added.rev = roomRevenue
       added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno) * 100) : 0;
-
+      for (pay of tPayment) {
+        const totalTax = + pay.tax
+        totalPayment = + pay.total
+        totalTaxed = + (totalPayment - totalTax)
+      }
       const storedData = {
         date: searchDate,
         roomAvailable,
@@ -126,7 +140,10 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           rev: added.rev,
           arr: added.arr,
         },
-        taxService
+        taxService: {
+          unTax: totalPayment,
+          taxed: totalTaxed
+        }
       };
       reports.push(storedData);
     }
@@ -153,7 +170,10 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               rev: 0,
               arr: 0,
             },
-            taxService: 0
+            taxService: {
+              unTax: 0,
+              taxed: 0
+            }
           }
           week.forEach(day => {
             const report = reports.filter(report => report.date === day);
@@ -162,6 +182,8 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               sendedData.roomAvailable += report.roomAvailable;
               sendedData.occupied += report.occupied;
               sendedData.roomRevenue += report.roomRevenue
+              sendedData.taxService.unTax += report.taxService.unTax
+              sendedData.taxService.taxed += report.taxService.taxed
             })
             sendedData.added.ident = "WTD"
             sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
@@ -196,13 +218,18 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               rev: 0,
               arr: 0,
             },
-            taxService: 0
+            taxService: {
+              unTax: 0,
+              taxed: 0
+            }
           }
           const report = reports.filter((report) => new Date(report.date).getMonth() === month);
           report.forEach(report => {
             sendedData.roomAvailable += report.roomAvailable,
               sendedData.occupied += report.occupied,
               sendedData.roomRevenue += report.roomRevenue
+            sendedData.taxService.unTax += report.taxService.unTax
+            sendedData.taxService.taxed += report.taxService.taxed
           })
           sendedData.added.ident = "WTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
@@ -237,7 +264,10 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               rev: 0,
               arr: 0,
             },
-            taxService: 0
+            taxService: {
+              unTax: 0,
+              taxed: 0
+            }
           }
           const report = reports.filter(
             (report) => new Date(report.date).getFullYear() === year
@@ -246,6 +276,8 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.roomAvailable += report.roomAvailable,
               sendedData.occupied += report.occupied,
               sendedData.roomRevenue += report.roomRevenue
+            sendedData.taxService.unTax += report.taxService.unTax
+            sendedData.taxService.taxed += report.taxService.taxed
           })
           sendedData.added.ident = "WTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;

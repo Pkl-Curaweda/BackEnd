@@ -6,8 +6,13 @@ const resvPayments = {
     orders: {
         details: [
             {
-                description: "Room Rate",
-                amount: 123000
+                "art": 998,
+                "uniqueId": 1,
+                "qty": 1,
+                "desc": "Room",
+                "rate": 500000,
+                "amount": 500000,
+                "billDate": "2023-12-17"
             }]
     },
     total: 4900000,

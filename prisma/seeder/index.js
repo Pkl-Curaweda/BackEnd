@@ -6,15 +6,19 @@ const { userSeed } = require("./global/user.seeder");
 const { inRoomServiceBatchSeed } = require("./inroomservice");
 const { houseKeepingSeed } = require("./housekeeping");
 const { departmentSeed } = require("./housekeeping/department.seeder");
+const { articleTypeSeed } = require("./global/articleType.seeder");
+const { resvArticleSeeder } = require("./global/resvArticle.seeder");
 
 async function main() {
   /* user seeed */
   await roleSeed(); // important to seed role first before user
   await userSeed();
+  await articleTypeSeed()
   await departmentSeed()
-
+  
   /* front office seeed */
   await frontOfficeBatchSeed();
+  await resvArticleSeeder()
   /* front office seeed end */
 
   /* token seeed */

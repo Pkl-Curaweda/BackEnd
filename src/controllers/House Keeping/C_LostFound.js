@@ -42,7 +42,7 @@ async function findOne(req, res) {
  */
 async function create(req, res) {
   try {
-    req.file.filename = process.env.APP_URL + '/public/lost-found/' + req.file.filename
+    req.file.filename = process.env.APP_URL + '/public/assets/lost-found/' + req.file.filename
     const lostFound = await lostFoundRepository.create(req.body, req.file.filename, req.user.id)
     return success(res, 'Create lost and found success', lostFound)
   } catch (e) {

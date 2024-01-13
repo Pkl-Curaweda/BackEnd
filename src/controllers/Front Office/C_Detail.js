@@ -179,6 +179,17 @@ const putNewReservationData = async (req, res) => {
   }
 };
 
+const putNewInvoiceData = async (req, res) => {
+  const { reservationId, resvRoomId, date } = req.params;
+  const { ids } = req.query;
+  const [id, uniqueId] = parseInt(ids.split('-')[0]);
+  try{
+    
+  }catch(err){
+    return error(res, err.message)
+  }
+}
+
 
 //*   DELETE REQUEST  
 const deleteReservation = async (req, res) => {

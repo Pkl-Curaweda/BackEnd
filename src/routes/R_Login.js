@@ -4,7 +4,7 @@ const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controll
 const { auth } = require("../middlewares/auth");
 const R_Login = Router();
 
-R_Login.get("/user/", getAllUsers)
+R_Login.get("/user", getAllUsers)
 R_Login.post("/user/login", postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);

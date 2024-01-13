@@ -16,13 +16,10 @@ const { prisma } = require('../../../prisma/seeder/config')
  * @property {import('@prisma/client').Room[]} rooms
  */
 
-const sortOrderCleanDirty = (sortOrder) => {
-    let roomOrder, reservationOrder;
+const sortOrderCleanDirty = (ident, ascDesc) => {
+    let roomOrder;
     try {
-        const [ident, ascDesc] = sortOrder.split(' ');
-        console.log(ascDesc)
         if(ascDesc !== "asc" && ascDesc !== "desc") throw "Please use the correct order"
-        console.log(ident)
         switch (ident) {
             case 'roomId':
                 roomOrder = { id: ascDesc }
@@ -33,7 +30,7 @@ const sortOrderCleanDirty = (sortOrder) => {
             default:
                 throw 'No Order Matched'
         }
-        return { roomOrder, reservationOrder }
+        return roomOrder
     } catch (err) {
         ThrowError(err)
     }
@@ -41,8 +38,9 @@ const sortOrderCleanDirty = (sortOrder) => {
 const getCleanDirtyData = async (sortOrder) => {
     let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 };
     try {
+        const [ident, ascDesc] = sortOrder.split(' ');
         if (sortOrder != undefined ) sortOrder = sortOrderCleanDirty(sortOrder)
-        let { roomOrder = undefined, reservationOrder = undefined } = sortOrder
+        let { roomOrder = undefined } = sortOrder
         console.log(roomOrder, res)
         const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
         rs.forEach(async r => {

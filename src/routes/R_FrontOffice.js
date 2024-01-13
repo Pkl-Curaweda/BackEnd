@@ -3,7 +3,7 @@ const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Fron
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
 const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
-const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF, postNewInvoice } = require("../controllers/Front Office/C_Invoice");
+const { getInvoice, testInvoice, getSummary, getBillPayment, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard } = require("../controllers/Front Office/C_Detail");
 
 const R_FrontOffice = new Router();
@@ -14,6 +14,7 @@ R_FrontOffice.get("/detail/reservation/:reservationId/idcard", getPreviousCard);
 R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", getHelperDetail);
 R_FrontOffice.get("/detail/report/:displayOption?", getReportDetail);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId/:date", getInvoiceDetail);
+R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId/:date", )
 R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", postHelperDetail);
 R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", putNewReservationData);
 R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", deleteReservation);
@@ -38,8 +39,10 @@ R_FrontOffice.get("/report/:displayOption/print", getReportPDF)
 
 //?INVOICE
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
+R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
-R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
+R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
+R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
 R_FrontOffice.post("/invoice/:reservationId/:resvRoomId", postNewInvoice)
 // R_FrontOffice.get("/invoice", getBillPayment);
 

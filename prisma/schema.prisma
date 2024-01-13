@@ -248,6 +248,7 @@ model ResvRoom {
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
+  ResvArticle      ResvArticle[]
 }
 
 model Reserver {
@@ -285,6 +286,25 @@ model ArrangmentCode {
   Room     Room[]
 }
 
+model ResvArticle {
+  id         Int         @id @default(autoincrement())
+  type       ArticleType @relation(fields: [typeId], references: [id])
+  typeId     Int
+  qty        Int
+  price      Float
+  resvRoom   ResvRoom    @relation(fields: [resvRoomId], references: [id])
+  resvRoomId Int
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
+}
+
+model ArticleType {
+  id          Int           @id @unique
+  description String        @db.Text
+  price       Float
+  ResvArticle ResvArticle[]
+}
+
 model ResvPayment {
   id            Int         @id @default(autoincrement())
   reservation   Reservation @relation(fields: [reservationId], references: [id])
@@ -292,7 +312,7 @@ model ResvPayment {
   paymentMethod String
   orders        Json
   total         Float
-  dpp           Float       @default(0)
+  tax           Float       @default(0)
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
