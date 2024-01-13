@@ -101,15 +101,18 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         },
         select: { total: true, tax: true }
       })
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTaxed = 0;
+      for (pay of tPayment) {
+        const totalTax = + pay.tax
+        totalPayment = + pay.total
+        totalTaxed = + (totalPayment - totalTax)
+      }
+      roomRevenue = totalPayment
 
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalTaxed = 0, totalPayment = 0;
       if (logAvailability && logAvailability.roomHistory) {
         for (const history in logAvailability.roomHistory) {
           if (logAvailability.roomHistory[history] != 0) roomAvailable++;
-          if (logAvailability.roomHistory[history].roomPrice) {
-            occupied++;
-            roomRevenue += logAvailability.roomHistory[history].roomPrice;
-          }
+          if (logAvailability.roomHistory[history]) occupied++;
           totalRoom++;
         }
       }
@@ -117,14 +120,10 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       arr = occupied !== 0 ? formatDecimal(roomRevenue / occupied) : 0;
       added.rm_avail = roomAvailable;
       added.rno = occupied;
+      console.log(added.rev, added.rno)
       added.occ = added.rm_avail !== 0 ? formatDecimal((added.rno / added.rm_avail) * 100) : 0;
       added.rev = roomRevenue
-      added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno) * 100) : 0;
-      for (pay of tPayment) {
-        const totalTax = + pay.tax
-        totalPayment = + pay.total
-        totalTaxed = + (totalPayment - totalTax)
-      }
+      added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno)) : 0;
       const storedData = {
         date: searchDate,
         roomAvailable,
@@ -192,7 +191,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.added.rno = sendedData.occupied;
             sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
             sendedData.added.rev = sendedData.roomRevenue
-            sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
+            sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
           })
           data.push({
             date: `${week[0]} - ${week[week.length - 1]}`,
@@ -231,14 +230,15 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.unTax += report.taxService.unTax
             sendedData.taxService.taxed += report.taxService.taxed
           })
-          sendedData.added.ident = "WTD"
+
+          sendedData.added.ident = "MTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
           sendedData.added.rno = sendedData.occupied;
           sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
           sendedData.added.rev = sendedData.roomRevenue
-          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
+          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
 
           data.push({
             date: monthNames[month],
@@ -279,14 +279,14 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.unTax += report.taxService.unTax
             sendedData.taxService.taxed += report.taxService.taxed
           })
-          sendedData.added.ident = "WTD"
+          sendedData.added.ident = "YTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
           sendedData.added.rno = sendedData.occupied;
           sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
           sendedData.added.rev = sendedData.roomRevenue
-          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno) * 100) : 0;
+          sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
           data.push({
             date: year,
             ...sendedData

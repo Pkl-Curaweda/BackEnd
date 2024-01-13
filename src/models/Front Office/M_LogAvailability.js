@@ -164,7 +164,6 @@ const createNewLogAvailable = async () => {
                     }
                 }
             });
-
             const key = `room_${room.id}`;
             if (resvRoom != null) {
                 roomHistory[key] = {
@@ -174,7 +173,6 @@ const createNewLogAvailable = async () => {
                     "resvStatus": resvRoom.reservation.resvStatus,
                     "room": resvRoom.room,
                     "occupied": 1,
-                    "roomPrice": resvRoom.arrangment.rate
                 };
             } else {
                 roomHistory[key] = {
@@ -184,7 +182,6 @@ const createNewLogAvailable = async () => {
                         "bedSetup": room.bedSetup
                     },
                     "occupied": 0,
-                    "roomPrice": 0
                 };
             }
         }

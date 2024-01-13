@@ -1,10 +1,9 @@
 const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
 const path = require("path");
-const { GetInvoiceByResvRoomId, printInvoice, findBillPayment, addNewInvoice } = require("../../models/Front Office/M_Invoice");
+const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice } = require("../../models/Front Office/M_Invoice");
 const { getBillingSummary, createResvPayment } = require("../../models/Front Office/M_ResvPayment");
 const { error, success } = require("../../utils/response");
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const getInvoice = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
@@ -26,18 +25,6 @@ const getSummary = async (req, res) => {
     return error(res, err.message);
   }
 };
-
-const getBillPayment = async (req, res) => {
-  const { reservationId = 1, resvRoomId = 1 } = req.query;
-  try {
-    const invoiceData = await findBillPayment(parseInt(resvRoomId), parseInt(reservationId));
-
-    return success(res, 'Operation Success', invoiceData);
-
-  } catch (err) {
-    return ThrowError(err);
-  }
-}
 
 const postNewPayment = async (req, res) => {
   const { reservationId = 1, resvRoomId = 1 } = req.query;
@@ -171,4 +158,4 @@ const getInvoicePDF = async (req, res) => {
   }
 };
 
-module.exports = { getInvoice, getSummary, getBillPayment, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment };
+module.exports = { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment };

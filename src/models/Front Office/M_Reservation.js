@@ -25,6 +25,10 @@ const orderReservationByIdentifier = (sortAndOrder) => {
         break;
       }
 
+      case "status": {
+        query.whereQuery = { reservation: { resvStatusId: parseInt(filter) }}
+        break;
+      }
       case "night": {
         switch (filter) {
           case 'asc':

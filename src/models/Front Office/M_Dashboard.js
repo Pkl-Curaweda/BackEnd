@@ -19,8 +19,8 @@ const get = async (page, perPage, date) => {
             ci: currData.checkIn,
             co: currData.checkOut
         }
-        const searchedDate  = date
-        const htResv = await paginateFO(prisma.resvRoom, { page, name: "reservation", perPage }, { 
+        const searchedDate = date
+        const htResv = await paginateFO(prisma.resvRoom, { page, name: "reservation", perPage }, {
             where: {
                 created_at: {
                     gte: `${date}T00:00:00.000Z`,
@@ -61,7 +61,7 @@ const getChart = async () => {
     let resvChart = {}, hkChart = {}
     try {
         const dts = generateDateBetweenNowBasedOnDays('past', 7)
-        for(dt of dts) {
+        for (dt of dts) {
             const rsv = await prisma.resvRoom.findMany({
                 where: {
                     created_at: {
@@ -119,7 +119,7 @@ const getChart = async () => {
                     }
                 }),
             ])
-            
+
             resvChart[dtName] = { ident: dtName, nw, ci, co }
         }
         return { resvChart, hkChart }
@@ -173,7 +173,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
         recResv.checkIn = ci
         recResv.checkOut = co
         recResv.newReservation = nw
-        recResv.occRate = ( ttlRoom - recResv.availableRoom) / ttlRoom * 100
+        recResv.occRate = (ttlRoom - recResv.availableRoom) / ttlRoom * 100
         return recResv
     } catch (err) {
         ThrowError(err)

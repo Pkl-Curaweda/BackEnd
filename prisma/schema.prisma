@@ -291,7 +291,6 @@ model ResvArticle {
   type       ArticleType @relation(fields: [typeId], references: [id])
   typeId     Int
   qty        Int
-  price      Float
   resvRoom   ResvRoom    @relation(fields: [resvRoomId], references: [id])
   resvRoomId Int
   created_at DateTime    @default(now())

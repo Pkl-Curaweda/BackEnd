@@ -5,34 +5,39 @@ const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBa
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
     let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates;
-    let resvRoom = await prisma.resvRoom.findFirstOrThrow({
-      where: { id: resvRoomId, reservationId },
-      select: {
-        arrangment: {
-          select: {
-            rate: true,
+    const [resvRoom, artList] = await prisma.$transaction([
+      prisma.resvRoom.findFirstOrThrow({
+        where: { id: resvRoomId, reservationId },
+        select: {
+          id: true,
+          arrangment: {
+            select: {
+              rate: true,
+            },
           },
-        },
-        roomId: true,
-        voucherNo: true,
-        roomMaids: {
-          select: {
-            user: {
-              select: { name: true },
+          roomId: true,
+          voucherNo: true,
+          roomMaids: {
+            select: {
+              user: {
+                select: { name: true },
+              },
+            },
+          },
+          reservation: {
+            select: {
+              arrivalDate: true,
+              departureDate: true,
+              reserver: {
+                select: { guestId: true },
+              },
             },
           },
         },
-        reservation: {
-          select: {
-            arrivalDate: true,
-            departureDate: true,
-            reserver: {
-              select: { guestId: true },
-            },
-          },
-        },
-      },
-    });
+      }),
+      prisma.articleType.findMany({ select: { id: true, description: true, price: true } })
+    ]
+  )
     const { guestId } = resvRoom.reservation.reserver;
     if (date) {
       const startDate = date.split('T')[0];
@@ -97,6 +102,43 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         });
       });
 
+      const resvArticle = await prisma.resvArticle.findMany({
+        where: {
+          resvRoomId: resvRoom.id,
+          type: {
+            description: { contains: search }
+          },
+          created_at: {
+            gte: `${searchDate}T00:00:00.000Z`,
+            lte: `${searchDate}T23:59:59.999Z`,
+          },
+        },
+        select: {
+          id: true,
+          typeId: true,
+          qty: true,
+          type: {
+            select: {
+              description: true,
+              price: true
+            }
+          }
+        }
+      })
+
+      for (let art of resvArticle) {
+        //?ARTICLE
+        invoices.push({
+          art: art.typeId,
+          uniqueId: art.id,
+          qty: art.qty,
+          desc: art.type.description,
+          rate: art.type.price,
+          amount: art.qty * art.type.price,
+          billDate: searchDate,
+        });
+      }
+
       const payments = await prisma.resvPayment.findMany({
         where: {
           reservationId,
@@ -122,7 +164,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
           amount: payment.total,
           billDate: searchDate,
         });
-        console.log(invoices)
       });
     }
 
@@ -144,6 +185,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         roomBoys: resvRoom.roomMaids[0],
         voucherNo: resvRoom.voucherNo
       },
+      artList,
       meta: {
         total,
         currPage: page,
@@ -168,7 +210,7 @@ const searchInvoice = (m, s) => {
   }
 }
 
-const addNewInvoice = async (o, reservationId, resvRoomId) => {
+const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
     const subtotal = await generateSubtotal(o)
@@ -200,6 +242,25 @@ const addNewInvoice = async (o, reservationId, resvRoomId) => {
       }
     })
     return order
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
+const addNewInvoiceFromArticle = async (b, reservationId, resvRoomId) => {
+  try {
+    const [resvRoom, resvArt] = await prisma.$transaction([
+      prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId } }),
+      prisma.resvArticle.create({
+        data: {
+          resvRoomId,
+          ...b
+        }
+      })
+    ])
+    return resvArt
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -283,34 +344,69 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, args) => {
         }
         break;
       default:
-        //?ORDER DETAIL
-        const order = await prisma.orderDetail.findFirstOrThrow({
-          where: {
-            id: uniqueId,
-            service: { id },
-            created_at: {
-              gte: `${date}T00:00:00.000Z`,
-              lte: `${date}T23:59:59.999Z`
-            }
-          },
-          select: {
-            qty: true,
-            service: {
-              select: {
-                name: true,
-                price: true
+        const artList = await prisma.articleType.findMany({ select: { id: true } })
+        const arts = artList.map(art => art.id)
+        if (arts.includes(id)) {
+          const resvArt = await prisma.resvArticle.findFirstOrThrow({
+            where: {
+              id: uniqueId,
+              typeId: id,
+              created_at: {
+                gte: `${date}T00:00:00.000Z`,
+                lte: `${date}T23:59:59.999Z`
+              }
+            },
+            select: {
+              id: true,
+              typeId: true,
+              qty: true,
+              type: {
+                select: {
+                  description: true,
+                  price: true
+                }
               }
             }
+          })
+          detail = {
+            art: id,
+            uniqueId,
+            qty: resvArt.qty,
+            desc: resvArt.type.description,
+            rate: resvArt.type.price,
+            amount: resvArt.qty * resvArt.type.price,
+            billDate: date
           }
-        })
-        detail = {
-          art: id,
-          uniqueId,
-          qty: order.qty,
-          desc: order.service.name,
-          rate: order.service.price,
-          amount: order.qty * order.service.price,
-          billDate: date
+        } else {
+          //?ORDER DETAIL
+          const order = await prisma.orderDetail.findFirstOrThrow({
+            where: {
+              id: uniqueId,
+              service: { id },
+              created_at: {
+                gte: `${date}T00:00:00.000Z`,
+                lte: `${date}T23:59:59.999Z`
+              }
+            },
+            select: {
+              qty: true,
+              service: {
+                select: {
+                  name: true,
+                  price: true
+                }
+              }
+            }
+          })
+          detail = {
+            art: id,
+            uniqueId,
+            qty: order.qty,
+            desc: order.service.name,
+            rate: order.service.price,
+            amount: order.qty * order.service.price,
+            billDate: date
+          }
         }
         break;
     }
@@ -354,14 +450,92 @@ const sortInvoiceData = (invoice, sortIdentifier) => {
   return invoice;
 };
 
-const putInvoiceData = async (reservationId, resvRoomId, args) => {
+const putInvoiceData = async (reservationId, resvRoomId, args, data) => {
   const { date, id, uniqueId } = args
-  try{
-
-
-  }catch(err){
+  let detail;
+  try {
+    await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId } })
+    if (id >= 998) throw Error('Cannot Be Changed')
+    const artList = await prisma.articleType.findMany({ select: { id: true } })
+    const arts = artList.map(art => art.id)
+    if (arts.includes(id)) {
+      const [exist, resvArt] = await prisma.$transaction([
+        prisma.resvArticle.findFirstOrThrow({
+          where: {
+            id: uniqueId,
+            typeId: id
+          }
+        })
+      ], [
+        prisma.resvArticle.update({
+          where: {
+            id: uniqueId,
+            typeId: id
+          },
+          data: { ...data },
+          select: {
+            id: true,
+            typeId: true,
+            qty: true,
+            type: {
+              select: {
+                description: true,
+                price: true
+              }
+            }
+          }
+        })
+      ])
+      detail = {
+        art: id,
+        uniqueId,
+        qty: resvArt.qty,
+        desc: resvArt.type.description,
+        rate: resvArt.type.price,
+        amount: resvArt.qty * resvArt.type.price,
+        billDate: date
+      }
+    } else {
+      //?ORDER DETAIL
+      const [exist, order] = await prisma.$transaction([
+        prisma.orderDetail.findFirstOrThrow({
+          where: {
+            id: uniqueId,
+            service: { id }
+          }
+        })
+      ], [
+        prisma.orderDetail.update({
+          where: {
+            id: uniqueId,
+            service: { id }
+          },
+          data: { ...data },
+          select: {
+            qty: true,
+            service: {
+              select: {
+                name: true,
+                price: true
+              }
+            }
+          }
+        })
+      ])
+      detail = {
+        art: id,
+        uniqueId,
+        qty: order.qty,
+        desc: order.service.name,
+        rate: order.service.price,
+        amount: order.qty * order.service.price,
+        billDate: date
+      }
+    }
+    return detail
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
@@ -373,6 +547,7 @@ const printInvoice = async (id, reservationId) => {
         id, reservationId
       },
       select: {
+        id: true,
         reservation: {
           select: {
             id: true,
@@ -412,14 +587,9 @@ const printInvoice = async (id, reservationId) => {
         amount: arrangment.rate
       } //?What this do is each date take 1 room price of that room
       invoices.push(roomPrice)
-
       const orders = await prisma.orderDetail.findMany({ //?Now the order is based on the date, so the date will not only be the date of reservation.created_at
         where: {
           order: { guestId: reserver.guestId },
-          // created_at:{
-          //   gte: `${date}T00:00:00.000Z`,
-          //   lte: `${date}T23:59:59.999Z`
-          // }
         },
         select: {
           qty: true,
@@ -428,6 +598,16 @@ const printInvoice = async (id, reservationId) => {
               name: true,
               price: true,
             },
+          }
+        }
+      })
+
+      const article = await prisma.resvArticle.findMany({
+        where: { resvRoomId: resvRoom.id },
+        select: {
+          qty: true,
+          type: {
+            select: { description: true, price: true }
           }
         }
       })
@@ -439,6 +619,14 @@ const printInvoice = async (id, reservationId) => {
           amount: order.qty * order.service.price
         })
       })
+
+      for (let art of article) {
+        invoices.push({
+          date: '',
+          desc: art.type.description,
+          amount: art.qty * art.type.price
+        })
+      }
     }
     return {
       resourceName: reserver.resourceName,
@@ -447,191 +635,6 @@ const printInvoice = async (id, reservationId) => {
       departureDate,
       invoices
     }
-
-    // const reservations = await prisma.reservation.findMany({
-    //   select: {
-    //     id: true,
-    //     arrivalDate: true,
-    //     departureDate: true,
-    //     reserver: {
-    //       select: {
-    //         resourceName: true,
-    //         guestId: true,
-    //         guest: {
-    //           select: {
-    //             name: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     resvRooms: {
-    //       select: {
-    //         room: {
-    //           select: {
-    //             roomType: true,
-    //           }
-    //         },
-    //         arrangment: {
-    //           select: {
-    //             rate: true
-    //           }
-    //         }
-    //       }
-    //     },
-    //     created_at: true,
-    //   },
-    // });
-
-    // const invoiceData = [];
-
-
-
-    // for (const reservation of reservations) {
-    //   const orders = await prisma.orderDetail.findMany({
-    //     where: {
-    //       order: { guestId: reservation.reserver.guestId },
-
-    //     },
-    //     select: {
-    //       id: true,
-    //       qty: true,
-    //       service: {
-    //         select: {
-    //           id: true,
-    //           name: true,
-    //           price: true,
-    //         },
-    //       },
-    //     },
-    //   });
-    //   console.log(orders)
-
-    //   const arrivalDate = reservation.arrivalDate
-    //     ? reservation.arrivalDate.toLocaleDateString()
-    //     : "N/A";
-    //   const departureDate = reservation.departureDate
-    //     ? reservation.departureDate.toLocaleDateString()
-    //     : "N/A";
-
-    //   const invoiceRecord = {
-    //     resourceName: reservation.reserver?.resourceName ?? "N/A",
-    //     guestName: reservation.reserver?.guest?.name ?? "N/A",
-    //     arrivalDate,
-    //     departureDate,
-    //     date: reservation.created_at
-    //       ? reservation.created_at.toLocaleDateString()
-    //       : "N/A",
-    //     records: [],
-    //   };
-
-    //   invoiceRecord.records.push({
-    //     description: "Room",
-    //     amount: reservation.resvRooms.roomRate,
-    //     billDate: invoiceRecord.date,
-    //   });
-
-    //   for (const order of orders) {
-    //     invoiceRecord.records.push({
-    //       qty: order.qty,
-    //       description: order.service.name,
-    //       rate: order.service.price,
-    //       amount: order.qty * order.service.price,
-    //       billDate: invoiceRecord.date,
-    //     });
-    //   }
-
-
-    //   invoiceData.push(invoiceRecord);
-    // }
-
-    // return invoiceData;
-  } catch (err) {
-    ThrowError(err);
-  } finally {
-    await PrismaDisconnect();
-  }
-};
-
-const findBillPayment = async (id, reservationId) => {
-  try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({
-      where: {
-        id, reservationId
-      },
-      select: {
-        reservation: {
-          select: {
-            id: true,
-            arrivalDate: true,
-            departureDate: true,
-            reserver: {
-              select: {
-                guest: {
-                  select: {
-                    name: true,
-                    contact: true,
-                  }
-                }
-              }
-            }
-          }
-        },
-        arrangment: {
-          select: {
-            rate: true,
-          }
-        }
-      }
-    });
-
-    let invoices = [];
-    let totalAmount = 0;
-    const { reservation, arrangment } = resvRoom;
-    const { reserver } = reservation;
-    const arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
-    const departureDate = resvRoom.reservation.departureDate.toISOString().split("T")[0];
-
-    const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
-
-    for (const date of dates) {
-      let roomPrice = {
-        date,
-        desc: "Room Rate",
-        amount: arrangment.rate
-      };
-      invoices.push(roomPrice);
-      totalAmount += roomPrice.amount;
-
-      const orders = await prisma.orderDetail.findMany({
-        where: {
-          order: { guestId: reserver.guestId },
-        },
-        select: {
-          qty: true,
-          service: {
-            select: {
-              name: true,
-              price: true,
-            },
-          }
-        }
-      });
-
-      orders.forEach(order => {
-        invoices.push({
-          date: '',
-          desc: 'Total Amount',
-          amount: totalAmount
-        });
-      });
-    }
-
-    return {
-      noPesanan: `${reservationId}-${id}`,
-      guestName: reserver.guest.name,
-      guestContact: reserver.guest.contact,
-      invoices
-    };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -644,6 +647,6 @@ module.exports = {
   GetInvoiceByResvRoomId,
   GetInvoiceDetailByArt,
   printInvoice,
-  findBillPayment,
-  addNewInvoice
+  addNewInvoiceFromOrder,
+  putInvoiceData
 };
