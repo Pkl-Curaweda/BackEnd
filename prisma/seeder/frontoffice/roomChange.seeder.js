@@ -5,7 +5,7 @@ const roomChanges =  {
   roomFromId: 3,
   roomToId: 1,
   resvRoomId: 1,
-  note: 'room change note here...'
+  reason: 'room change note here...'
 };
 
 async function roomChangeSeed(resvRoomId) {
