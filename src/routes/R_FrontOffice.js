@@ -43,6 +43,6 @@ R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
 R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
-R_FrontOffice.post("/invoice/:reservationId/:resvRoomId", postNewInvoice)
+R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInvoice)
 
 module.exports = R_FrontOffice;

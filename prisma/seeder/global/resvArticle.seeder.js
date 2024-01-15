@@ -4,7 +4,6 @@ const article = [
     {
         typeId: 110,
         qty: 2,
-        price: 50000,
         resvRoomId: 1,
     }
 ]

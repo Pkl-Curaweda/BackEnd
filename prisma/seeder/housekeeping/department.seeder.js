@@ -2,15 +2,12 @@ const { prisma } = require("../config");
 
 const departments = [
   {
-    name: "House Keeping"
+    shortDesc: 'ENG',
+    longDesc: "Enginering"
   },
-
   {
-    name: "Front Office"
-  },
-
-  {
-    name: "In Room Service"
+    shortDesc: 'HK',
+    longDesc: "House Keeping"
   },
 ];
 

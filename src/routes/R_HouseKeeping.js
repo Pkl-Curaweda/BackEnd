@@ -22,7 +22,7 @@ const { getStockValidation } = require('../validations/stock-validation.js');
 
 //Controller
 const lostFound = require('../controllers/House Keeping/C_LostFound.js');
-const auth = require('../controllers/House Keeping/C_Auth.js')
+const auth = require('../controllers/C_Auth.js')
 const extrabed = require('../controllers/House Keeping/C_Extrabed.js');
 const ooorooms = require('../controllers/House Keeping/C_OOORoom.js');
 const user = require('../controllers/House Keeping/C_User.js');

@@ -19,7 +19,7 @@ const { prisma } = require('../../../prisma/seeder/config')
 const sortOrderCleanDirty = (ident, ascDesc) => {
     let roomOrder;
     try {
-        if(ascDesc !== "asc" && ascDesc !== "desc") throw "Please use the correct order"
+        if (ascDesc !== "asc" && ascDesc !== "desc") throw "Please use the correct order"
         switch (ident) {
             case 'roomId':
                 roomOrder = { id: ascDesc }
@@ -36,12 +36,13 @@ const sortOrderCleanDirty = (ident, ascDesc) => {
     }
 }
 const getCleanDirtyData = async (sortOrder) => {
-    let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 };
+    let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 }, ident, ascDesc, roomOrder = undefined;
     try {
-        const [ident, ascDesc] = sortOrder.split(' ');
-        if (sortOrder != undefined ) sortOrder = sortOrderCleanDirty(sortOrder)
-        let { roomOrder = undefined } = sortOrder
-        console.log(roomOrder, res)
+        if (sortOrder != undefined) [ident, ascDesc] = sortOrder.split(' ');
+        if (sortOrder != undefined && ident === 'roomId' || sortOrder != undefined && ident === 'roomType') {
+            sortOrder = sortOrderCleanDirty(sortOrder)
+            roomOrder = sortOrder
+        }
         const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
         rs.forEach(async r => {
             const resv = await prisma.resvRoom.findFirst({ where: { roomId: r.id }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' } })
@@ -61,6 +62,13 @@ const getCleanDirtyData = async (sortOrder) => {
                 main[status]++;
             }
         });
+        // switch(ident){
+        //     case 'guestName':
+        //         room.filter() //filter asc for guestName
+        //         break;
+        //     case 'pic':
+        //         room.filter() //filter asc for pic
+        // }
         return { room, main }
     } catch (err) {
         ThrowError(err)

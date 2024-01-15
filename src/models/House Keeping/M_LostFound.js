@@ -38,22 +38,36 @@ const select = {
   image: true,
 }
 
+const sortingLostFound = async (s) => {
+  try{
+    
+  }catch(err){
+    ThrowError(err)
+  }
+}
+
 /**
  * @param {GetAllLostFoundOption} option
  * @throws {Error}
  * @return {Promise<GetAllLostFoundResult>}
  */
 async function all(option) {
+  let graph = { found: 0, lost: 0 }, orderBy
   try {
-    const { page, show, description, date } = option
+    const { page, show, description, date, sortOrder } = option
 
     const where = {
       description: {
         contains: description,
       },
-      reportedDate: date,
-      deleted: false,
+      reportedDate: {
+        gte: `${date}T00:00:00.000Z`,
+        lte: `${date}T23:59:59.999Z`,
+      },
+      deleted: false, //?Deleted = Done
     }
+
+    if(sortOrder) orderBy
 
     const [total, lostFounds, found, lost, onProgress] = await prisma.$transaction([
       prisma.lostFound.count({ where }),
@@ -67,9 +81,11 @@ async function all(option) {
         select
       }),
       prisma.lostFound.count({ where: { status: 'FOUND' } }),
-      prisma.lostFound.count({ where: { status: 'LOST' } }),
-      prisma.lostFound.count({ where: { status: 'ONPROGRESS' } }),
+      prisma.lostFound.count({ where: { status: 'LOST' } })
     ])
+
+    graph.found = found
+    graph.lost = lost
 
     return { lostFounds, total, found, lost, onProgress }
 

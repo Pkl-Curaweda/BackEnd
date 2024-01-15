@@ -7,16 +7,9 @@ const lostFoundRepository = require('../../models/House Keeping/M_LostFound.js')
  */
 async function findAll(req, res) {
   try {
-    const { lostFounds, total, found, lost, onProgress } = await lostFoundRepository.all(req.query)
+    const { lostFounds, total, found, lost } = await lostFoundRepository.all(req.query)
     const lastPage = Math.ceil(total / req.query.show);
-    return success(res, 'Get all lost and found success', {
-      lostFounds,
-      lastPage,
-      total,
-      found,
-      lost,
-      onProgress,
-    })
+    return success(res, 'Get all lost and found success', { lostFounds, lastPage, total, found, lost })
 
   } catch {
     return error(res, 'Get all lost and found failed')

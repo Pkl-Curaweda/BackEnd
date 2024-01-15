@@ -38,7 +38,7 @@ async function roomMaidSeed(resvRoomId) {
       data: {
         userId: id,
         roomStatusId: 1,
-        departmentId: 3,
+        departmentId: 1,
         resvRoomId,
         no: 'A03',
         done: true,

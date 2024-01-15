@@ -1,7 +1,7 @@
 const PDFDocument = require("pdfkit-table");
 const fs = require("fs");
 const path = require("path");
-const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice } = require("../../models/Front Office/M_Invoice");
+const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice, addNewInvoiceFromArticle, addNewInvoiceFromOrder } = require("../../models/Front Office/M_Invoice");
 const { getBillingSummary, createResvPayment } = require("../../models/Front Office/M_ResvPayment");
 const { error, success } = require("../../utils/response");
 
@@ -29,20 +29,20 @@ const getSummary = async (req, res) => {
 const postNewPayment = async (req, res) => {
   const { reservationId = 1, resvRoomId = 1 } = req.query;
   const body = req.body;
-  try{
+  try {
     const paymentSummary = await createResvPayment(reservationId, resvRoomId, body)
     return success(res, 'Payment Success', paymentSummary)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
 
 const postNewInvoice = async (req, res) => {
-  const { reservationId = 1, resvRoomId = 1 } = req.query;
+  const { reservationId = 1, resvRoomId = 1, identifier } = req.params;
   const body = req.body;
   try {
-    const newInvoice = addNewInvoice(body, reservationId, resvRoomId)
-    return success(res, 'New Invoice Created', newInvoice)
+    const createdInvoice = identifier != "order" ? await addNewInvoiceFromArticle(body, parseInt(reservationId), parseInt(resvRoomId)) : await addNewInvoiceFromOrder(body, reservationId, resvRoomId)
+    return success(res, 'New Invoice Created', createdInvoice)
   } catch (err) {
     return error(res, err.message)
   }
@@ -50,10 +50,10 @@ const postNewInvoice = async (req, res) => {
 
 const getPrintData = async (req, res) => {
   const { reservationId = 1, resvRoomId = 1 } = req.query;
-  try{
+  try {
     const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
     return success(res, 'Operation Success', invoiceData)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
