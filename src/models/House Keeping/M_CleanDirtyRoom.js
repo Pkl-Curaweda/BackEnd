@@ -35,7 +35,7 @@ const sortOrderCleanDirty = (ident, ascDesc) => {
         ThrowError(err)
     }
 }
-const getCleanDirtyData = async (sortOrder) => {
+const getCleanDirtyData = async (sortOrder, arrival, departure) => {
     let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 }, ident, ascDesc, roomOrder = undefined;
     try {
         if (sortOrder != undefined) [ident, ascDesc] = sortOrder.split(' ');
@@ -55,20 +55,22 @@ const getCleanDirtyData = async (sortOrder) => {
                     departure: splitDateTime(resv.reservation.departureDate).date,
                     pic: resv.roomMaids
                 })
-                console.log(room)
             }
             const status = r.roomStatus.shortDescription;
             if (main.hasOwnProperty(status)) {
                 main[status]++;
             }
         });
-        // switch(ident){
-        //     case 'guestName':
-        //         room.filter() //filter asc for guestName
-        //         break;
-        //     case 'pic':
-        //         room.filter() //filter asc for pic
-        // }
+        switch (ident) {
+            case 'guestName':
+                room.sort((a, b) => a.guestName.localeCompare(b.guestName));
+                break;
+            case 'pic':
+                room.sort((a, b) => a.pic.user.name.localeCompare(b.pic.user.name));
+                break;
+            default:
+                break;
+        }
         return { room, main }
     } catch (err) {
         ThrowError(err)

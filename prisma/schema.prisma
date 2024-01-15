@@ -27,9 +27,9 @@ enum OrderStatus {
 }
 
 enum RoomType {
-  STANDARD
   DELUXE
   FAMILY
+  STANDARD
 }
 
 enum StatusProductReq {
@@ -40,8 +40,8 @@ enum StatusProductReq {
 
 enum BedType {
   KING
-  TWIN
   SINGLE
+  TWIN
 }
 
 enum cardIdentifier {
@@ -302,6 +302,7 @@ model Room {
   occupied_status Boolean
   rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
   rate            String
+  updatedAt       DateTime       @updatedAt
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
@@ -435,6 +436,7 @@ model LostFound {
   user         User            @relation("LostFound_user", fields: [userId], references: [id])
   userId       Int
   time         String
+  phoneNumber  String
   reportedDate DateTime        @db.Date
   location     String
   image        String

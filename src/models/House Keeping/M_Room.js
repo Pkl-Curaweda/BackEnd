@@ -34,8 +34,8 @@ const getRoomStatWithId = async (id) => {
 const postStatusChange = async (payload) => {
     try {
         const { id, roomStatusId } = payload
-        const chgStat = await prisma.room.update({ where: { id: parseInt(id) }, data: { roomStatusId: parseInt(roomStatusId) } })
-        return { roomId: chgStat.id, statusId: chgStat.roomStatusId }
+        const chgStat = await prisma.room.update({ where: { id: parseInt(id) }, data: { roomStatusId: parseInt(roomStatusId) }, select: { id: true, roomStatus: { select: { longDescription: true } } } })
+        return { roomId: chgStat.id, statusId: chgStat.roomStatus.longDescription }
     } catch (err) {
         ThrowError(err)
     } finally {

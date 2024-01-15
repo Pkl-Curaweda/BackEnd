@@ -10,7 +10,7 @@ const authMiddleware = require('../middlewares/auth.js')
 // import authMiddleware from '#middleware/auth.js'
 
 //Validation
-const { createLostFoundValidation, getLostFoundValidation } = require('../validations/lost-found.validation.js');
+const { createLostFoundValidation, getLostFoundValidation, updateLostFoundValidation } = require('../validations/lost-found.validation.js');
 const { getExtraBedValidation, createExtrabedValidation, updateExtrabedValidation } = require('../validations/extrabed.validation.js');
 const { getOooRoomValidation, createOooRoomValidation } = require('../validations/ooo-room.validation.js');
 const { createUserValidation, getUserValidation, updateUserValidation } = require('../validations/user.validation.js');
@@ -30,9 +30,12 @@ const profile = require('../controllers/House Keeping/C_Profile.js');
 const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
 const discrepancy = require('../controllers/House Keeping/C_Discrepency.js')
 const roomMaid = require('../controllers/House Keeping/C_RoomMaid.js')
+const status = require('../controllers/House Keeping/C_Status.js')
 const stock = require('../controllers/House Keeping/C_Stock.js')
+const roomChange = require('../controllers/House Keeping/C_RoomChange.js')
 const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js');
 const { route } = require('./R_Login.js');
+const { postStat } = require('../controllers/Front Office/C_FloorPlan.js');
 
 
 const router = express.Router()
@@ -93,16 +96,25 @@ router.delete('/users/:id', user.remove)
 
 //Start Lost Found
 router.get('/lostfound/', getLostFoundValidation, lostFound.findAll)
-router.get('/lostfound/:id', lostFound.findOne)
 router.post('/lostfound/', upload.single('image'), (req, res, next) => {
     if (req.fileValidationError) {
         return error(res, req.fileValidationError)
     }
     next()
 }, createLostFoundValidation, lostFound.create)
-router.put('/lostfound/:id', lostFound.update)
-router.delete('/lostfound/:id', lostFound.remove)
+router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
+router.delete('/lostfound/:id/:act', lostFound.remove)
 //End Lost Found
+
+//Start Status
+router.get('/status', status.get)
+router.post("/status/:id/:stId", postStat)
+//End Status
+
+//Start Room Change
+router.get('/roomchange', roomChange.get)
+router.post('/roomchange/print', roomChange.print)
+//End Room Change
 
 //Start Extra Bed
 router.get('/extrabeds/', getExtraBedValidation, extrabed.findAll)

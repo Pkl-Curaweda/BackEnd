@@ -89,10 +89,8 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       orders.forEach((order) => {
         //?ORDER / DAYS
         invoices.push({
-          art: {
-            label: "In Room",
-            id: order.service.id,
-          },
+          art: order.service.id,
+          label: "In Room",
           uniqueId: order.id,
           qty: order.qty,
           desc: order.service.name,

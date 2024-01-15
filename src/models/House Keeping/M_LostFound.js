@@ -38,10 +38,34 @@ const select = {
   image: true,
 }
 
-const sortingLostFound = async (s) => {
-  try{
-    
-  }catch(err){
+const sortingLostFound = (s) => {
+  let orderBy
+  try {
+    switch (s) {
+      case "pic":
+        orderBy = {
+          picId: 'asc'
+        }
+        break;
+      case "reported":
+        orderBy = {
+          userId: 'asc'
+        }
+        orderBy
+        break;
+      case "date":
+        orderBy = {
+          created_at: 'asc'
+        }
+        break;
+      default:
+        orderBy = {
+          roomId: 'asc'
+        }
+        break;
+    }
+    return orderBy
+  } catch (err) {
     ThrowError(err)
   }
 }
@@ -54,11 +78,14 @@ const sortingLostFound = async (s) => {
 async function all(option) {
   let graph = { found: 0, lost: 0 }, orderBy
   try {
-    const { page, show, description, date, sortOrder } = option
-
+    let { page = 1, perPage = 5, search = '', date, sortOrder = '' } = option
+    if (date === undefined) {
+      date = new Date()
+      date = date.toISOString().split('T')[0]
+    }
     const where = {
       description: {
-        contains: description,
+        contains: search,
       },
       reportedDate: {
         gte: `${date}T00:00:00.000Z`,
@@ -66,18 +93,15 @@ async function all(option) {
       },
       deleted: false, //?Deleted = Done
     }
+    orderBy = sortingLostFound(sortOrder)
 
-    if(sortOrder) orderBy
-
-    const [total, lostFounds, found, lost, onProgress] = await prisma.$transaction([
+    const [total, lostFounds, found, lost] = await prisma.$transaction([
       prisma.lostFound.count({ where }),
       prisma.lostFound.findMany({
-        take: show,
-        skip: (page - 1) * show,
+        take: perPage,
+        skip: (page - 1) * perPage,
         where,
-        orderBy: {
-          roomId: 'asc',
-        },
+        orderBy,
         select
       }),
       prisma.lostFound.count({ where: { status: 'FOUND' } }),
@@ -86,30 +110,18 @@ async function all(option) {
 
     graph.found = found
     graph.lost = lost
+    const lastPage = Math.ceil(total / perPage);
+    return {
+      graph, lostFounds, meta: {
+        total,
+        currPage: page,
+        lastPage,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null
+      }
+    }
 
-    return { lostFounds, total, found, lost, onProgress }
-
-  } catch (err) {
-    ThrowError(err)
-  } finally {
-    await PrismaDisconnect()
-  }
-}
-
-/**
- * @param {string} id
- * @throws {Error}
- * @return {Promise<import('@prisma/client').LostFound>}
- */
-async function get(id) {
-  try {
-    return await prisma.lostFound.findUniqueOrThrow({
-      where: {
-        id: +id,
-        deleted: false,
-      },
-      select
-    })
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -125,7 +137,7 @@ async function get(id) {
  * @return {Promise<import('@prisma/client').LostFound>}
  */
 async function create(lostFound, image, userId) {
-  try{
+  try {
     const roomId = lostFound.roomId
     delete lostFound.roomId
     return await prisma.lostFound.create({
@@ -150,9 +162,9 @@ async function create(lostFound, image, userId) {
       },
       select
     })
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
@@ -164,14 +176,24 @@ async function create(lostFound, image, userId) {
  * @return {Promise<import('@prisma/client').LostFound>}
  */
 async function update(id, lostFound) {
-  return await prisma.lostFound.update({
-    where: {
-      id: +id,
-      deleted: false,
-    },
-    data: lostFound,
-    select
-  })
+  try {
+    const [exist, updatedData] = await prisma.$transaction([
+      prisma.lostFound.findFirstOrThrow({ where: { id } }),
+      prisma.lostFound.update({
+        where: {
+          id,
+          deleted: false,
+        },
+        data: lostFound,
+        select
+      })
+    ])
+    return updatedData
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
 }
 
 /**
@@ -180,21 +202,39 @@ async function update(id, lostFound) {
  * @return {Promise<import('@prisma/client').LostFound>}
  */
 async function softDelete(id) {
-  return await prisma.lostFound.update({
-    where: {
-      id: +id,
-      deleted: false,
-    },
-    data: {
-      deleted: true,
-    },
-    select
-  })
+  const [exist, updateDeleted] = await prisma.$transaction([
+    prisma.lostFound.findFirstOrThrow({ where: { id } }),
+    prisma.lostFound.update({
+      where: {
+        id,
+        deleted: false,
+      },
+      data: {
+        deleted: true,
+      },
+      select
+    })
+  ])
+  return updateDeleted
+}
+
+async function remove(id) {
+  try {
+    const [exist, deleted] = await prisma.$transaction([
+      prisma.lostFound.findFirstOrThrow({ where: { id } }),
+      prisma.lostFound.delete({ where: { id }, select })
+    ])
+    return deleted
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
 }
 
 module.exports = {
   all,
-  get,
+  remove,
   create,
   update,
   softDelete,

@@ -73,9 +73,19 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
             })
             let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
+            roomHistory = Object.values(roomHistory)
+            const rmHist = {}
+            for(rh of roomHistory){
+                const key = `room_${rh.room.id}`;
+                rmHist[key] = {
+                    data: rh.guestName || '',
+                    style:  rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
+                }
+            }
+            console.log(rmHist)
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
-                roomHistory
+                rmHist
             }
             if (roomHistory != 0) {
                 Object.values(roomHistory).forEach(history => {

@@ -533,7 +533,7 @@ const splitDateTime = (date) => {
     date = new Date(date).toISOString();
     return {
       date: date.split('T')[0],
-      time: date.split('T')[1]
+      time: date.split('T')[1].split('.')[0]
     };
   } catch (err) {
     ThrowError(err)

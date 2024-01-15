@@ -7,9 +7,8 @@ const lostFoundRepository = require('../../models/House Keeping/M_LostFound.js')
  */
 async function findAll(req, res) {
   try {
-    const { lostFounds, total, found, lost } = await lostFoundRepository.all(req.query)
-    const lastPage = Math.ceil(total / req.query.show);
-    return success(res, 'Get all lost and found success', { lostFounds, lastPage, total, found, lost })
+    const lf = await lostFoundRepository.all(req.query)
+    return success(res, 'Get all lost and found success', lf)
 
   } catch {
     return error(res, 'Get all lost and found failed')
@@ -50,10 +49,10 @@ async function create(req, res) {
  */
 async function update(req, res) {
   try {
-    const lostFound = await lostFoundRepository.update(req.params.id, req.body)
+    const lostFound = await lostFoundRepository.update(+req.params.id, req.body)
     return success(res, 'Update lost and found success', lostFound)
-  } catch {
-    return error(res, 'Update lost and found failed')
+  } catch (err) {
+    return error(res, err.message)
   }
 }
 
@@ -62,11 +61,14 @@ async function update(req, res) {
  * @param {import('express').Response} res
  */
 async function remove(req, res) {
+  let lostFound
   try {
-    const lostFound = await lostFoundRepository.remove(req.params.id)
+    if (req.params.act === 'hard') {
+      lostFound = await lostFoundRepository.remove(+req.params.id)
+    } else lostFound = await lostFoundRepository.softDelete(+req.params.id)
     return success(res, 'Delete lost and found success', lostFound)
-  } catch {
-    return error(res, 'Lost and found not found', 404)
+  } catch (err) {
+    return error(res, err.message)
   }
 }
 

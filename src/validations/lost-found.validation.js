@@ -4,13 +4,19 @@ const { fieldExist, recordExist } = require('../utils/db-validation');
 
 const getLostFoundValidation = validate({
   page: z.coerce.number().optional().default(1),
-  show: z.coerce.number().optional().default(10),
-  sort: z.enum([
-    'Room Number', 'Reservation Number', 'Room Type', 'Guest Name'
-  ]).optional().default('Room Number'),
-  order: z.enum(['asc', 'desc']).optional().default('asc'),
-  description: z.string().optional().default(''),
+  perPage: z.coerce.number().optional().default(5),
+  sortOrder: z.enum([
+    'pic', 'reported', 'date', 'roomNum'
+  ]).optional().default('roomNum'),
+  search: z.string().optional().default(''),
   date: z.coerce.date().optional(),
+})
+
+const updateLostFoundValidation = validate({
+  description: z.coerce.string(),
+  location: z.coerce.string(),
+  phoneNumber: z.coerce.string(),
+  reportedDate: z.coerce.date()
 })
 
 const createLostFoundValidation = validate({
@@ -24,4 +30,4 @@ const createLostFoundValidation = validate({
   description: z.string(),
   location: z.string(),
 })
-module.exports = { getLostFoundValidation, createLostFoundValidation }
+module.exports = { getLostFoundValidation, createLostFoundValidation, updateLostFoundValidation }

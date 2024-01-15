@@ -18,7 +18,7 @@ const searchGet = (q) => {
 }
 
 const get = async (page, perPage, search, so, arr, dep) => {
-    let arrival = { checkInToday: 0, arriving: 0, totalArrival: 0 }, departure = { departedToday: 0, departing: 0, totalDeparture: 0 }, date = {};
+    let arrival = { checkInToday: "0-0", arriving: "0-0", totalArrival: "0-0" }, departure = { departedToday: "0-0", departing: "0-0", totalDeparture: "0-0" }, date = {};
     try {
         const dateNew = new Date();
         const currDate = dateNew.toISOString().split('T')[0];
@@ -42,62 +42,70 @@ const get = async (page, perPage, search, so, arr, dep) => {
         }
         so = so ? orderReservationByIdentifier(so) : so
         if (search != undefined) search = searchGet(search)
-        const reservations = await prisma.resvRoom.findMany({
-            where: {
-                ...(so && so.whereQuery),
-                reservation: {
-                    ...date,
-                    ...(search != undefined && search),
-                    onGoingReservation: true
-                }
-            },
-            select: {
-                reservation: {
-                    select: {
-                        id: true,
-                        arrivalDate: true,
-                        departureDate: true,
-                        manyNight: true,
-                        checkInDate: true,
-                        checkoutDate: true,
-                        reserver: {
-                            select: {
-                                guest: {
-                                    select: {
-                                        name: true
-                                    }
-                                },
-                                resourceName: true,
-                            }
-                        }
+        const [total, reservations] = await prisma.$transaction([
+            prisma.resvRoom.findMany(),
+            prisma.resvRoom.findMany({
+                where: {
+                    ...(so && so.whereQuery),
+                    reservation: {
+                        ...date,
+                        ...(search != undefined && search),
+                        onGoingReservation: true
                     }
                 },
-                roomMaids: {
-                    select: {
-                        user: {
-                            select: {
-                                name: true
+                select: {
+                    reservation: {
+                        select: {
+                            id: true,
+                            arrivalDate: true,
+                            departureDate: true,
+                            manyNight: true,
+                            checkInDate: true,
+                            checkoutDate: true,
+                            manyAdult: true,
+                            manyBaby: true,
+                            manyChild: true,
+                            reserver: {
+                                select: {
+                                    guest: {
+                                        select: {
+                                            name: true
+                                        }
+                                    },
+                                    resourceName: true,
+                                }
                             }
                         }
-                    }
-                },
-                arrangmentCodeId: true,
-                room: {
-                    select: {
-                        id: true,
-                        roomType: true,
-                        bedSetup: true,
-                        roomStatus: {
-                            select: {
-                                shortDescription: true
+                    },
+                    roomMaids: {
+                        select: {
+                            user: {
+                                select: {
+                                    name: true
+                                }
                             }
                         }
-                    }
+                    },
+                    arrangmentCodeId: true,
+                    room: {
+                        select: {
+                            id: true,
+                            roomType: true,
+                            bedSetup: true,
+                            roomStatus: {
+                                select: {
+                                    shortDescription: true
+                                }
+                            }
+                        }
+                    },
+                    created_at: true
                 },
-                created_at: true
-            },
-            orderBy: so && so.orderQuery
-        })
+                skip: (page - 1) * perPage,
+                take: perPage,
+                orderBy: so && so.orderQuery
+            })
+        ])
         let table = []
         reservations.forEach(res => {
             const data = {
@@ -117,7 +125,10 @@ const get = async (page, perPage, search, so, arr, dep) => {
             }
             table.push(data)
             if (res.reservation.checkInDate) {
-                if (data.arrival === currDate) arrival.arriving++
+                if (data.arrival === currDate){
+                    arrival.arriving++
+                    
+                } 
                 if (data.departure === currDate) departure.departing++
                 if (res.reservation.checkoutDate != null) {
                     departure.totalDeparture++
@@ -126,7 +137,23 @@ const get = async (page, perPage, search, so, arr, dep) => {
             if (splitDateTime(res.reservation.checkInDate === currDate)) arrival.checkInToday++
             if (splitDateTime(res.reservation.checkoutDate === currDate)) departure.departedToday++
         })
-        return { arr, dep, arrival, departure, table }
+        const lastPage = Math.ceil(total / perPage);
+        return {
+            arr, dep, 
+            arrival: {
+
+            }, 
+            departure:{
+
+            }, table, meta: {
+                total,
+                currPage: page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null
+            }
+        }
     } catch (err) {
         ThrowError(err)
     } finally {
