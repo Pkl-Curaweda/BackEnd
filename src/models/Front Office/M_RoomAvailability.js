@@ -17,6 +17,7 @@ const filterRoomHistory = (roomHistory, filter) => {
             });
             break;
         default:
+            filteredRoomHistory = roomHistory
             break;
     }
     if (Object.keys(filteredRoomHistory).length === 0) filteredRoomHistory = 0

@@ -141,14 +141,13 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
             roomType: true,
             bedSetup: true
           },
-        },
-        roomMaids: {
-          select: {
-            user: {
-              select: { name: true, picture: true }
-            }
+          RoomMaid: {
+            select: { user: { select:{ name: true } }},
+            orderBy: { priority: 'asc' }
+            // take: 
           }
         },
+        
         reservation: {
           select: {
             reserver: {
