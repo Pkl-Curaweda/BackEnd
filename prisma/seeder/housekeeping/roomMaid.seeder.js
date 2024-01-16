@@ -3,42 +3,44 @@ const { prisma } = require("../config");
 
 const roomMaids = [
   {
-    usedId: 1,
+    user: { connect: { id: 1 } },
     aliases: 'AL',
-    roomId: 1,
+    room: { connect: { id:1 } },
     priority: 1,
-    departmentId: 1
+    department: { connect: { id: 1 } }
   },
   {
-    userId: 2,
+    user: { connect: { id: 2 } },
     aliases: 'AR',
-    roomId: 1,
+    room: { connect: { id:1 } },
     priority: 2,
-    departmentId: 1
+    department: { connect: { id:1 } }
   },
   {
-    userId: 3,
+    user: { connect: { id: 3 } },
     aliases: 'RA',
-    roomId: 2,
+    room: { connect: { id:2 } },
     priority: 1,
-    departmentId: 2
+    department: { connect: { id:2 } }
   },
 ];
 
 async function roomMaidSeed(resvRoomId, roomId) {
-  if(resvRoomId){
-    const roomMaids = await prisma.user.findMany({ where: { roleId: 3 }})
+  if (resvRoomId) {
+    const roomMaids = await prisma.user.findMany({ where: { roleId: 3 } })
     const { id } = roomMaids[randomInt(roomMaids.length)]
     await prisma.roomMaid.create({
       data: {
-        userId: id,
+        user: {
+          connect: { id }
+        },
         aliases: 'AA',
-        roomId,
+        room: { connect: {id: roomId } },
         priority: 1,
-        departmentId: 2
+        department: { connect: { id: 2 } }
       }
     })
-  }else{
+  } else {
     for (let roomMaid of roomMaids) {
       await prisma.roomMaid.create({
         data: roomMaid,

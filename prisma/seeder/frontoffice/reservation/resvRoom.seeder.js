@@ -6,6 +6,7 @@ const { roomMaidSeed } = require("../../housekeeping/roomMaid.seeder");
 const resvRooms = {
 	roomId: 1,
 	reservationId: 1,
+	roomMaidId: 1,
 	voucherNo: 21321,
 	arrangmentCodeId: "DLX-RB",
 	created_at: new Date(),

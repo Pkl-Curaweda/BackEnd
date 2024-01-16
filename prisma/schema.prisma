@@ -176,6 +176,8 @@ model ResvRoom {
   roomId           Int
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
+  roomMaids         RoomMaid       @relation(fields: [roomMaidId], references: [id])
+  roomMaidId       Int
   billComment      String?        @db.Text
   voucherNo        Int            @unique
   roomChanges      RoomChange[]
@@ -343,6 +345,7 @@ model RoomMaid {
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int
   MaidTask     MaidTask[]
+  ResvRoom     ResvRoom[]
 }
 
 model MaidTask {
