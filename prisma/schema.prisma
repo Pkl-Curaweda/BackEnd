@@ -184,12 +184,10 @@ model ResvRoom {
   arrangmentCodeId String
   billComment      String?        @db.Text
   voucherNo        Int            @unique
-  roomMaids        RoomMaid[]
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
   ResvArticle      ResvArticle[]
-  MaidTask         MaidTask[]
 }
 
 model Reserver {
@@ -268,6 +266,7 @@ model Department {
   longDesc  String     @db.Text
   roomMaids RoomMaid[]
   oooRooms  OooRoom[]
+  TaskType  TaskType[]
 }
 
 model RoomCapacity {
@@ -279,13 +278,12 @@ model RoomCapacity {
 }
 
 model RoomStatus {
-  id               Int        @id @default(autoincrement())
+  id               Int    @id @default(autoincrement())
   shortDescription String
-  longDescription  String     @db.Text
+  longDescription  String @db.Text
   rowColor         String
   textColor        String
   Room             Room[]
-  roomMaids        RoomMaid[]
 }
 
 model Room {
@@ -303,6 +301,8 @@ model Room {
   rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
   rate            String
   updatedAt       DateTime       @updatedAt
+  roomChangesFrom RoomChange[]   @relation("RoomChangeFrom")
+  roomChangesTo   RoomChange[]   @relation("RoomChangeTo")
   roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
@@ -310,11 +310,10 @@ model Room {
   dirtyRooms      DirtyRoom[]
   oooRooms        OooRoom[]
   lostFounds      LostFound[]
-  roomChangesFrom RoomChange[]   @relation("RoomChangeFrom")
-  roomChangesTo   RoomChange[]   @relation("RoomChangeTo")
   Stock           Stock[]
+  RoomMaid        RoomMaid[]
+  MaidTask        MaidTask[]
 }
-
 model RoomFacility {
   id         Int      @id @default(autoincrement())
   name       String
@@ -341,26 +340,19 @@ model RoomMaid {
   id           Int        @id @default(autoincrement())
   user         User       @relation(fields: [userId], references: [id])
   userId       Int
-  roomStatus   RoomStatus @relation(fields: [roomStatusId], references: [id])
-  roomStatusId Int
+  room         Room       @relation(fields: [roomId], references: [id])
+  roomId       Int
+  performance  Float
+  priority     Int
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int
-  resvRoom     ResvRoom   @relation(fields: [resvRoomId], references: [id])
-  resvRoomId   Int
-  no           String
-  done         Boolean
-  from         DateTime
-  to           DateTime
-  note         String     @db.Text
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @updatedAt
   MaidTask     MaidTask[]
 }
 
 model MaidTask {
   id           Int        @id @default(autoincrement())
-  resvRoom     ResvRoom   @relation(fields: [resvRoomId], references: [id])
-  resvRoomId   Int
+  room         Room       @relation(fields: [roomId], references: [id])
+  roomId       Int
   request      String     @db.Text
   roomMaid     RoomMaid   @relation(fields: [roomMaidId], references: [id])
   roomMaidId   Int
@@ -368,6 +360,15 @@ model MaidTask {
   actualTime   String
   taskRemarks  String     @db.Text
   status       TaskStatus
+}
+
+model TaskType {
+  id           Int        @id @default(autoincrement())
+  activity     String
+  standardTime Int
+  UoM          String
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId Int
 }
 
 model CleanRoom {

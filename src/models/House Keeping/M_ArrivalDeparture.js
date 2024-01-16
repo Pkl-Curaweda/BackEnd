@@ -1,6 +1,5 @@
 const { orderReservationByIdentifier } = require("../../models/Front Office/M_Reservation");
 const { PrismaDisconnect, ThrowError, splitDateTime, generateDateBetweenStartAndEnd } = require("../../utils/helper");
-const { error } = require("../../utils/response");
 const { prisma } = require("../../../prisma/seeder/config");
 
 const searchGet = (q) => {
@@ -17,33 +16,31 @@ const searchGet = (q) => {
     }
 }
 
-const get = async (page, perPage, search, so, arr, dep) => {
-    let arrival = { checkInToday: "0-0", arriving: "0-0", totalArrival: "0-0" }, departure = { departedToday: "0-0", departing: "0-0", totalDeparture: "0-0" }, date = {};
+const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
+    let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date;
     try {
         const dateNew = new Date();
         const currDate = dateNew.toISOString().split('T')[0];
-        if (arr != undefined || dep != undefined) {
-            if (arr === undefined) arr = currDate
-            if (dep === undefined) {
-                dep = new Date(arr);
-                dep.setDate(dep.getDate() + 7);
-                dep = dep.toISOString().split('T')[0]
-            }
-            date = {
-                arrivalDate: {
-                    gte: `${arr}T00:00:00.000Z`,
-                    lte: `${dep}T23:59:59.999Z`
-                },
-                departureDate: {
-                    gte: `${arr}T00:00:00.000Z`,
-                    lte: `${dep}T23:59:59.999Z`
-                }
+        if (arr === undefined) arr = currDate
+        if (dep === undefined) {
+            dep = new Date(arr);
+            dep.setDate(dep.getDate() + 7);
+            dep = dep.toISOString().split('T')[0]
+        }
+        date = {
+            arrivalDate: {
+                gte: `${arr}T00:00:00.000Z`,
+                lte: `${dep}T23:59:59.999Z`
+            },
+            departureDate: {
+                gte: `${arr}T00:00:00.000Z`,
+                lte: `${dep}T23:59:59.999Z`
             }
         }
         so = so ? orderReservationByIdentifier(so) : so
         if (search != undefined) search = searchGet(search)
         const [total, reservations] = await prisma.$transaction([
-            prisma.resvRoom.findMany(),
+            prisma.resvRoom.count(),
             prisma.resvRoom.findMany({
                 where: {
                     ...(so && so.whereQuery),
@@ -102,7 +99,7 @@ const get = async (page, perPage, search, so, arr, dep) => {
                     created_at: true
                 },
                 skip: (page - 1) * perPage,
-                take: perPage,
+                take: + perPage,
                 orderBy: so && so.orderQuery
             })
         ])
@@ -125,26 +122,36 @@ const get = async (page, perPage, search, so, arr, dep) => {
             }
             table.push(data)
             if (res.reservation.checkInDate) {
-                if (data.arrival === currDate){
-                    arrival.arriving++
-                    
-                } 
-                if (data.departure === currDate) departure.departing++
-                if (res.reservation.checkoutDate != null) {
-                    departure.totalDeparture++
-                } else arrival.totalArrival++
+                if (data.arrival === currDate) {
+                    arrival.arriving.room++
+                    arrival.arriving.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
+                }
+                if (data.departure === currDate) {
+                    departure.departing.room++
+                    departure.departing.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
+                }
             }
-            if (splitDateTime(res.reservation.checkInDate === currDate)) arrival.checkInToday++
-            if (splitDateTime(res.reservation.checkoutDate === currDate)) departure.departedToday++
+            if (splitDateTime(res.reservation.checkInDate === currDate)) {
+                arrival.checkInToday.room++
+                arrival.checkInToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
+            }
+            if (splitDateTime(res.reservation.checkoutDate === currDate)) {
+                departure.departedToday.room++
+                departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
+            }
         })
         const lastPage = Math.ceil(total / perPage);
         return {
-            arr, dep, 
+            arr, dep,
             arrival: {
-
-            }, 
-            departure:{
-
+                checkInToday: `${arrival.checkInToday.room}-${arrival.checkInToday.person}`,
+                arriving: `${arrival.arriving.room}-${arrival.arriving.person}`,
+                totalArrival: `${arrival.checkInToday.room + arrival.arriving.room}-${arrival.checkInToday.person + arrival.arriving.person}`
+            },
+            departure: {
+                departedToday: `${departure.departedToday.room}-${departure.departedToday.person}`,
+                departing: `${departure.departing.room}-${departure.departing.person}`,
+                totalDeparture: `${departure.departedToday.room + departure.departing.room}-${departure.departedToday.person + departure.departing.person}`
             }, table, meta: {
                 total,
                 currPage: page,

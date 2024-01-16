@@ -16,23 +16,6 @@ const filterRoomHistory = (roomHistory, filter) => {
                 if (room.room.bedSetup === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
             });
             break;
-        case "R":
-            console.log(filterIdentifier)
-            if (filter === 'DESC') {
-                const roomHistories = Object.values(roomHistory).sort((a, b) => b.room.id - a.room.id);
-                Object.values(roomHistories).forEach((history) => {
-                    const key = `room_${history.room.id}`;
-                    filteredRoomHistory[key] = history
-                })
-
-            } else {
-                const roomHistories = Object.values(roomHistory).sort((a, b) => a.room.id - b.room.id);
-                Object.values(roomHistories).forEach((history) => {
-                    const key = `room_${history.room.id}`;
-                    filteredRoomHistory[key] = history
-                })
-            }
-            break;
         default:
             throw Error('Unknown Filter')
     }
@@ -40,7 +23,7 @@ const filterRoomHistory = (roomHistory, filter) => {
     return filteredRoomHistory
 }
 
-const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
+const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
         let logData = [], startDate, endDate, dates, averages = {};
         let startIndex = (page - 1) * perPage;
@@ -71,18 +54,26 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter) => {
                     created_at: 'desc'
                 }
             })
+            console.log(logAvailability)
             let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
+            if (search !== undefined && roomHistory !== 0) {
+                const searchTerm = search.toLowerCase();
+                roomHistory = Object.keys(roomHistory).reduce((filteredHistory, key) => {
+                    const guestName = roomHistory[key].guestName;
+                    if (guestName && guestName.toLowerCase().includes(searchTerm)) filteredHistory[key] = roomHistory[key];
+                    return filteredHistory;
+                }, {});
+            }
             roomHistory = Object.values(roomHistory)
             const rmHist = {}
-            for(rh of roomHistory){
+            for (rh of roomHistory) {
                 const key = `room_${rh.room.id}`;
                 rmHist[key] = {
                     data: rh.guestName || '',
-                    style:  rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
+                    style: rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
                 }
             }
-            console.log(rmHist)
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
                 rmHist

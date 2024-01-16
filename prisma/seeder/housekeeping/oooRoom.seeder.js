@@ -2,14 +2,21 @@ const { prisma } = require("../config");
 
 const oooRooms = [
   {
-    roomId: 1,
-    userId: 1,
-    reservationId: 1,
-    reason:
-      "Maintenance work in progress. Room will be unavailable for the next few days.",
+    room: {
+      connect: { id: 5 }
+    },
+    user: {
+      connect: { id: 3 }
+    },
+    reservation: {
+      connect: { id: 2 }
+    },
+    reason: "Segs party",
     from: new Date(),
     until: new Date(),
-    departmentId: 2,
+    department: {
+      connect: { id: 1 }
+    },
     description: "Room cleaned thoroughly, ready for next guest.",
     created_at: new Date(),
     updated_at: new Date(),

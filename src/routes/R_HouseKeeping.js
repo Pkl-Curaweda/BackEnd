@@ -24,7 +24,7 @@ const { getStockValidation } = require('../validations/stock-validation.js');
 const lostFound = require('../controllers/House Keeping/C_LostFound.js');
 const auth = require('../controllers/C_Auth.js')
 const extrabed = require('../controllers/House Keeping/C_Extrabed.js');
-const ooorooms = require('../controllers/House Keeping/C_OOORoom.js');
+const ooorooms = require('../controllers/House Keeping/C_OOO-OffMarket.js');
 const user = require('../controllers/House Keeping/C_User.js');
 const profile = require('../controllers/House Keeping/C_Profile.js');
 const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
@@ -81,8 +81,9 @@ router.put('/profile/:id', profile.update)
 //End Profile
 
 //Start OOO Room
-router.get('/ooo-rooms/', getOooRoomValidation, ooorooms.findAll)
+router.get('/ooo-rooms/', ooorooms.findAll)
 router.post('/ooo-rooms/', createOooRoomValidation, ooorooms.create)
+router.post('/ooo-rooms/print', ooorooms.print)
 //End OOO Room
 
 //Start User
@@ -117,11 +118,8 @@ router.post('/roomchange/print', roomChange.print)
 //End Room Change
 
 //Start Extra Bed
-router.get('/extrabeds/', getExtraBedValidation, extrabed.findAll)
-router.get('/extrabeds/:id', extrabed.findOne)
-router.post('/extrabeds/:id', createExtrabedValidation, extrabed.create)
-router.put('/extrabeds/:id', updateExtrabedValidation, extrabed.update)
-router.delete('/extrabeds/:id', extrabed.remove)
+router.get('/extrabeds/:art', extrabed.findAll)
+router.post('/extrabeds/:art/print', extrabed.print)
 //End Extra Bed
 
 //Start Clean Dirty Room

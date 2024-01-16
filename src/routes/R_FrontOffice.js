@@ -29,9 +29,8 @@ R_FrontOffice.get("/floorplan/detail/:id?", getFloorPLanDetail)
 R_FrontOffice.post("/floorplan/detail/:id/:stId", postStat)
 
 //?lOG AVAILABILITY
-R_FrontOffice.get("/roomavail/:filter?", getRoomAvailability);
+R_FrontOffice.get("/roomavail", getRoomAvailability);
 R_FrontOffice.post("/roomavail/create-log", CreateLog);
-R_FrontOffice.get("/filter-roomAvail", getFilterRoomAvail);
 
 //?REPORT PAGE
 R_FrontOffice.get("/report/:displayOption?", getAllReport);

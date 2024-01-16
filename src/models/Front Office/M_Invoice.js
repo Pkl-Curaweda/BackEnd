@@ -96,6 +96,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
           desc: order.service.name,
           rate: order.service.price,
           amount: order.qty * order.service.price,
+          path: `${process.env.BASE_URL}/detail/invoice/${reservationId}/${resvRoomId}/${searchDate}?ids=${order.service.id}-${order.id}`,
           billDate: searchDate,
         });
       });

@@ -1,12 +1,11 @@
-const { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy } = require("../../models/Front Office/M_LogAvailability");
+const { getLogAvailabilityData, createNewLogAvailable, filterRoomAvailabiy } = require("../../models/Front Office/M_RoomAvailability");
 const { success, error } = require("../../utils/response");
 const schedule = require("node-schedule")
 
 const getRoomAvailability = async (req, res) => {
-  const { filter } = req.params
-  const { page = 1, perPage = 5, date = "" } = req.query;
+  const { page = 1, perPage = 5, date = "", search, filter } = req.query;
   try {
-    const logData = await getLogAvailabilityData(date, parseInt(page), parseInt(perPage), filter);
+    const logData = await getLogAvailabilityData(date, parseInt(page), parseInt(perPage), filter, search);
     return success(res, "Operation Success", logData);
   } catch (err) {
     return error(res, err.meesage)
@@ -22,28 +21,6 @@ const CreateLog = async (req, res) => {
   }
 
 }
-
-//? FILTER - ROOM AVAILABILITY
-const getFilterRoomAvail = async (req, res) => {
-  const { roomType } = req.query;
-  const { roomId } = req.query;
-  const { bedSetup } = req.query;
-
-  try {
-    const avail = await filterRoomAvailabiy(roomType, roomId, bedSetup);
-
-    if (avail.length == 0) {
-      return res.status(404).json({ error: "Room Not Availabily" });
-    }
-
-    return res.json(avail);
-
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-}
-
 
 //?DAILY REPORT
 const dailyReport = async () => {
@@ -62,4 +39,4 @@ const dailyReport = async () => {
 
 dailyReport();
 
-module.exports = { getRoomAvailability, CreateLog, getFilterRoomAvail, };
+module.exports = { getRoomAvailability, CreateLog };

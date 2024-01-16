@@ -31,6 +31,19 @@ const assignRoomMaid = async (resvRoomId) => {
     }
 }
 
+const getRoomMaidReport = async () => {
+    try {
+        const [totalRoom, room] = await prisma.$transaction([
+            prisma.room.count(),
+            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } } })
+        ])
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 /**
  * @typedef {object} GetAllRoomMaidOption
  * @property {number} page
