@@ -1,6 +1,6 @@
 const { randomInt } = require("crypto")
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper")
 
 const assignRoomMaid = async (resvRoomId) => {
     try {
@@ -31,20 +31,59 @@ const assignRoomMaid = async (resvRoomId) => {
     }
 }
 
-const getRoomMaidReport = async () => {
+const getRoomMaidReport = async (q) => {
+    let { page = 1, perPage = 5, arr, dep } = q
     try {
-        const [totalRoom, rooms] = await prisma.$transaction([
+        if (arr === undefined) arr = new Date().toISOString().split('T')[0]
+        if (dep === undefined) {
+            dep = new Date(arr);
+            dep.setDate(dep.getDate() + 7);
+            dep = dep.toISOString().split('T')[0]
+        }
+        const [total, rooms] = await prisma.$transaction([
             prisma.room.count(),
-            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } } })
+            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } }, take: +perPage, skip: (page - 1) * perPage })
         ])
         const reports = []
         for (let room of rooms) {
-            const r = await prisma.resvRoom.findFirst({ where: { roomId: room.id }, select: { reservation: { select: { id: true, arrivalDate: true, departureDate: true, reservationRemarks: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { updated_at: true } })
+            const r = await prisma.resvRoom.findFirst({
+                where: { roomId: room.id, reservation: {
+                    AND: [
+                        {
+                          arrivalDate: { gte: `${arr}T00:00:00.000Z` },
+                        },
+                        {
+                          departureDate: { lte: `${dep}T23:59:59.999Z` }
+                        }
+                      ]
+                } },
+                select: {
+                    room: { select: { RoomMaid: { select: { aliases: true }, orderBy: { priority: 'asc' }, take: 1 } } },
+                    reservation: { select: { id: true, arrivalDate: true, departureDate: true, reservationRemarks: true, reserver: { select: { guest: { select: { name: true } } } } } }
+                },
+                orderBy: { updated_at: 'desc' }
+            })
             reports.push({
                 roomNo: room.id,
                 roomType: room.roomType,
-                roomStatus: room.roomStatus.longDescription
+                roomStatus: room.roomStatus.longDescription,
+                pic: r ? r.room.RoomMaid : '',
+                guestName: r ? r.reservation.reserver.guest.name : '',
+                resNo: r ? r.reservation.id : '',
+                arrival: r ? splitDateTime(r.reservation.arrivalDate).date : '',
+                departure: r ? splitDateTime(r.reservation.departureDate).date : ''
             })
+        }
+        const lastPage = Math.ceil(total / perPage)
+        return {
+            reports, meta: {
+                total,
+                currPage: +page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null
+            }
         }
     } catch (err) {
         ThrowError(err)
@@ -191,4 +230,4 @@ async function remove(id) {
 }
 
 
-module.exports = { assignRoomMaid, all, get, create, update, remove }
+module.exports = { assignRoomMaid, all, get, create, update, remove, getRoomMaidReport }

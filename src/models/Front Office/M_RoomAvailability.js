@@ -17,7 +17,7 @@ const filterRoomHistory = (roomHistory, filter) => {
             });
             break;
         default:
-            throw Error('Unknown Filter')
+            break;
     }
     if (Object.keys(filteredRoomHistory).length === 0) filteredRoomHistory = 0
     return filteredRoomHistory
@@ -39,7 +39,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         endIndex = Math.min(dates.length - 1, endIndex);
 
         for (let i = startIndex; i <= endIndex; i++) {
-            console.log('=======================')
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
             const logAvailability = await prisma.logAvailability.findFirst({

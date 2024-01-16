@@ -1,4 +1,4 @@
-const roomMaidRepository = require ('../../models/House Keeping/M_RoomMaid.js')
+const roomMaidRepository = require('../../models/House Keeping/M_RoomMaid.js')
 const { error, success } = require('../../utils/response.js')
 
 /**
@@ -7,14 +7,8 @@ const { error, success } = require('../../utils/response.js')
  */
 async function findAll(req, res) {
   try {
-    const { roomMaids, total } = await roomMaidRepository.all(req.query)
-    const lastPage = Math.ceil(total / req.query.show);
-    return success(res, 'Get all room maid success', {
-      roomMaids,
-      lastPage,
-      total
-    })
-
+    const data = await roomMaidRepository.getRoomMaidReport(req.query)
+    return success(res, 'Get all room maid success', data)
   } catch {
     return error(res, 'Get all room maid failed')
   }
