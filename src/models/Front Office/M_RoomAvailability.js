@@ -39,6 +39,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         endIndex = Math.min(dates.length - 1, endIndex);
 
         for (let i = startIndex; i <= endIndex; i++) {
+            console.log('=======================')
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
             const logAvailability = await prisma.logAvailability.findFirst({
@@ -54,7 +55,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     created_at: 'desc'
                 }
             })
-            console.log(logAvailability)
             let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
             if (search !== undefined && roomHistory !== 0) {
@@ -65,19 +65,49 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     return filteredHistory;
                 }, {});
             }
-            roomHistory = Object.values(roomHistory)
-            const rmHist = {}
-            for (rh of roomHistory) {
-                const key = `room_${rh.room.id}`;
-                rmHist[key] = {
-                    data: rh.guestName || '',
-                    style: rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
+            let rmHist = {
+                room_1: {
+                    data: '', style: {},
+                },
+                room_2: {
+                    data: '', style: {},
+                },
+                room_3: {
+                    data: '', style: {},
+                },
+                room_4: {
+                    data: '', style: {},
+                },
+                room_5: {
+                    data: '', style: {},
+                },
+                room_6: {
+                    data: '', style: {},
+                },
+                room_7: {
+                    data: '', style: {},
+                },
+                room_8: {
+                    data: '', style: {},
+                },
+                room_9: {
+                    data: '', style: {},
+                },
+                room_10: {
+                    data: '', style: {},
                 }
             }
-            const pushedData = {
-                date: searchedDate.toISOString().split('T')[0],
-                rmHist
+            if (roomHistory != 0) {
+                roomHistory = Object.values(roomHistory)
+                for (rh of roomHistory) {
+                    const key = `room_${rh.room.id}`;
+                    rmHist[key] = {
+                        data: rh.guestName || '',
+                        style: rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
+                    }
+                }
             }
+
             if (roomHistory != 0) {
                 Object.values(roomHistory).forEach(history => {
                     const key = `total_${history.room.id}`;
@@ -85,6 +115,12 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     averages[key] = (averageKeyExists ? averages[key] : 0) + 1;
                 })
             }
+            console.log("---dsadadhaihdasudanji")
+            const pushedData = {
+                date: searchedDate.toISOString().split('T')[0],
+                rmHist
+            }
+            console.log(pushedData)
             logData.push(pushedData);
         }
         let roomAverage = {}
@@ -92,6 +128,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             const avg = averages[average];
             roomAverage[average] = avg / logData.length * 100;
         });
+        console.log(roomAverage)
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             logData,

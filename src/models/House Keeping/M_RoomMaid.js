@@ -33,10 +33,19 @@ const assignRoomMaid = async (resvRoomId) => {
 
 const getRoomMaidReport = async () => {
     try {
-        const [totalRoom, room] = await prisma.$transaction([
+        const [totalRoom, rooms] = await prisma.$transaction([
             prisma.room.count(),
             prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } } })
         ])
+        const reports = []
+        for (let room of rooms) {
+            const r = await prisma.resvRoom.findFirst({ where: { roomId: room.id }, select: { reservation: { select: { id: true, arrivalDate: true, departureDate: true, reservationRemarks: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { updated_at: true } })
+            reports.push({
+                roomNo: room.id,
+                roomType: room.roomType,
+                roomStatus: room.roomStatus.longDescription
+            })
+        }
     } catch (err) {
         ThrowError(err)
     } finally {

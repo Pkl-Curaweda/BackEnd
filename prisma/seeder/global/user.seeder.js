@@ -46,6 +46,20 @@ const users = [
     created_at: new Date(),
     updated_at: new Date(),
   },
+  {
+    name: faker.person.firstName(),
+    gender: "FEMALE",
+    phone: "083424234578",
+    picture: faker.image.avatarGitHub(),
+    email: faker.internet.email(),
+    nik: randomInt(999999999).toString(),
+    birthday: new Date(faker.date.birthdate()),
+    username: faker.internet.userName(),
+    password: "password",
+    roleId: 3,
+    created_at: new Date(),
+    updated_at: new Date(),
+  }
 ];
 
 async function userSeed() {

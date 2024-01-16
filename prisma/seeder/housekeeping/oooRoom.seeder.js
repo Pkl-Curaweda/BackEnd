@@ -9,7 +9,7 @@ const oooRooms = [
       connect: { id: 3 }
     },
     reservation: {
-      connect: { id: 2 }
+      connect: { id: 1 }
     },
     reason: "Segs party",
     from: new Date(),

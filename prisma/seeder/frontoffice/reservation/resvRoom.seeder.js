@@ -24,7 +24,7 @@ async function ResvRoomSeed(reservationId) {
 	});
 	await prisma.room.update({ where:{ id: resvRoom.roomId }, data: { occupied_status: true } })
 	await roomChangeSeed(resvRoom.id)
-	await roomMaidSeed(resvRoom.id)
+	await roomMaidSeed(resvRoom.id, resvRoom.roomId)
 }
 
 module.exports = { ResvRoomSeed };
