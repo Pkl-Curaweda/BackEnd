@@ -34,6 +34,7 @@ const status = require('../controllers/House Keeping/C_Status.js')
 const stock = require('../controllers/House Keeping/C_Stock.js')
 const roomChange = require('../controllers/House Keeping/C_RoomChange.js')
 const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js');
+const roomOcc = require('../controllers/House Keeping/C_RoomOCC.js')
 const { route } = require('./R_Login.js');
 const { postStat } = require('../controllers/Front Office/C_FloorPlan.js');
 
@@ -111,6 +112,10 @@ router.delete('/lostfound/:id/:act', lostFound.remove)
 router.get('/status', status.get)
 router.post("/status/:id/:stId", postStat)
 //End Status
+
+//Start Room Occupancy Forecast
+router.get('/roomocc', roomOcc.get)
+//End Room Occupancy Forecast
 
 //Start Room Change
 router.get('/roomchange', roomChange.get)

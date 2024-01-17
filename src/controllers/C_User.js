@@ -54,7 +54,7 @@ const postLogin = async (req, res) => {
             secure: true,
             sameSite: 'none',
             expires
-        });
+        });R
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
             expiresIn: '15m',
             subject: userAndGeneratedToken.user.id.toString()
