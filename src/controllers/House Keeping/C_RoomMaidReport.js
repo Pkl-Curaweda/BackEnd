@@ -28,7 +28,7 @@ async function findOne(req, res) {
   } catch {
     return error(res, 'User not found', 404)
   }
-}
+}a
 
 async function print(req, res) {
   try {

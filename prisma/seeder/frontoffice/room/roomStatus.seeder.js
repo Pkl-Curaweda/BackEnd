@@ -44,7 +44,7 @@ const roomStatuses = [
     textColor: "#ffffff",
   },
   {
-    shortDescription: "OO",
+    shortDescription: "OOO",
     longDescription: "Out of Order",
     rowColor: "#000000",
     textColor: "#F10000",
