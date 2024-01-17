@@ -12,7 +12,7 @@ const R_FrontOffice = new Router();
 //?DETAIL RESERVATION
 R_FrontOffice.get("/detail/reservation/:reservationId/idcard", getPreviousCard);
 R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", getHelperDetail);
-R_FrontOffice.get("/detail/report/:displayOption?", getReportDetail);
+R_FrontOffice.get("/detail/report/", getReportDetail);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId/:date", getInvoiceDetail);
 R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId/:date", putNewInvoiceData)
 R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", postHelperDetail);

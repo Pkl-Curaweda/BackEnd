@@ -77,8 +77,7 @@ const getEditReservationHelper = async (req, res) => {
 }
 
 const getReportDetail = async (req, res) => {
-  const { displayOption = "day" } = req.params;
-  const { date = new Date().toISOString().split("T")[0] } = req.query
+  const { date = new Date().toISOString().split("T")[0], displayOption = "day" } = req.query
   try {
     const detail = await getReportDetailData(date, displayOption)
     return success(res, 'Operation Success', detail)
