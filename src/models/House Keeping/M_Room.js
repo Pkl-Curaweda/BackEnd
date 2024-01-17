@@ -21,6 +21,7 @@ const getAllAvailableRoom = async () => {
 const getAllRoomStatus = async () => {
     try{
         const rooms = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { id: true, shortDescription: true, longDescription: true } } } })
+        return rooms
     }catch(err){
         ThrowError(err)
     }finally{
@@ -53,4 +54,4 @@ const postStatusChange = async (payload) => {
     }
 }
 
-module.exports = { getAllAvailableRoom, getRoomStatWithId, postStatusChange }
+module.exports = { getAllAvailableRoom, getRoomStatWithId, postStatusChange, getAllRoomStatus}
