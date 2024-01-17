@@ -392,8 +392,8 @@ const getReportDetailData = async (date, displayOption) => {
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
       if (percentages[key] > 1) {
-        percent = dates.length / percentages[`room_${id}`] * 100
-        percent = percent.toFixed(1)
+        percent = dates.length / percentages[`room_${id}`]  * 100
+        percent = parseFloat(percent.toFixed(1))
       }
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent };
