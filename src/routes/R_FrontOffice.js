@@ -33,7 +33,7 @@ R_FrontOffice.get("/roomavail", getRoomAvailability);
 R_FrontOffice.post("/roomavail/create-log", CreateLog);
 
 //?REPORT PAGE
-R_FrontOffice.get("/report/:displayOption?", getAllReport);
+R_FrontOffice.get("/report/", getAllReport);
 R_FrontOffice.get("/report/:displayOption/print", getReportPDF)
 
 //?INVOICE

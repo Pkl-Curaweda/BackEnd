@@ -133,7 +133,7 @@ model Reservation {
   manyBaby           Int
   manyNight          Int
   borderColor        String?           @default("#16a75c")
-  reservationRemarks String?           @db.Text
+  reservationRemarks String?           @db.Text @default("")
   onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime

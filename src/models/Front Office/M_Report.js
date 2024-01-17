@@ -120,7 +120,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       arr = occupied !== 0 ? formatDecimal(roomRevenue / occupied) : 0;
       added.rm_avail = roomAvailable;
       added.rno = occupied;
-      console.log(added.rev, added.rno)
       added.occ = added.rm_avail !== 0 ? formatDecimal((added.rno / added.rm_avail) * 100) : 0;
       added.rev = roomRevenue
       added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno)) : 0;
@@ -177,7 +176,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           week.forEach(day => {
             const report = reports.filter(report => report.date === day);
             report.forEach(report => {
-              console.log(report)
               sendedData.roomAvailable += report.roomAvailable;
               sendedData.occupied += report.occupied;
               sendedData.roomRevenue += report.roomRevenue
@@ -380,8 +378,7 @@ const getReportDetailData = async (date, displayOption) => {
             total.RESERVATION++;
             total[roomType]++;
             const percentageKeyExists = percentages.hasOwnProperty(key);
-            percentages[key] =
-              (percentageKeyExists ? percentages[key] : 0) + 100;
+            percentages[key] =(percentageKeyExists ? percentages[key] : 0) + 100;
           } else {
             if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
           }
@@ -394,7 +391,10 @@ const getReportDetailData = async (date, displayOption) => {
       const { id, roomType, bedSetup } = room
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
-      if (percentages[key] > 1) percent = dates.length / percentages[`room_${id}`] * 100
+      if (percentages[key] > 1) {
+        percent = dates.length / percentages[`room_${id}`] * 100
+        percent = percent.toFixed(1)
+      }
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent };
       }

@@ -6,9 +6,8 @@ const { success, error } = require("../../utils/response");
 
 const getAllReport = async (req, res) => {
   try {
-    const { displayOption } = req.params
-    const { date, page = 1, perPage = 5, sort } = req.query;
-    const data = await getReportData(displayOption, parseInt(page), parseInt(perPage), sort, date);
+    let { disOpt ,date, page = 1, perPage = 5, sort } = req.query;
+    const data = await getReportData(disOpt, parseInt(page), parseInt(perPage), sort, date);
 
     return success(res, 'Operation Success', data);
   } catch (err) {

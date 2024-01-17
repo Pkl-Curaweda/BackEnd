@@ -32,7 +32,7 @@ const assignRoomMaid = async (resvRoomId) => {
 }
 
 const getRoomMaidReport = async (q) => {
-    let { page = 1, perPage = 5, arr, dep } = q
+    let { page = 1, perPage = 5, arr, dep, sortOrder } = q
     try {
         if (arr === undefined) arr = new Date().toISOString().split('T')[0]
         if (dep === undefined) {
@@ -40,43 +40,73 @@ const getRoomMaidReport = async (q) => {
             dep.setDate(dep.getDate() + 7);
             dep = dep.toISOString().split('T')[0]
         }
+        const roomOrderBy = sortOrder === "roomType" ? { roomType: 'asc' } : { id: 'asc' }
         const [total, rooms] = await prisma.$transaction([
             prisma.room.count(),
-            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } }, take: +perPage, skip: (page - 1) * perPage })
+            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } }, orderBy: { ...roomOrderBy } })
         ])
         const reports = []
+        let startIndex = (page - 1) * perPage;
+        let endIndex = startIndex + perPage - 1;
+        startIndex = Math.max(0, startIndex);
+        endIndex = Math.min(rooms.length - 1, endIndex);
+
         for (let room of rooms) {
             const r = await prisma.resvRoom.findFirst({
-                where: { roomId: room.id, reservation: {
-                    AND: [
-                        {
-                          arrivalDate: { gte: `${arr}T00:00:00.000Z` },
-                        },
-                        {
-                          departureDate: { lte: `${dep}T23:59:59.999Z` }
-                        }
-                      ]
-                } },
+                where: {
+                    roomId: room.id, reservation: {
+                        AND: [
+                            {
+                                arrivalDate: { gte: `${arr}T00:00:00.000Z` },
+                            },
+                            {
+                                departureDate: { lte: `${dep}T23:59:59.999Z` }
+                            }
+                        ]
+                    }
+                },
                 select: {
                     room: { select: { RoomMaid: { select: { aliases: true }, orderBy: { priority: 'asc' }, take: 1 } } },
                     reservation: { select: { id: true, arrivalDate: true, departureDate: true, reservationRemarks: true, reserver: { select: { guest: { select: { name: true } } } } } }
                 },
                 orderBy: { updated_at: 'desc' }
             })
+            let pic  = ''
+            if(r){
+                const roomMaid = r.room.RoomMaid
+                pic = roomMaid.length != 0 ? roomMaid[0].aliases : ''
+            }
             reports.push({
                 roomNo: room.id,
                 roomType: room.roomType,
                 roomStatus: room.roomStatus.longDescription,
-                pic: r ? r.room.RoomMaid : '',
+                pic,
                 guestName: r ? r.reservation.reserver.guest.name : '',
                 resNo: r ? r.reservation.id : '',
                 arrival: r ? splitDateTime(r.reservation.arrivalDate).date : '',
-                departure: r ? splitDateTime(r.reservation.departureDate).date : ''
+                departure: r ? splitDateTime(r.reservation.departureDate).date : '',
+                remarks: r ? r.reservation.reservationRemarks : ''
             })
+            console.log(reports)
         }
+        if (sortOrder != undefined) {
+            switch (sortOrder) {
+                case "reservationNumber":
+                    reports.sort((a, b) => a.resNo - b.resNo);
+                    break;
+                case "guestName":
+                    reports.sort((a, b) => a.guestName.localeCompare(b.guestName));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        const report = reports.slice(startIndex, endIndex + 1);
+
         const lastPage = Math.ceil(total / perPage)
         return {
-            reports, meta: {
+            report, meta: {
                 total,
                 currPage: +page,
                 lastPage,

@@ -29,7 +29,7 @@ const user = require('../controllers/House Keeping/C_User.js');
 const profile = require('../controllers/House Keeping/C_Profile.js');
 const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
 const discrepancy = require('../controllers/House Keeping/C_Discrepency.js')
-const roomMaid = require('../controllers/House Keeping/C_RoomMaid.js')
+const roomMaid = require('../controllers/House Keeping/C_RoomMaidReport.js')
 const status = require('../controllers/House Keeping/C_Status.js')
 const stock = require('../controllers/House Keeping/C_Stock.js')
 const roomChange = require('../controllers/House Keeping/C_RoomChange.js')
@@ -133,6 +133,7 @@ router.get('/discrepancy', getDiscrepancyValidation, discrepancy.index)
 
 //Start Room  Maid
 router.get('/room-maid', roomMaid.findAll)
+router.post('/room-maid/print', roomMaid.print)
 router.get('/room-maid/:id', roomMaid.findOne)
 //End Room Maid
 
