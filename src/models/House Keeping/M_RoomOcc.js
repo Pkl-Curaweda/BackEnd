@@ -1,19 +1,21 @@
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
+const { search } = require("../../routes/R_Login")
+const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper")
 const { getAllRoomStatus } = require("./M_Room")
 
 const getRoomOccupancyData = async (q) => {
-    const { page, perPage } = q
-    const currentDate = new Date().toISOString()
-    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }
+    const { page, perPage, disOpt } = q
+    const currentDate = new Date()
+    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
         const roomStatus = await getAllRoomStatus()
         for (let room of roomStatus) {
+            console.log('=====================')
+            console.log(`ROOM ${room.id}`)
             const [r, estR] = await prisma.$transaction([
-                prisma.resvRoom.findFirst({ where: { roomId: room.id, reservation: { checkInDate: { not: null } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
-                prisma.resvRoom.findMany({ where: { roomId: room.id, reservation: { arrivalDate: { gte: currentDate } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } })
+                prisma.resvRoom.findFirst({ where: { roomId: room.id, reservation: { checkInDate: { not: null }, onGoingReservation: true } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
+                prisma.resvRoom.findMany({ where: { roomId: room.id, reservation: { arrivalDate: { gte: currentDate.toISOString() } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } })
             ])
-            console.log(r, estR)
             switch (room.roomStatus.shortDescription) {
                 case "OC" || "OD":
                     currData.occ.room++;
@@ -36,9 +38,38 @@ const getRoomOccupancyData = async (q) => {
                 }
                 currData.estOcc.person = + estPersom
             }
+
+            percData = { ...currData }
         }
-        console.log(currData)
-        return { currData }
+        let startDate, endDate
+        const currentYear = currentDate.getFullYear()
+        //?PERCENTAGES
+        switch (disOpt) {
+            case "week":
+                startDate = currentDate
+                endDate = new Date(currentDate).setDate(currentDate.getDate() - 6)
+                break
+            case "month":
+                startDate = new Date(currentDate.setDate(currentDate.getDate() - (currentDate.getDate() - 1)))
+                lastDate = new Date(currentDate.getFullYear, currentDate.getMonth() + 1, 0).getDate()
+                endDate = new Date(currentDate.setDate(lastDate))
+                break
+            case "year":
+                [startDate, endDate] = [`${currentYear}-01-01T00:00:00.000Z`, `${currentYear}-12-31T23:59:59.999Z`]
+                break;
+            default:
+                [startDate, endDate] = [`${currentDate.toISOString().split('T')[0]}T00:00:00.000Z`, `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z`]
+                break;
+        }
+        const [r, ooo] = await prisma.$transaction([
+            prisma.resvRoom.findMany({ where: { reservation: { arrivalDate: { gte: startDate, lte: endDate, not: currentDate.toISOString() }, departureDate: { gte: startDate, lte: endDate, not: currentDate.toISOString() } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
+            prisma.oooRoom.count({ where: { created_at: { not: currentDate.toISOString() } } })
+        ])
+        let estPers = 0
+        for (let resv of r) estPers += (resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild)
+        currData.estOcc.person = + estPers
+        percData.ooo.room += ooo
+        return { currData, percData }
     } catch (err) {
         ThrowError(err)
     } finally {

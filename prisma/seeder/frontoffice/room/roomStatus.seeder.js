@@ -58,12 +58,12 @@ const roomStatuses = [
 ];
 
 async function roomStatusSeed() {
-  roomStatuses.forEach(async roomStatus => {
+  for(roomStatus of roomStatuses){
     const exist = await prisma.roomStatus.findFirst({
       where: { shortDescription: roomStatus.shortDescription }
     })
     if (!exist) await prisma.roomStatus.create({ data: roomStatus })
-  })
+  }
 }
 
 module.exports = {

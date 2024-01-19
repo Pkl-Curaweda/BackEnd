@@ -10,8 +10,8 @@ const roomChanges =  {
 
 async function roomChangeSeed(resvRoomId) {
   roomChanges.resvRoomId = resvRoomId
-  roomChanges.roomFromId = randomInt(10);
-  roomChanges.roomToId = randomInt(10)
+  roomChanges.roomFromId = randomInt(1, 10);
+  roomChanges.roomToId = randomInt(1, 10),
   await prisma.roomChange.create({ data: roomChanges });
 }
 

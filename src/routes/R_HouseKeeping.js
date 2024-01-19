@@ -23,7 +23,7 @@ const { getStockValidation } = require('../validations/stock-validation.js');
 //Controller
 const lostFound = require('../controllers/House Keeping/C_LostFound.js');
 const auth = require('../controllers/C_Auth.js')
-const extrabed = require('../controllers/House Keeping/C_Extrabed.js');
+const amenities = require('../controllers/House Keeping/C_Amenities.js');
 const ooorooms = require('../controllers/House Keeping/C_OOO-OffMarket.js');
 const user = require('../controllers/House Keeping/C_User.js');
 const profile = require('../controllers/House Keeping/C_Profile.js');
@@ -123,8 +123,8 @@ router.post('/roomchange/print', roomChange.print)
 //End Room Change
 
 //Start Extra Bed
-router.get('/extrabeds/:art', extrabed.findAll)
-router.post('/extrabeds/:art/print', extrabed.print)
+router.get('/extrabeds/:art', amenities.findAll)
+router.post('/extrabeds/:art/print', amenities.print)
 //End Extra Bed
 
 //Start Clean Dirty Room

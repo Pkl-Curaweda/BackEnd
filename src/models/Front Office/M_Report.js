@@ -51,7 +51,7 @@ const findReportReservation = async () => {
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, sort, date) => {
   try {
-    let reports = [], dates, startIndex, endIndex, data = [], totalRoom = 0, searchDates = [];
+    let reports = [], dates, startIndex, endIndex, data = [], totalRoom = 0, searchDates = [], ident;
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
 
@@ -66,13 +66,13 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       dates = generateDateBetweenStartAndEnd(startDate, endDate)
     } else { dates = generateDateBetweenNowBasedOnDays("past", 30); }
 
-    if (disOpt === "day") {
-      startIndex = Math.max(0, startIndex);
-      endIndex = Math.min(dates.length - 1, endIndex);
-    } else {
-      startIndex = 0,
-        endIndex = dates.length - 1
-    }
+    startIndex = Math.max(0, startIndex);
+    endIndex = Math.min(dates.length - 1, endIndex);
+    // if (disOpt === "day") {
+    // } else {
+    //   startIndex = 0,
+    //   endIndex = dates.length - 1
+    // }
 
     for (let i = startIndex; i <= endIndex; i++) {
       const searchDate = dates[i];
@@ -131,7 +131,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         roomRevenue,
         arr,
         added: {
-          ident: "DTD",
           rm_avail: added.rm_avail,
           rno: added.rno,
           occ: added.occ,
@@ -145,9 +144,9 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       };
       reports.push(storedData);
     }
-
     switch (disOpt) {
       case "week":
+        ident = "WTD"
         const weeks = []
         for (let i = 0; i < dates.length; i += 7) {
           const subArray = dates.slice(i, i + 7);
@@ -161,7 +160,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             occ: 0,
             arr: 0,
             added: {
-              ident: "",
               rm_avail: 0,
               rno: 0,
               occ: 0,
@@ -182,7 +180,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               sendedData.taxService.unTax += report.taxService.unTax
               sendedData.taxService.taxed += report.taxService.taxed
             })
-            sendedData.added.ident = "WTD"
             sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
             sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
             sendedData.added.rm_avail = sendedData.roomAvailable;
@@ -199,6 +196,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         break;
 
       case "month":
+        ident = "MTD"
         const months = [...new Set(dates.map(date => new Date(date).getMonth()))];
         for (month of months) {
           let sendedData = {
@@ -208,7 +206,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             occ: 0,
             arr: 0,
             added: {
-              ident: "",
               rm_avail: 0,
               rno: 0,
               occ: 0,
@@ -229,7 +226,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.taxed += report.taxService.taxed
           })
 
-          sendedData.added.ident = "MTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
@@ -246,6 +242,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         break;
 
       case "year":
+        ident = "YTD"
         const years = [...new Set(dates.map(date => new Date(date).getFullYear()))]; //?Get all the existed year that are  inside of the dates
         for (year of years) {
           let sendedData = {
@@ -255,7 +252,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             occ: 0,
             arr: 0,
             added: {
-              ident: "",
               rm_avail: 0,
               rno: 0,
               occ: 0,
@@ -277,7 +273,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.unTax += report.taxService.unTax
             sendedData.taxService.taxed += report.taxService.taxed
           })
-          sendedData.added.ident = "YTD"
           sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
@@ -294,6 +289,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
 
       default:
         data = reports;
+        ident = "DTD"
     }
 
     if (sort) {
@@ -306,10 +302,12 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           break;
       }
     }
-    if (disOpt) perPage = dates.length
+
+    data = data.slice(startIndex, endIndex + 1)
     const lastPage = Math.ceil(dates.length / perPage);
 
     return {
+      ident,
       reports: data,
       meta: {
         total: dates.length,
@@ -378,7 +376,7 @@ const getReportDetailData = async (date, displayOption) => {
             total.RESERVATION++;
             total[roomType]++;
             const percentageKeyExists = percentages.hasOwnProperty(key);
-            percentages[key] =(percentageKeyExists ? percentages[key] : 0) + 100;
+            percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
           } else {
             if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
           }
@@ -392,7 +390,7 @@ const getReportDetailData = async (date, displayOption) => {
       const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
       if (percentages[key] > 1) {
-        percent = dates.length / percentages[`room_${id}`]  * 100
+        percent = dates.length / percentages[`room_${id}`] * 100
         percent = parseFloat(percent.toFixed(1))
       }
       if (!detail.hasOwnProperty(detailKey)) {

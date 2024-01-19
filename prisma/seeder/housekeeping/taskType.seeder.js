@@ -2,35 +2,43 @@ const { prisma } = require("../config");
 
 const taskTypes = [
     {
-        activity: "Pembersihan Total",
-        standardTime: 190,
+        activity: "Full Clean Standard Room",
+        standardTime: 30,
         UoM: "minute",
         department: {
             connect: { id: 1 }
         }
     },
     {
-        activity: "Perbaikan Ringan",
+        activity: "Full Clean Deluxe Room",
         standardTime: 40,
         UoM: "minute",
         department: {
-            connect: { id: 2 }
+            connect: { id: 1 }
         }
     },
     {
-        activity: "Perbaikan Sedang",
-        standardTime: 200,
+        activity: "Full Clean Family Room",
+        standardTime: 45,
         UoM: "minute",
         department: {
-            connect: { id: 2 }
+            connect: { id: 1 }
         }
     },
     {
-        activity: "Perbaikan Berat",
-        standardTime: 420,
+        activity: "Regular Cleaning",
+        standardTime: 15,
         UoM: "minute",
         department: {
-            connect: { id: 2 }
+            connect: { id: 1 }
+        }
+    },
+    {
+        activity: "Guest Request",
+        standardTime: 0,
+        UoM: "minute",
+        department: {
+            connect: { id: 1 }
         }
     },
 ];

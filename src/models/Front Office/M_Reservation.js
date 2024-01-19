@@ -3,7 +3,7 @@ const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, pagin
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
-const { getAllAvailableRoom } = require("../House Keeping/M_Room");
+const { getAllAvailableRoom, changeRoomStatus } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 
@@ -26,7 +26,7 @@ const orderReservationByIdentifier = (sortAndOrder) => {
       }
 
       case "status": {
-        query.whereQuery = { reservation: { resvStatusId: parseInt(filter) }}
+        query.whereQuery = { reservation: { resvStatusId: parseInt(filter) } }
         break;
       }
       case "night": {
@@ -58,15 +58,15 @@ const orderReservationByIdentifier = (sortAndOrder) => {
   } else if (sortIdentifier === "room") {
     switch (sortBy) {
       case "name":
-        query.whereQuery = { roomMaids: { some: { user: { name: { contains: filter } } } } }
+        query.whereQuery = { roomMaids: { user: { name: { contains: filter } } } }
         break;
       case 'type':
         query.whereQuery = { room: { roomType: filter } }
         break;
       case 'bedSetup':
+        
         query.whereQuery = { room: { bedSetup: filter } }
         break;
-
       default:
         query.orderQuery = { room: { [sortBy]: filter } }
         break;
@@ -357,9 +357,10 @@ const deleteReservationById = async (id) => {
   try {
     const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: { select: { id: true } } } })
     const { resvRooms } = reservation
-    await deleteResvRoomByReservationId(id, resvRooms);
-    const deletedReservation = await prisma.reservation.delete({ where: { id } });
-    return deletedReservation
+    const leftResvRoom = await deleteResvRoomByReservationId(id, resvRooms);
+    if(leftResvRoom != 0) return "Reservation Room has been deleted"
+    await prisma.reservation.delete({ where: { id } });
+    return "Reservation has been deleted"
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -442,14 +443,20 @@ const ChangeReservationProgress = async (id, changeTo) => {
         break;
       case 'checkin':
         progressIndex = 1
-        if(oldBorderColor === progressColor[1]) throw Error("Already Check In")
+        if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
+        for (let room of reservation.resvRooms) {
+          await changeRoomStatus(room.roomId, 5)
+        }
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate
-        break;
+      break;
       case 'checkout':
         progressIndex = 2
-        if(oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
+        if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
+        for (let room of reservation.resvRooms) {
+          await changeRoomStatus(room.roomId, 3)
+        }
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkoutDate = currentDate
@@ -478,12 +485,12 @@ const ChangeReservationProgress = async (id, changeTo) => {
 }
 
 const GetPreviousIdCard = async (reservationId) => {
-  try{
+  try {
     const idCard = await prisma.idCard.findFirst({ where: { reservationId }, select: { name: true, cardIdentifier: true, cardId: true, address: true } })
     return idCard
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }

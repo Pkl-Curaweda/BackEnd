@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, countDPP } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, countDPP, countTax } = require("../../utils/helper")
 
 const getBillingSummary = async (id, reservationId) => {
     try{
@@ -77,7 +77,7 @@ const getBillingSummary = async (id, reservationId) => {
                 })
             })
         }
-        const dpp = countDPP(invoices)
+        const tax = countTax(invoices)
         let add = {
             billNumber: `${reservationId}-${resvRoom.voucherNo}`,
             reservationResource: resvRoom.reservation.resourceName,
@@ -87,7 +87,7 @@ const getBillingSummary = async (id, reservationId) => {
         return {
             add,
             invoices,
-            dpp
+            tax
         }
     }catch(err){
         ThrowError(err)

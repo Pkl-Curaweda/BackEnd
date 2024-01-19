@@ -2,11 +2,12 @@ const { randomInt } = require("crypto");
 const { prisma } = require("../../config");
 const { roomChangeSeed } = require("../roomChange.seeder");
 const { roomMaidSeed } = require("../../housekeeping/roomMaid.seeder");
+const { invoiceSeeder } = require("../Article/Invoice");
 
 const resvRooms = {
 	roomId: 1,
 	reservationId: 1,
-	roomMaidId: 1,
+	roomMaidId: 2,
 	voucherNo: 21321,
 	arrangmentCodeId: "DLX-RB",
 	created_at: new Date(),
@@ -15,7 +16,7 @@ const resvRooms = {
 
 async function ResvRoomSeed(reservationId) {
 	resvRooms.reservationId = reservationId
-	resvRooms.roomId = randomInt(10),
+	resvRooms.roomId = randomInt(1, 10),
 	resvRooms.voucherNo = randomInt(100)
 	const rType = ['DLX', 'DLX', 'DLX', 'DLX', 'FML', 'FML', 'FML', 'STD', 'STD', 'STD']
 	const rbRo = ['RB', 'RO']
@@ -25,6 +26,7 @@ async function ResvRoomSeed(reservationId) {
 	});
 	await prisma.room.update({ where:{ id: resvRoom.roomId }, data: { occupied_status: true } })
 	await roomChangeSeed(resvRoom.id)
+	await invoiceSeeder(resvRoom.id)
 	await roomMaidSeed(resvRoom.id, resvRoom.roomId)
 }
 

@@ -3,25 +3,18 @@ const { prisma } = require("../config");
 
 const roomMaids = [
   {
-    user: { connect: { id: 1 } },
+    user: { connect: { id: 2 } },
     aliases: 'AL',
-    room: { connect: { id:1 } },
-    priority: 1,
+    workload: 0,
+    shift: { connect:  { id: 3 } },
     department: { connect: { id: 1 } }
   },
   {
-    user: { connect: { id: 2 } },
-    aliases: 'AR',
-    room: { connect: { id:1 } },
-    priority: 2,
-    department: { connect: { id:1 } }
-  },
-  {
     user: { connect: { id: 3 } },
-    aliases: 'RA',
-    room: { connect: { id:2 } },
-    priority: 1,
-    department: { connect: { id:2 } }
+    aliases: 'AR',
+    workload: 0,
+    shift: { connect: { id: 2 } },
+    department: { connect: { id:1 } }
   },
 ];
 
@@ -35,8 +28,10 @@ async function roomMaidSeed(resvRoomId, roomId) {
           connect: { id }
         },
         aliases: 'AA',
-        room: { connect: {id: roomId } },
-        priority: 1,
+        workload: 0,
+        shift:{
+          connect: { id: 1 }
+        },
         department: { connect: { id: 2 } }
       }
     })

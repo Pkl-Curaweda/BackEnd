@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config.js");
-const { getAllExtraBedData } = require("../../models/House Keeping/M_ExtraBed.js");
+const { getAllExtraBedData } = require("../../models/House Keeping/M_Amenities.js");
 const { error, success } = require('../../utils/response.js');
 const PDFDocument = require("pdfkit-table");
 const fs = require("fs");

@@ -1,4 +1,4 @@
-const { GetInvoiceDetailByArt, putInvoiceData } = require("../../models/Front Office/M_Invoice.js");
+const { GetInvoiceDetailByArt, putInvoiceData, deleteInvoiceData } = require("../../models/Front Office/M_Invoice.js");
 const { getReportDetailData } = require("../../models/Front Office/M_Report.js");
 const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard } = require("../../models/Front Office/M_Reservation.js");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom.js");
@@ -87,12 +87,10 @@ const getReportDetail = async (req, res) => {
 }
 
 const getInvoiceDetail = async (req, res) => {
-  const { reservationId, resvRoomId, date } = req.params;
+  const { reservationId, resvRoomId} = req.params;
   const { ids } = req.query;
-  const id = parseInt(ids.split('-')[0]);
-  const uniqueId = parseInt(ids.split('-')[1])
   try {
-    const detail = await GetInvoiceDetailByArt(parseInt(reservationId), parseInt(resvRoomId), { date, id, uniqueId })
+    const detail = await GetInvoiceDetailByArt(parseInt(reservationId), parseInt(resvRoomId), +ids)
     return success(res, 'Operation Success', detail)
   } catch (err) {
     return error(res, err.message)
@@ -197,12 +195,23 @@ const putNewInvoiceData = async (req, res) => {
 const deleteReservation = async (req, res) => {
   const { reservationId } = req.params
   try {
-    const deletedReservation = await deleteReservationById(parseInt(reservationId))
-    return success(res, 'Operation Success', deletedReservation);
+    const message = await deleteReservationById(parseInt(reservationId))
+    return success(res, message);
   } catch (err) {
     return error(res, err.message, 404)
   }
 };
+
+const deleteInvoice = async (req, res) => {
+  const { reservationId, resvRoomId } = req.params
+  const { ids } = req.query
+  try{
+    const deleted = await deleteInvoiceData(+reservationId, +resvRoomId, +ids)
+    return success(res, 'Deleted Successfully', deleted)
+  }catch(err){
+    return error(res, err.message)
+  }
+}
 
 
 module.exports = {
@@ -213,5 +222,6 @@ module.exports = {
   getReportDetail,
   getInvoiceDetail,
   getPreviousCard,
-  putNewInvoiceData
+  putNewInvoiceData,
+  deleteInvoice
 }

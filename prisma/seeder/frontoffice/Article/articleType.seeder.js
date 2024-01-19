@@ -1,4 +1,4 @@
-const { prisma } = require("../config")
+const { prisma } = require("../../config")
 
 const art = [
     
@@ -105,6 +105,11 @@ const art = [
     {
         id: 188,
         description: "Service AC",
+        price: 0.00
+    },
+    {
+        id: 998,
+        description: "Room Price",
         price: 0.00
     }
 ]

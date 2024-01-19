@@ -111,10 +111,10 @@ const GenerateUsernameAndPassword = async (guestName) => {
   }
 }
 
-const countDPP = (model) => {
+const countTax = (model) => {
   try {
     let ra = model.reduce((total, pay) => total + pay.amount, 0);
-    ra = (100 / 111) * ra
+    ra = (ra * 21) / 100
     return ra
   } catch (err) {
     ThrowError(err)
@@ -587,6 +587,6 @@ module.exports = {
   errorResponse,
   successResponse,
   generateToken,
-  countDPP,
+  countTax,
   paginate,
 };

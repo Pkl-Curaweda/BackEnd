@@ -107,17 +107,18 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     }
                 }
             }
-
-            if (roomHistory != 0) Object.values(roomHistory).forEach(history => { averages[`total_${history.room.id}`] = history.occupied != 0 ? + 1 : + 0 })
+            if (roomHistory != 0) Object.values(roomHistory).forEach(history => {
+                averages[`total_${history.room.id}`] = history.occupied != 0 ? averages[`total_${history.room.id}`] + 1 : averages[`total_${history.room.id}`] + 0
+            })
             const pushedData = {
                 date: searchedDate.toISOString().split('T')[0],
                 rmHist
             }
             logData.push(pushedData);
         }
+        console.log(averages)
         let roomAverage = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }
         Object.keys(averages).forEach((average) => {
-            console.log(roomAverage)
             const avg = averages[average];
             roomAverage[average] = avg / logData.length * 100;
         });

@@ -133,7 +133,7 @@ model Reservation {
   manyBaby           Int
   manyNight          Int
   borderColor        String?           @default("#16a75c")
-  reservationRemarks String?           @db.Text @default("")
+  reservationRemarks String?           @default("") @db.Text
   onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime
@@ -176,14 +176,14 @@ model ResvRoom {
   roomId           Int
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
-  roomMaids         RoomMaid       @relation(fields: [roomMaidId], references: [id])
+  roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
   roomMaidId       Int
   billComment      String?        @db.Text
   voucherNo        Int            @unique
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
-  ResvArticle      ResvArticle[]
+  Invoice          Invoice[]
 }
 
 model Reserver {
@@ -221,22 +221,39 @@ model ArrangmentCode {
   Room     Room[]
 }
 
-model ResvArticle {
-  id         Int         @id @default(autoincrement())
-  type       ArticleType @relation(fields: [typeId], references: [id])
-  typeId     Int
-  qty        Int
-  resvRoom   ResvRoom    @relation(fields: [resvRoomId], references: [id])
-  resvRoomId Int
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
+model ArticleLog {
+  id            Int         @id @default(autoincrement())
+  dateUsed      DateTime
+  dateReturn    DateTime
+  qty           Int
+  articleType   ArticleType @relation(fields: [articleTypeId], references: [id])
+  articleTypeId Int
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+}
+
+model Invoice {
+  id            Int          @id @default(autoincrement())
+  resvRoom      ResvRoom     @relation(fields: [resvRoomId], references: [id])
+  resvRoomId    Int
+  articleType   ArticleType? @relation(fields: [articleTypeId], references: [id])
+  articleTypeId Int?
+  qty           Int
+  rate          Float
+  order         OrderDetail? @relation(fields: [orderId], references: [id])
+  orderId       Int?
+  paid          Boolean      @default(false)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 }
 
 model ArticleType {
-  id          Int           @id @unique
-  description String        @db.Text
+  id          Int          @id @unique
+  description String       @db.Text
   price       Float
-  ResvArticle ResvArticle[]
+  ArticleLog  ArticleLog[]
+  Invoice     Invoice[]
+  Stock       Stock[]
 }
 
 model ResvPayment {
@@ -265,14 +282,6 @@ model Department {
   TaskType  TaskType[]
 }
 
-model RoomCapacity {
-  id            Int    @id @default(autoincrement())
-  adultCapacity Int
-  childCapacity Int
-  manyRoom      Int
-  Room          Room[]
-}
-
 model RoomStatus {
   id               Int    @id @default(autoincrement())
   shortDescription String
@@ -291,33 +300,19 @@ model Room {
   floor           Int
   bedSetup        BedType
   description     String
-  roomCapacity    RoomCapacity   @relation(fields: [roomCapacityId], references: [id])
-  roomCapacityId  Int
   occupied_status Boolean
   rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
   rate            String
   updatedAt       DateTime       @updatedAt
   roomChangesFrom RoomChange[]   @relation("RoomChangeFrom")
   roomChangesTo   RoomChange[]   @relation("RoomChangeTo")
-  roomFacilities  RoomFacility[]
   order           Order[]
   resvRooms       ResvRoom[]
   cleanRooms      CleanRoom[]
   dirtyRooms      DirtyRoom[]
   oooRooms        OooRoom[]
   lostFounds      LostFound[]
-  Stock           Stock[]
-  RoomMaid        RoomMaid[]
   MaidTask        MaidTask[]
-}
-
-model RoomFacility {
-  id         Int      @id @default(autoincrement())
-  name       String
-  room       Room     @relation(fields: [roomId], references: [id])
-  roomId     Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
 }
 
 model RoomChange {
@@ -338,14 +333,26 @@ model RoomMaid {
   user         User       @relation(fields: [userId], references: [id])
   userId       Int
   aliases      String
-  room         Room       @relation(fields: [roomId], references: [id])
-  roomId       Int
+  shift        Shift      @relation(fields: [shiftId], references: [id])
+  shiftId      Int
   performance  Float      @default(5)
-  priority     Int
+  finishedTask Int        @default(0)
+  workload     Int
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int
   MaidTask     MaidTask[]
   ResvRoom     ResvRoom[]
+  updated_at   DateTime   @updatedAt
+}
+
+model Shift {
+  id          Int        @id @default(autoincrement())
+  description String     @unique
+  startTime   String     @db.Text
+  endTime     String     @db.Text
+  workTime    Int
+  UoM         String
+  RoomMaid    RoomMaid[]
 }
 
 model MaidTask {
@@ -423,12 +430,11 @@ model OooRoom {
 }
 
 model Stock {
-  id     Int      @id @default(autoincrement())
-  room   Room     @relation(fields: [roomId], references: [id])
-  roomId Int
-  date   DateTime
-  used   Boolean
-  remain Int
+  id            Int         @id @default(autoincrement())
+  articleType   ArticleType @relation(fields: [articleTypeId], references: [id])
+  articleTypeId Int
+  remain        Int
+  rStock        Int
 }
 
 model LostFound {
@@ -573,15 +579,16 @@ model OrderTrack {
 }
 
 model OrderDetail {
-  id         Int      @id @default(autoincrement())
-  order      Order    @relation(fields: [orderId], references: [id])
+  id         Int       @id @default(autoincrement())
+  order      Order     @relation(fields: [orderId], references: [id])
   orderId    String
-  service    Service  @relation(fields: [serviceId], references: [id])
+  service    Service   @relation(fields: [serviceId], references: [id])
   serviceId  Int
   price      Float
   qty        Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  Invoice    Invoice[]
 }
 
 // End In Room Service Area ===================================================

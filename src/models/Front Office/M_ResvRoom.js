@@ -25,6 +25,7 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
 const createNewResvRoom = async (id, data) => {
   try {
     const voucherNo = await generateVoucherNo()
+    const roomMaid = await prisma.roomMaid.findFirst({ where: { roomId: data.roomId } })
     const resvRoom = await prisma.resvRoom.create({
       data: {
         reservation: {
@@ -43,10 +44,12 @@ const createNewResvRoom = async (id, data) => {
             id: data.arrangmentCode
           }
         },
-        voucherNo
+        voucherNo,
+        roomMaids: {
+          connect: { id: roomMaid.id }
+        }
       }
     })
-    await assignRoomMaid(resvRoom.id)
     return resvRoom;
   } catch (err) {
     ThrowError(err)
@@ -59,7 +62,7 @@ const deleteResvRoomByReservationId = async (reservationId, resvRooms = []) => {
   try {
     resvRooms.forEach(async resvRoom => {
       await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoom.id } })
-      await prisma.roomMaid.deleteMany({ where: { resvRoomId: resvRoom.id } })
+      // await prisma.roomMaid.deleteMany({ where: { resvRoomId: resvRoom.id } })
       await prisma.roomChange.deleteMany({ where: { resvRoomId: resvRoom.id } })
       await prisma.resvRoom.delete({ where: { id: resvRoom.id } })
     });
@@ -77,6 +80,8 @@ const deleteResvRoomByReservationId = async (reservationId, resvRooms = []) => {
     dirty.forEach(async dirty => {
       await prisma.dirtyRoom.deleteMany({ where: { reservationId: dirty.reservationId } })
     })
+
+    return await prisma.resvRoom.count({ where: { reservation: { id: reservationId } } })
   } catch (err) {
     ThrowError(err)
   } finally {

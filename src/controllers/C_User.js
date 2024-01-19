@@ -54,7 +54,7 @@ const postLogin = async (req, res) => {
             secure: true,
             sameSite: 'none',
             expires
-        });R
+        });
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
             expiresIn: '15m',
             subject: userAndGeneratedToken.user.id.toString()
@@ -71,8 +71,8 @@ const postLogout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token
         await UserLogout(refreshToken);
-    } catch {
-        return error(res, 'Invalid refresh token')
+    } catch (err) {
+        return error(res, err.message)
     } finally {
         res.clearCookie('refresh_token');
         return success(res, 'Logout sucess')
