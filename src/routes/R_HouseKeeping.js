@@ -68,7 +68,7 @@ const upload = multer({
 })
 //End Multer
 
-router.get('/', arrivalDeparture.getArrivalDepartureData)
+router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
 //Start Auth
 router.post('/login', auth.login)

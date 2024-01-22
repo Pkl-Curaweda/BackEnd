@@ -13,10 +13,11 @@ const assignTask = async (action, roomId, taskRemarks) => {
                 if (!exist) throw Error(`Room ${roomId} doesn't exist`)
                 const workingShift = await getWorkingShifts(new Date())
 
-                let workloads = []
+                let workloads = {}
                 for (let shift of workingShift) {
                     for (let workload of shift.RoomMaid) workloads[workload.id] = (workload.workload)
                 }
+                workloads = Object.values(workloads)
                 const lowestWorkload = Math.min(...workloads)
                 break;
             case "DLYCLEAN":
