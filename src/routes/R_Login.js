@@ -2,6 +2,7 @@ const { Router } = require("express");
 const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser } = require("../controllers/C_User");
 const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controllers/C_Guest");
 const { auth } = require("../middlewares/auth");
+const { getAllNotification } = require("../controllers/Front Office/C_Notification");
 const R_Login = Router();
 
 R_Login.get("/user", getAllUsers)
@@ -9,6 +10,7 @@ R_Login.post("/user/login", postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);
 R_Login.get('/user/me', auth , getCurrentUser);
+R_Login.get('/notif', getAllNotification)
 
 //Guest Login
 R_Login.get("/guest/", GetAllGuest);

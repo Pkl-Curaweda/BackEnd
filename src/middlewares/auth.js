@@ -18,7 +18,7 @@ const auth = (roles) => async (req, res, next) => {
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
         const userData = await prisma.user.findUniqueOrThrow({
             where: {
-                id: parseInt(decoded.sub)
+                id: +decoded.sub
             },
             select: {
                 username: true,
@@ -32,13 +32,11 @@ const auth = (roles) => async (req, res, next) => {
                 }
             }
         })
-        req.user = userData
         if (roles !== undefined) {
             const isAllowed = roles.some((role) => role === user.role.name);
-            if (!isAllowed) {
-                return error(res, 'Forbidden, you are not allowed access this resource', 403);
-            }
+            if (!isAllowed) return error(res, 'Forbidden, you are not allowed access this resource', 403);
         }
+        req.user = userData
         next();
     } catch (err) {
         console.log(err)

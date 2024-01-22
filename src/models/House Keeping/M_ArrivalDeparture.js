@@ -74,6 +74,9 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                             }
                         }
                     },
+                    roomMaids: {
+                        select: { user: { select: { name: true } } }
+                    },
                     arrangmentCodeId: true,
                     room: {
                         select: {
@@ -84,11 +87,6 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                                 select: {
                                     shortDescription: true
                                 }
-                            },
-                            RoomMaid: {
-                                select: { user: { select: { name: true } } },
-                                orderBy: { priority: 'asc' },
-                                take: 1
                             }
                         }
                     },

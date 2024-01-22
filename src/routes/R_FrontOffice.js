@@ -2,7 +2,7 @@ const { Router } = require("express");
 const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Front Office/C_ArrivalGuest");
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
-const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
+const { getAllReport, getReportPDF, postReportPDF } = require("../controllers/Front Office/C_Report");
 const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard, putNewInvoiceData, deleteInvoice } = require("../controllers/Front Office/C_Detail");
 
@@ -35,7 +35,7 @@ R_FrontOffice.post("/roomavail/create-log", CreateLog);
 
 //?REPORT PAGE
 R_FrontOffice.get("/report/", getAllReport);
-R_FrontOffice.get("/report/:displayOption/print", getReportPDF)
+R_FrontOffice.post("/report/print", postReportPDF)
 
 //?INVOICE
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);

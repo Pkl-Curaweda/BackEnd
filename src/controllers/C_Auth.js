@@ -12,14 +12,9 @@ async function login(req, res) {
   const { email, password } = req.body
 
   const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) {
-    return error(res, 'Email not found', 404)
-  }
-
+  if (!user) return error(res, 'Email not found', 404)
   const match = await bcrypt.compare(password, user.password)
-  if (!match) {
-    return error(res, 'Wrong password', 401)
-  }
+  if (!match) return error(res, 'Wrong password', 401)
 
   const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
   const refreshToken = await prisma.userToken.create({

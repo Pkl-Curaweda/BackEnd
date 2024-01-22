@@ -68,11 +68,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
 
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
-    // if (disOpt === "day") {
-    // } else {
-    //   startIndex = 0,
-    //   endIndex = dates.length - 1
-    // }
 
     for (let i = startIndex; i <= endIndex; i++) {
       const searchDate = dates[i];

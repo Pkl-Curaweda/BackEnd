@@ -11,11 +11,11 @@ const getAllExtraBedData = async (art, q) => {
             to = to.toISOString().split('T')[0]
         }
         const data = []
-        const [total, resvArticles] = await prisma.$transaction([
-            prisma.resvArticle.count(),
-            prisma.resvArticle.findMany({
+        const [total, invoice] = await prisma.$transaction([
+            prisma.invoice.count({ where: { articleTypeId: +art, created_at: { gte: `${from}T00:00:00.000Z`, lte: `${to}T23:59:59.999Z` } } }),
+            prisma.invoice.findMany({
                 where: {
-                    typeId: +art,
+                    articleTypeId: +art,
                     created_at: {
                         gte: `${from}T00:00:00.000Z`,
                         lte: `${to}T23:59:59.999Z`
@@ -23,7 +23,7 @@ const getAllExtraBedData = async (art, q) => {
                 },
                 select: {
                     created_at: true,
-                resvRoom: {
+                    resvRoom: {
                         select: { roomId: true }
                     },
                     qty: true
@@ -32,12 +32,12 @@ const getAllExtraBedData = async (art, q) => {
                 take: +perPage
             })
         ])
-        for(let rsvArt of resvArticles){
-            const { created_at } = rsvArt
+        for (let inv of invoice) {
+            const { created_at } = inv
             data.push({
                 date: created_at.toISOString().split("T")[0],
-                roomNo: rsvArt.resvRoom.roomId,
-                used: rsvArt.qty,
+                roomNo: inv.resvRoom.roomId,
+                used: inv.qty,
                 remain: "NEED TO BE CHANGED"
             })
         }

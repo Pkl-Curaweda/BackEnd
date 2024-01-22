@@ -575,18 +575,45 @@ const getWorkingShifts = async (currentTime) => {
   const currentHour = currentTime.getHours() * 60 + currentTime.getMinutes();
   const shifts = await prisma.shift.findMany({ select: { startTime: true, endTime: true, RoomMaid: { select: { id: true, workload: true } } } });
   const currentShifts = shifts.filter((shift) => {
-      const shiftStartTime = getMinutesFromTimeString(shift.startTime);
-      const shiftEndTime = getMinutesFromTimeString(shift.endTime);
-      return currentHour >= shiftStartTime && currentHour < shiftEndTime;
+    const shiftStartTime = getMinutesFromTimeString(shift.startTime);
+    const shiftEndTime = getMinutesFromTimeString(shift.endTime);
+    return currentHour >= shiftStartTime && currentHour < shiftEndTime;
   });
-
   return currentShifts;
 };
 
+const formatCurrency = (num = 0) => {
+  try {
+    return num.toLocaleString()
+  } catch (err) {
+    ThrowError(err)
+  }
+}
+
+const loginPath = (ident) => {
+  let path
+  switch (ident) {
+  case "Admin":
+      path = `${process.env.ALLOWED_ORIGINS}/`
+      break;
+    case "Supervisor":
+      path = `${process.env.ALLOWED_ORIGINS}/impps/supervisor/`
+      break
+    case "Room Boy":
+      path = `${process.env.ALLOWED_ORIGINS}/impps/roomboy/`
+      break
+    default:
+      throw Error('Unmatched identifier')
+  }
+  return path
+}
+
 module.exports = {
   splitDateTime,
+  loginPath,
   getWorkingShifts,
   PrismaDisconnect,
+  formatCurrency,
   formatDecimal,
   generateExpire,
   generateDateBetweenNowBasedOnDays,

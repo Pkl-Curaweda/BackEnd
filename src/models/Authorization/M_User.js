@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, loginPath } = require("../../utils/helper");
 const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
@@ -23,9 +23,8 @@ const UserLogin = async (email, password) => {
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
-    return {
-      user, createdToken
-    }
+    const path = loginPath(user.role.name)
+    return { user, createdToken, path }
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -41,6 +40,7 @@ const UserLogout = async (RefreshToken) => {
   } catch (err) {
     ThrowError(err)
   } finally {
+    n
   }
 }
 

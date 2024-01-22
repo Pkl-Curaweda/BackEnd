@@ -45,11 +45,10 @@ const getNewUserRefreshToken = async (req, res) => {
 
 const postLogin = async (req, res) => {
     const body = req.body;
-    let userAndGeneratedToken
     try {
-        userAndGeneratedToken = await UserLogin(body.email, body.password);
+        const payload = await UserLogin(body.email, body.password);
         const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
-        res.cookie('refresh_token', userAndGeneratedToken.createdToken, {
+        res.cookie('refresh_token', payload.createdToken, {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
@@ -57,11 +56,11 @@ const postLogin = async (req, res) => {
         });
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
             expiresIn: '15m',
-            subject: userAndGeneratedToken.user.id.toString()
+            subject: payload.user.id.toString()
         });
 
-        delete userAndGeneratedToken.user.password;
-        return success(res, 'Login Success', { user: userAndGeneratedToken.user, accessToken });
+        delete payload.user.password;
+        return success(res, 'Login Success', { user: payload.user, path: payload.path, accessToken });
     } catch (err) {
         return error(res, err.message, 404)
     }

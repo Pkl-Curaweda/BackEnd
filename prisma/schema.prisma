@@ -268,7 +268,11 @@ model ResvPayment {
   updated_at    DateTime    @updatedAt
 }
 
-//? Front Office Develop
+model Notification {
+  id Int @id @default(autoincrement())
+  content String @db.Text
+  created_at DateTime @default(now())
+}
 
 // End Front Office Area ======================================================
 
