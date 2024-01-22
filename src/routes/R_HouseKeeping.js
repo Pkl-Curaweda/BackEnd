@@ -37,6 +37,7 @@ const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDepartur
 const roomOcc = require('../controllers/House Keeping/C_RoomOCC.js')
 const { route } = require('./R_Login.js');
 const { postStat } = require('../controllers/Front Office/C_FloorPlan.js');
+const { dailyCleaning, amenitiesTask } = require('../controllers/House Keeping/IMPPS/C_RoomMaid.js');
 
 
 const router = express.Router()
@@ -141,6 +142,11 @@ router.get('/room-maid', roomMaid.findAll)
 router.post('/room-maid/print', roomMaid.print)
 router.get('/room-maid/:id', roomMaid.findOne)
 //End Room Maid
+
+//Start Maid Task
+router.get('/task/dc', dailyCleaning)
+router.get('/task/at/:roomId?', amenitiesTask)
+//End Maid Task
 
 //Start Stock
 router.get('/stock', getStockValidation, stock.index)

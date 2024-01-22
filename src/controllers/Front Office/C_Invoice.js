@@ -49,12 +49,13 @@ const postNewInvoice = async (req, res) => {
 }
 
 const getPrintData = async (req, res) => {
-  const { reservationId = 1, resvRoomId = 1 } = req.query;
+  const { reservationId, resvRoomId } = req.params;
+  const { page = 1, perPage = 5, sort, search, date } = req.query;
   try {
-    const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
-    return success(res, 'Operation Success', invoiceData)
+    const invoices = await printInvoice(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage), search, date);
+    return success(res, "Operation Success", invoices);
   } catch (err) {
-    return error(res, err.message)
+    return error(res, err.message);
   }
 }
 

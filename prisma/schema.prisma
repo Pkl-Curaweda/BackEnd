@@ -338,6 +338,7 @@ model RoomMaid {
   performance  Float      @default(5)
   finishedTask Int        @default(0)
   workload     Int
+  currentSchedule String
   department   Department @relation(fields: [departmentId], references: [id])
   departmentId Int
   MaidTask     MaidTask[]
@@ -363,7 +364,7 @@ model MaidTask {
   roomMaid    RoomMaid @relation(fields: [roomMaidId], references: [id])
   roomMaidId  Int
   type        TaskType @relation(fields: [typeId], references: [id])
-  typeId      Int
+  typeId      String
   startTime   String?
   endTime     String?
   taskRemarks String?  @db.Text
@@ -372,7 +373,7 @@ model MaidTask {
 }
 
 model TaskType {
-  id           Int        @id @default(autoincrement())
+  id           String        @id @unique
   activity     String
   standardTime Int
   UoM          String

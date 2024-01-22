@@ -3,6 +3,7 @@ const { z } = require('zod');
 const crypto = require('crypto');
 const fs = require('fs');
 const multer = require('multer');
+const { addMinutes, format, parse } = require('date-fns');
 const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/library');
 require('dotenv').config();
 const { prisma } = require("../../prisma/seeder/config");
@@ -16,6 +17,17 @@ const ThrowError = (err) => {
   console.log(err)
   throw err
 }
+
+const formatToSchedule = (startTime, minutesToAdd) => {
+  try {
+    const parsedTime = parse(startTime, 'HH:mm', new Date());
+    const newTime = addMinutes(parsedTime, minutesToAdd);
+    const formattedTime = format(newTime, 'HH:mm');
+    return formattedTime;
+  } catch (err) {
+    ThrowError(err)
+  }
+};
 
 function generateDateBetweenNowBasedOnDays(pastFuture, manyDays) {
   const dateArray = [];
@@ -554,8 +566,26 @@ function formatDecimal(input) {
   return parseFloat(formattedNumber);
 }
 
+const getMinutesFromTimeString = (timeString) => {
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const getWorkingShifts = async (currentTime) => {
+  const currentHour = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const shifts = await prisma.shift.findMany({ select: { startTime: true, endTime: true, RoomMaid: { select: { id: true, workload: true } } } });
+  const currentShifts = shifts.filter((shift) => {
+      const shiftStartTime = getMinutesFromTimeString(shift.startTime);
+      const shiftEndTime = getMinutesFromTimeString(shift.endTime);
+      return currentHour >= shiftStartTime && currentHour < shiftEndTime;
+  });
+
+  return currentShifts;
+};
+
 module.exports = {
   splitDateTime,
+  getWorkingShifts,
   PrismaDisconnect,
   formatDecimal,
   generateExpire,
@@ -585,6 +615,7 @@ module.exports = {
   getOffset,
   emptyOrRows,
   errorResponse,
+  formatToSchedule,
   successResponse,
   generateToken,
   countTax,

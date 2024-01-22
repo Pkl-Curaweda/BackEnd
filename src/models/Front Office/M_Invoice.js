@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice, splitDateTime } = require("../../utils/helper");
 
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
@@ -341,23 +341,21 @@ const deleteInvoiceData = async (reservationId, resvRoomId, id) => {
   }
 }
 
-const printInvoice = async (id, reservationId) => {
+const printInvoice = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ //Doganti ke resvRoom soalnya data yang bakal diambil ini dari 1 reservation bukan seluruh data yang ada di reservation
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ 
       where: {
-        id, reservationId
+        id: resvRoomId, reservationId
       },
       select: {
         id: true,
         reservation: {
           select: {
-            id: true,
             arrivalDate: true,
             departureDate: true,
             reserver: {
               select: {
                 resourceName: true,
-                guestId: true,
                 guest: {
                   select: {
                     name: true,
@@ -366,75 +364,17 @@ const printInvoice = async (id, reservationId) => {
               },
             }
           }
-        },
-        arrangment: {
-          select: {
-            rate: true
-          }
-        },
+        }
       }
     });
-    let invoices = []
-    const { reservation, arrangment } = resvRoom
-    const { reserver } = reservation
-    const arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0]
-    const departureDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0]
-    //?Using date so it will only pick the data that are from the arrivalDate, and departureDate of that reservation
-    const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate)
-    for (date of dates) {
-      let roomPrice = {
-        date,
-        desc: "Room Rate",
-        amount: arrangment.rate
-      } //?What this do is each date take 1 room price of that room
-      invoices.push(roomPrice)
-      const orders = await prisma.orderDetail.findMany({ //?Now the order is based on the date, so the date will not only be the date of reservation.created_at
-        where: {
-          order: { guestId: reserver.guestId },
-        },
-        select: {
-          qty: true,
-          service: {
-            select: {
-              name: true,
-              price: true,
-            },
-          }
-        }
-      })
-
-      const article = await prisma.resvArticle.findMany({
-        where: { resvRoomId: resvRoom.id },
-        select: {
-          qty: true,
-          type: {
-            select: { description: true, price: true }
-          }
-        }
-      })
-
-      orders.forEach(order => {
-        invoices.push({
-          date: '',
-          desc: order.service.name,
-          amount: order.qty * order.service.price
-        })
-      })
-
-      for (let art of article) {
-        invoices.push({
-          date: '',
-          desc: art.type.description,
-          amount: art.qty * art.type.price
-        })
-      }
-    }
+    const { reservation } = resvRoom
+    const inv = await GetInvoiceByResvRoomId(reservationId, resvRoomId, sortIdentifier, page, perPage, search, date)
     return {
-      resourceName: reserver.resourceName,
-      guestName: reserver.guest.name,
-      arrivalDate,
-      departureDate,
-      invoices
+      resourceName:  reservation.reserver.resourceName,
+      guestName: reservation.reserver.guest.name,
+      arrivalDate: splitDateTime(reservation.arrivalDate).date,
+      departureDate:  splitDateTime(reservation.departureDate).date,
+      invoices: inv.invoices
     }
   } catch (err) {
     ThrowError(err);

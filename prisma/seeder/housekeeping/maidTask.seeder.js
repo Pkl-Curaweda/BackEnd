@@ -5,7 +5,7 @@ const maidTasks = [
     roomId: 1,
     request: "Please clean, there's a coffee on the celling",
     roomMaidId: 1,
-    typeId: 1
+    typeId: "FCLN-DELUXE"
   },
 ];
 
