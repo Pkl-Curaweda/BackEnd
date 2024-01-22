@@ -59,10 +59,11 @@ const getPrintData = async (req, res) => {
   }
 }
 
-const getInvoicePDF = async (req, res) => {
+const postInvoicePDF = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
+  const { page = 1, perPage = 5, sort, search, date } = req.query;
   try {
-    const invoiceData = await printInvoice(parseInt(resvRoomId), parseInt(reservationId));
+    const invoiceData = await  printInvoice(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage), search, date);
     const doc = new PDFDocument({ font: 'src/pdf/Inter-Regular.ttf', size: 'LEGAL', margin: { top: 30, bottom: 20, right: 50, left: 50 } });
     const stream = fs.createWriteStream("src/pdf/invoicePdf.pdf");
 
@@ -117,7 +118,7 @@ const getInvoicePDF = async (req, res) => {
     let width = (pageWidth - 100) * 0.2
     const table = {
       headers: [
-        { label: "Date", property: "date", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
+        { label: "Date", property: "billDate", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width },
         { label: "", property: "", width: 2 },
         { label: "Description", property: "desc", valign: "center", headerAlign: "left", headerColor: "#3CB043", headerOpacity: 1, color: "#FFFFFF", width: (pageWidth - width - 74) * 0.6 },
         { label: "", property: "", width: 2 },
@@ -142,7 +143,6 @@ const getInvoicePDF = async (req, res) => {
       prepareRow: () => doc.font('regular').fillColor('black')
     });
 
-    // Menambahkan garis pembatas warna hijau
     doc.lineWidth(1).moveTo(doc.x, doc.y).lineTo(pageWidth - doc.x, doc.y).stroke("green");
     doc.moveDown(1)
     doc.text("Gedung Lingian, Universitas Telkom, Jl.\ntelekomunikasi, No. 01, Terusan\nBuahBatu, Bandung, Jawa Barat 40257;\nPhone, +62 8112072999",
@@ -159,4 +159,4 @@ const getInvoicePDF = async (req, res) => {
   }
 };
 
-module.exports = { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment };
+module.exports = { getInvoice, getSummary, postInvoicePDF, postNewInvoice, getPrintData, postNewPayment };

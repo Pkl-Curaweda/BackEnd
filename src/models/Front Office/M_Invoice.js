@@ -370,6 +370,7 @@ const printInvoice = async (reservationId, resvRoomId, sortIdentifier, page, per
     const { reservation } = resvRoom
     const inv = await GetInvoiceByResvRoomId(reservationId, resvRoomId, sortIdentifier, page, perPage, search, date)
     return {
+      billNumber: `#${reservationId}-${resvRoomId}`,
       resourceName:  reservation.reserver.resourceName,
       guestName: reservation.reserver.guest.name,
       arrivalDate: splitDateTime(reservation.arrivalDate).date,

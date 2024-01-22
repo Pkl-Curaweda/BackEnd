@@ -3,7 +3,7 @@ const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Fron
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
 const { getAllReport, getReportPDF } = require("../controllers/Front Office/C_Report");
-const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment } = require("../controllers/Front Office/C_Invoice");
+const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard, putNewInvoiceData, deleteInvoice } = require("../controllers/Front Office/C_Detail");
 
 const R_FrontOffice = new Router();
@@ -42,7 +42,7 @@ R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
-R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/print", getInvoicePDF);
+R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/print", postInvoicePDF);
 R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInvoice)
 
 module.exports = R_FrontOffice;
