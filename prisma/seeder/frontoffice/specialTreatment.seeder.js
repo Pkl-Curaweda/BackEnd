@@ -9,7 +9,7 @@ const specialTreatments = [
     {
         description: "INCOGNITO",
         rowColor: "#f10000",
-        textColor: "#ffffff",
+        textColor: "#f10000",
     },
 ];
 async function specialTreatmentSeed() {

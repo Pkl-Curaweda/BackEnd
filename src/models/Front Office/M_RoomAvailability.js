@@ -42,19 +42,64 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
-            const logAvailability = await prisma.logAvailability.findFirst({
-                where: {
-                    created_at: {
-                        gte: `${searchDate}T00:00:00.000Z`,
-                        lte: `${searchDate}T23:59:59.999Z`
+            let logAvailability = { roomHistory: {} }
+            if (searchDate === new Date().toISOString().split('T')[0]) {
+                const reservation = await prisma.resvRoom.findMany({
+                    where: { reservation: { onGoingReservation: true } },
+                    select: {
+                        id: true,
+                        arrangment: {
+                            select: { rate: true }
+                        },
+                        room: {
+                            select: { id: true, roomType: true, bedSetup: true }
+                        },
+                        reservation: {
+                            select: {
+                                id: true,
+                                arrivalDate: true,
+                                departureDate: true,
+                                resvStatus: { select: { rowColor: true, textColor: true } },
+                                reserver: { select: { guest: { select: { name: true } } } }
+                            }
+                        }
                     }
-                }, select: {
-                    roomHistory: true
-                },
-                orderBy: {
-                    created_at: 'desc'
+                })
+                for (let res of reservation) {
+                    console.log(res.reservation.arrivalDate, res.reservation.departureDate)
+                    const key = `room_${res.room.id}`
+                    logAvailability.roomHistory[key] = {
+                        reservationId: res.reservation.id,
+                        resvRoomId: res.id,
+                        guestName: res.reservation.reserver.guest.name,
+                        resvStatus: {
+                            rowColor: res.reservation.resvStatus.rowColor,
+                            textColor: res.reservation.resvStatus.textColor
+                        },
+                        room: {
+                            id: res.room.id,
+                            roomType: res.room.roomType,
+                            bedSetup: res.room.bedSetup
+                        },
+                        occupied: 1,
+                        roomPrice: res.arrangment.rate
+                    }
                 }
-            })
+            } else {
+                logAvailability = await prisma.logAvailability.findFirst({
+                    where: {
+                        created_at: {
+                            gte: `${searchDate}T00:00:00.000Z`,
+                            lte: `${searchDate}T23:59:59.999Z`
+                        }
+                    }, select: {
+                        roomHistory: true
+                    },
+                    orderBy: {
+                        created_at: 'desc'
+                    }
+                })
+            }
             let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
             if (search !== undefined && roomHistory !== 0) {
