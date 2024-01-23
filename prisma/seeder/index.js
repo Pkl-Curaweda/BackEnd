@@ -21,9 +21,9 @@ async function main() {
   await departmentSeed()
   await ShiftSeed();
   await articleTypeSeed()
-  await articleLogsSeed()
   await roomBatchSeed()
   await NotificationSeed()
+  await articleLogsSeed()
   await roomMaidSeed()
   
   /* front office seeed */

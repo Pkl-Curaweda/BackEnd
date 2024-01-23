@@ -122,6 +122,26 @@ const getRoomMaidReport = async (q) => {
     }
 }
 
+const resetRoomMaid = async () => {
+    try{
+        const roomMaids = await prisma.roomMaid.findMany({ select: { id: true, shift: { select: { startTime: true } } } })
+        for(let rm of roomMaids){
+            await prisma.roomMaid.update({
+                where: { id: rm.id },
+                data:{
+                    workload: 0,
+                    currentSchedule: rm.shift.startTime
+                }
+            })
+        }
+        return "Success"
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
 /**
  * @typedef {object} GetAllRoomMaidOption
  * @property {number} page
@@ -260,4 +280,4 @@ async function remove(id) {
 }
 
 
-module.exports = { assignRoomMaid, all, get, create, update, remove, getRoomMaidReport }
+module.exports = { resetRoomMaid, assignRoomMaid, all, get, create, update, remove, getRoomMaidReport }

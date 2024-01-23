@@ -1,8 +1,8 @@
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, isDateInRange } = require("../../utils/helper")
 
 const getAllAmenitiesData = async (art, q) => {
-    let { page = 1, perPage = 5, from, to } = q
+    let { page = 1, perPage = 5, from, to } = q, usedLog = []
     try {
         if (from === undefined) from = new Date().toISOString().split("T")[0]
         if (to === undefined) {
@@ -12,43 +12,50 @@ const getAllAmenitiesData = async (art, q) => {
         }
         const data = []
         const dates = generateDateBetweenStartAndEnd(from, to)
-        for(date of dates){
-
-        }
-        const [total, stock, invoice] = await prisma.$transaction([
-            prisma.invoice.count({ where: { articleTypeId: +art, created_at: { gte: `${from}T00:00:00.000Z`, lte: `${to}T23:59:59.999Z` } } }),
-            prisma.stock.findFirst({ where: { articleTypeId: +art }, select: { remain: true } }),
-            prisma.invoice.findMany({
+        const [stock, usedArticle] = await prisma.$transaction([
+            prisma.stock.findFirst({ where: { articleTypeId: +art }, select: { rStock: true } }),
+            prisma.articleLog.findMany({
                 where: {
                     articleTypeId: +art,
-                    created_at: {
-                        gte: `${from}T00:00:00.000Z`,
-                        lte: `${to}T23:59:59.999Z`
-                    }
+                    dateUsed: { gte: `${from}T00:00:00.000Z` },
+                    dateReturn: { lte: `${to}T23:59:59.999Z` }
                 },
                 select: {
-                    created_at: true,
-                    resvRoom: {
-                        select: { roomId: true }
-                    },
+                    dateUsed: true,
+                    dateReturn: true,
+                    roomId: true,
                     qty: true
                 },
                 skip: (page - 1) * perPage,
                 take: +perPage
             })
         ])
-        for (let inv of invoice) {
-            const { created_at } = inv
-            data.push({
-                date: created_at.toISOString().split("T")[0],
-                roomNo: inv.resvRoom.roomId,
-                used: inv.qty,
-                remain: "NEED TO BE CHANGED"
-            })
+        
+        for(date of dates){
+            let remain = stock.rStock
+            const filteredArticle = usedArticle.filter(article => {
+                let [dateUsed, dateReturn] = [article.dateUsed, article.dateReturn]
+                return isDateInRange(new Date(date), new Date(`${dateUsed.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${dateReturn.toISOString().split('T')[0]}T23:59:59.999Z`));
+              })
+            for(let article of filteredArticle){
+                remain = remain - article.qty
+                usedLog.push({
+                    date, roomNo: article.roomId,
+                    used: article.qty,
+                    remain
+                })
+            }
         }
+        const total = usedLog.length
+        let startIndex = (page - 1) * perPage;
+        let endIndex = startIndex + perPage - 1;
+        startIndex = Math.max(0, startIndex);
+        endIndex = Math.min(total - 1, endIndex);
+
+        usedLog.slice(startIndex, endIndex)
         const lastPage = Math.ceil(total / perPage);
         return {
-            extra: data, meta: {
+            extra: usedLog, meta: {
                 total,
                 currPage: +page,
                 lastPage,

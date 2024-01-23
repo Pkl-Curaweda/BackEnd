@@ -590,6 +590,11 @@ const formatCurrency = (num = 0) => {
   }
 }
 
+const isDateInRange = (date, rangeStart, rangeEnd) => {
+  const checkDate = new Date(date);
+  return checkDate >= rangeStart && checkDate <= rangeEnd;
+};
+
 const loginPath = (ident) => {
   let path
   switch (ident) {
@@ -611,6 +616,7 @@ const loginPath = (ident) => {
 module.exports = {
   splitDateTime,
   loginPath,
+  isDateInRange,
   getWorkingShifts,
   PrismaDisconnect,
   formatCurrency,

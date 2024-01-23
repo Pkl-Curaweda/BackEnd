@@ -37,7 +37,7 @@ const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDepartur
 const roomOcc = require('../controllers/House Keeping/C_RoomOCC.js')
 const { route } = require('./R_Login.js');
 const { postStat } = require('../controllers/Front Office/C_FloorPlan.js');
-const { dailyCleaning, amenitiesTask } = require('../controllers/House Keeping/IMPPS/C_RoomMaid.js');
+const { dailyCleaning, amenitiesTask, resetSchedule } = require('../controllers/House Keeping/IMPPS/C_RoomMaid.js');
 
 
 const router = express.Router()
@@ -124,8 +124,8 @@ router.post('/roomchange/print', roomChange.print)
 //End Room Change
 
 //Start Extra Bed
-router.get('/extrabeds/:art', amenities.findAll)
-router.post('/extrabeds/:art/print', amenities.print)
+router.get('/amenities/:art', amenities.findAll)
+router.post('/amenities/:art/print', amenities.print)
 //End Extra Bed
 
 //Start Clean Dirty Room
@@ -133,13 +133,14 @@ router.get('/clean-dirty', cleanDirty.get)
 router.put("/clean-dirty/:id", updateRoomStatusValidation, cleanDirty.updateStatus)
 //End Clean Dirty Room
 
-//Start Discrepancy
+//Start Discrepancy 
 router.get('/discrepancy', getDiscrepancyValidation, discrepancy.index)
 //End Discrepancy
 
 //Start Room  Maid
 router.get('/room-maid', roomMaid.findAll)
 router.post('/room-maid/print', roomMaid.print)
+router.get('/room-maid/reset', resetSchedule)
 router.get('/room-maid/:id', roomMaid.findOne)
 //End Room Maid
 

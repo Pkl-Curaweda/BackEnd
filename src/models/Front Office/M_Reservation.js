@@ -510,9 +510,9 @@ const AddNewIdCard = async (data) => {
 const changeSpecialTreatment = async (reservationId, specialTreatmentId) => {
   try {
     const treatment = ['VIP', 'INCOGNITO']
-    if (specialTreatmentId !== 1 && specialTreatmentId !== 2) throw new Error('No Treatment Applied')
+    if (specialTreatmentId > 2) specialTreatmentId = null
     await prisma.reservation.update({ where: { id: reservationId }, data: { specialTreatmentId: specialTreatmentId } })
-    return treatment[specialTreatmentId - 1]
+    return treatment[specialTreatmentId - 1] || "Default"
   } catch (err) {
     ThrowError(err)
   } finally {

@@ -1,4 +1,6 @@
 const { assignCleaningTask, assignTask } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
+const { resetRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
+const { ThrowError } = require("../../../utils/helper")
 const { error, success } = require("../../../utils/response")
 
 const get = (req, res) => {
@@ -55,4 +57,13 @@ const amenitiesTask = async (req, res) => {
     }
 }
 
-module.exports = { get, dailyCleaning,amenitiesTask }
+const resetSchedule  = async (req, res) => {
+    try{
+        const roomMaid = await resetRoomMaid()
+        return success(res, roomMaid)
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+
+module.exports = { get, dailyCleaning,amenitiesTask, resetSchedule  }

@@ -1,4 +1,5 @@
 const { getAllReservation, changeSpecialTreatment } = require("../../models/Front Office/M_Reservation");
+const { ThrowError } = require("../../utils/helper");
 const { success, error } = require("../../utils/response");
 
 const getArrivalGuestData = async (req, res) => {
@@ -15,7 +16,8 @@ const putChangeTreatment = async (req, res) => {
   let { id } = req.query
   try{
     const reservationId = parseInt(id.split('-')[0])
-    const treatmentId = parseInt(id.split('-')[1])
+    let treatmentId = parseInt(id.split('-')[1])
+    if(treatmentId < 1) throw Error('No Treatment Matched')
     const assignedTreatment = await changeSpecialTreatment(reservationId, treatmentId)
     return success(res, `Reservation ${reservationId} has changed to ${assignedTreatment}`)
   }catch(err){

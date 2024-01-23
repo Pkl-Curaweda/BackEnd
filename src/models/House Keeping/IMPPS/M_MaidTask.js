@@ -8,7 +8,7 @@ const assignTask = async (action, roomId, request, article) => {
         const [rooms] = await prisma.$transaction([
             prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: true, occupied_status: true }, orderBy: { occupied_status: 'desc' } }),
         ])
-        if(article != undefined) article = await prisma.articleType.findFirstOrThrow({ where: { id: article }, select: { description: true }  })
+        if (article != undefined) article = await prisma.articleType.findFirstOrThrow({ where: { id: article }, select: { description: true } })
         switch (action) {
             case "GUEREQ":
                 let lowestRoomMaidId;
@@ -30,15 +30,21 @@ const assignTask = async (action, roomId, request, article) => {
                 return maidTask
             case "DLYCLEAN":
                 for (let room of rooms) {
-                    const rms = await prisma.roomMaid.findMany({ select: { id: true, workload: true, shiftId: true, currentSchedule: true, user: { select: { name: true } } }, orderBy: { shiftId: 'asc' } })
-                    let clnType = "CLN", shift = 0, workload = 0, prevSchedule
+                    const rms = await prisma.roomMaid.findMany({ select: { id: true, workload: true, shift: { select: { restTimeStart: true, restTimeEnd: true } }, currentSchedule: true, user: { select: { name: true } } }, orderBy: { shiftId: 'asc' } })
+                    let clnType = "CLN", shift = 0, workload = 0, prevSchedule, nextSchedule
                     if (room.occupied_status != false) clnType = `FCLN-${room.roomType}`
                     const task = await prisma.taskType.findFirstOrThrow({ where: { id: clnType } })
                     do {
                         shift++
                         prevSchedule = rms[shift - 1].currentSchedule
+                        nextSchedule = formatToSchedule(prevSchedule, task.standardTime)
+                        if (prevSchedule === rms[shift - 1].shift.restTimeStart || nextSchedule >= rms[shift - 1].shift.restTimeStart && nextSchedule < rms[shift - 1].shift.restTimeEnd) {
+                            await prisma.roomMaid.update({ where: { id: rms[shift - 1].id }, data: { currentSchedule: rms[shift - 1].shift.restTimeEnd } })
+                            shift++
+                        }
                         workload = rms[shift - 1].workload + task.standardTime
                     } while (workload > 480)
+                    prevSchedule = rms[shift - 1].currentSchedule
                     const currentSchedule = formatToSchedule(prevSchedule, task.standardTime)
                     const [createdTask, assignedRoomMaid] = await prisma.$transaction([
                         prisma.maidTask.create({ data: { roomId: room.id, roomMaidId: rms[shift - 1].id, typeId: clnType, request: request ? request : "Messy room", status: "Need to be cleaned" } }),
