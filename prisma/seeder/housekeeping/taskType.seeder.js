@@ -50,8 +50,10 @@ const taskTypes = [
 
 async function taskTypeSeed() {
     for (let taskType of taskTypes) {
-        await prisma.taskType.create({
-            data: taskType
+        await prisma.taskType.upsert({
+            where: { id: taskType.id },
+            update: { ...taskType },
+            create: { ...taskType }
         });
     }
 }

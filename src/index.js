@@ -12,6 +12,7 @@ const R_HouseKeeping = require('./routes/R_HouseKeeping')
 const R_InRoomService = require("./routes/R_InRoomService");
 const dashboard = require('./models/Front Office/M_Dashboard');
 const { success, error } = require("./utils/response");
+const { getAllNotification } = require("./controllers/Front Office/C_Notification");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -44,6 +45,7 @@ app.get('/dashboard', async (req, res) => {
     return error(res, err.message)
   }
 })
+app.get('/notif', getAllNotification)
 app.use("/fo", R_FrontOffice);
 app.use('/hk', R_HouseKeeping)
 app.use('/irs', R_InRoomService)

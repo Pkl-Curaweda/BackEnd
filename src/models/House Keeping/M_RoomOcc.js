@@ -4,14 +4,24 @@ const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generat
 const { getAllRoomStatus } = require("./M_Room")
 
 const getRoomOccupancyData = async (q) => {
-    const { page, perPage, disOpt } = q
+    const { page, perPage, disOpt, filt } = q
     const currentDate = new Date()
     let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
-        const roomStatus = await getAllRoomStatus()
+        //TODO: GRAPH ROOM OCCUPANCY
+        const roomType = filt ? { roomType: filt } : undefined
+        const roomStatus = await prisma.room.findMany({
+            where: {
+                ...(roomType != undefined && roomType)
+            },select: {
+                id: true,
+                roomType: true,
+                roomStatus: {
+                    select: { longDescription: true }
+                }
+            }
+        })
         for (let room of roomStatus) {
-            console.log('=====================')
-            console.log(`ROOM ${room.id}`)
             const [r, estR] = await prisma.$transaction([
                 prisma.resvRoom.findFirst({ where: { roomId: room.id, reservation: { checkInDate: { not: null }, onGoingReservation: true } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
                 prisma.resvRoom.findMany({ where: { roomId: room.id, reservation: { arrivalDate: { gte: currentDate.toISOString() } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } })
@@ -46,8 +56,10 @@ const getRoomOccupancyData = async (q) => {
         //?PERCENTAGES
         switch (disOpt) {
             case "week":
-                startDate = currentDate
-                endDate = new Date(currentDate).setDate(currentDate.getDate() - 6)
+                startDate = currentDate.toISOString()
+                endDate = new Date(currentDate)
+                endDate.setDate(currentDate.getDate() - 6)
+                endDate = endDate.toISOString()
                 break
             case "month":
                 startDate = new Date(currentDate.setDate(currentDate.getDate() - (currentDate.getDate() - 1)))
@@ -69,7 +81,7 @@ const getRoomOccupancyData = async (q) => {
         for (let resv of r) estPers += (resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild)
         currData.estOcc.person = + estPers
         percData.ooo.room += ooo
-        return { currData, percData }
+        return { currData, percData, roomStatus }
     } catch (err) {
         ThrowError(err)
     } finally {

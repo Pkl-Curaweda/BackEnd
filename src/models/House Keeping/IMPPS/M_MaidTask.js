@@ -1,25 +1,33 @@
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts } = require("../../../utils/helper")
+const { createNotification } = require("../../Authorization/M_Notitication")
 
-const assignTask = async (action, roomId, taskRemarks) => {
+const assignTask = async (action, roomId, request, article) => {
     let assigne = []
     try {
         const [rooms] = await prisma.$transaction([
             prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: true, occupied_status: true }, orderBy: { occupied_status: 'desc' } }),
         ])
+        if(article != undefined) article = await prisma.articleType.findFirstOrThrow({ where: { id: article }, select: { description: true }  })
         switch (action) {
             case "GUEREQ":
+                let lowestRoomMaidId;
+                let lowestWorkload = Infinity;
                 const exist = rooms.some(room => room.id === roomId);
                 if (!exist) throw Error(`Room ${roomId} doesn't exist`)
                 const workingShift = await getWorkingShifts(new Date())
-
-                let workloads = {}
                 for (let shift of workingShift) {
-                    for (let workload of shift.RoomMaid) workloads[workload.id] = (workload.workload)
+                    for (let workload of shift.RoomMaid) {
+                        console.log(workload)
+                        if (workload.workload < lowestWorkload) {
+                            lowestWorkload = workload.workload;
+                            lowestRoomMaidId = workload.id;
+                        }
+                    }
                 }
-                workloads = Object.values(workloads)
-                const lowestWorkload = Math.min(...workloads)
-                break;
+                const maidTask = await prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, typeId: "GREQ" } })
+                await createNotification({ content: `Room ${roomId} need ${article.description}` })
+                return maidTask
             case "DLYCLEAN":
                 for (let room of rooms) {
                     const rms = await prisma.roomMaid.findMany({ select: { id: true, workload: true, shiftId: true, currentSchedule: true, user: { select: { name: true } } }, orderBy: { shiftId: 'asc' } })
@@ -33,7 +41,7 @@ const assignTask = async (action, roomId, taskRemarks) => {
                     } while (workload > 480)
                     const currentSchedule = formatToSchedule(prevSchedule, task.standardTime)
                     const [createdTask, assignedRoomMaid] = await prisma.$transaction([
-                        prisma.maidTask.create({ data: { roomId: room.id, roomMaidId: rms[shift - 1].id, typeId: clnType, request: taskRemarks ? taskRemarks : "Messy room", status: "Need to be cleaned" } }),
+                        prisma.maidTask.create({ data: { roomId: room.id, roomMaidId: rms[shift - 1].id, typeId: clnType, request: request ? request : "Messy room", status: "Need to be cleaned" } }),
                         prisma.roomMaid.update({ where: { id: rms[shift - 1].id }, data: { workload: rms[shift - 1].workload + task.standardTime, currentSchedule } })
                     ])
                     assigne.push({

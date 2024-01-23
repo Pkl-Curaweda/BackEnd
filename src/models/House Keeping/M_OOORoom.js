@@ -102,7 +102,7 @@ async function all(option) {
 
     const OOORoom = [];
     for(let ooo of oooRooms){
-      OOORoom.push({
+     OOORoom.push({
         roomNo: ooo.room.id,
         reason: ooo.reason,
         from: splitDateTime(ooo.from).date,

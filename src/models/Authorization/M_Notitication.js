@@ -12,7 +12,7 @@ const get = async () => {
     }
 }
 
-const create = async (data) => {
+const createNotification = async (data = { content: '' }) => {
     try{
         const created = await prisma.notification.create({ data })
         return created
@@ -21,4 +21,4 @@ const create = async (data) => {
     }
 }
 
-module.exports = { get, create }
+module.exports = { get, createNotification }

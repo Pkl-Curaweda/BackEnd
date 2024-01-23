@@ -374,6 +374,8 @@ model MaidTask {
   taskRemarks String?  @db.Text
   status      String?
   mainStatus  String   @default("WAITING")
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
 }
 
 model TaskType {

@@ -48,7 +48,8 @@ const amenitiesTask = async (req, res) => {
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢯⡾⠀⠀⠀⠀⠀⢠⠉⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⢟⡖⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣦⣤⣤⣀⣀⣀⡀
         `)
-        await assignTask("GUEREQ", +roomId, "Please fast, my Tochter need this asf")
+        const task = await assignTask("GUEREQ", +roomId, "Please fast, my Tochter need this asf", 110)
+        return success(res, 'Success', task)
     }catch(err){
         return error(res, err.message)
     }

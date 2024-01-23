@@ -1,7 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd } = require("../../utils/helper")
 
-const getAllExtraBedData = async (art, q) => {
+const getAllAmenitiesData = async (art, q) => {
     let { page = 1, perPage = 5, from, to } = q
     try {
         if (from === undefined) from = new Date().toISOString().split("T")[0]
@@ -11,8 +11,13 @@ const getAllExtraBedData = async (art, q) => {
             to = to.toISOString().split('T')[0]
         }
         const data = []
-        const [total, invoice] = await prisma.$transaction([
+        const dates = generateDateBetweenStartAndEnd(from, to)
+        for(date of dates){
+
+        }
+        const [total, stock, invoice] = await prisma.$transaction([
             prisma.invoice.count({ where: { articleTypeId: +art, created_at: { gte: `${from}T00:00:00.000Z`, lte: `${to}T23:59:59.999Z` } } }),
+            prisma.stock.findFirst({ where: { articleTypeId: +art }, select: { remain: true } }),
             prisma.invoice.findMany({
                 where: {
                     articleTypeId: +art,
@@ -59,4 +64,4 @@ const getAllExtraBedData = async (art, q) => {
     }
 }
 
-module.exports = { getAllExtraBedData }
+module.exports = { getAllAmenitiesData }

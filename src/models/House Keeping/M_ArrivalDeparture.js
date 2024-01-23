@@ -17,7 +17,7 @@ const searchGet = (q) => {
 }
 
 const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
-    let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date;
+    let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date, guestHistory = [];
     try {
         const dateNew = new Date();
         const currDate = dateNew.toISOString().split('T')[0];
@@ -71,6 +71,9 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                                     },
                                     resourceName: true,
                                 }
+                            },
+                            idCard: {
+                                select: { cardId: true }
                             }
                         }
                     },
@@ -85,6 +88,8 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                             bedSetup: true,
                             roomStatus: {
                                 select: {
+                                    rowColor: true,
+                                    textColor: true,
                                     shortDescription: true
                                 }
                             }
@@ -102,7 +107,11 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
             const data = {
                 resNo: res.reservation.id,
                 resResource: res.reservation.reserver.resourceName,
-                roomNo: res.room.id,
+                roomNo: {
+                    id: res.room.id,
+                    backgroundColor: res.room.roomStatus.rowColor,
+                    textColor: res.room.roomStatus.textColor
+                },
                 roomType: res.room.roomType,
                 bedType: res.room.bedSetup,
                 guestName: res.reservation.reserver.guest.name,
@@ -115,6 +124,24 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                 created: splitDateTime(res.created_at).date
             }
             table.push(data)
+            const nik = res.reservation.idCard.length != 1 ? '-' : res.reservation.idCard[0]
+            guestHistory.push({
+                resNo: res.reservation.id,
+                resResource: res.reservation.reserver.resourceName,
+                roomNo: {
+                    id: res.room.id,
+                    backgroundColor: res.room.roomStatus.rowColor,
+                    textColor: res.room.roomStatus.textColor
+                },
+                roomType: res.room.roomType,
+                bedType: res.room.bedSetup,
+                nik,
+                guestName: res.reservation.reserver.guest.name,
+                arrangment: res.arrangmentCodeId,
+                arrival: splitDateTime(res.reservation.arrivalDate).date,
+                departure: splitDateTime(res.reservation.departureDate).date,
+                night: res.reservation.manyNight,
+            })
             if (res.reservation.checkInDate) {
                 if (data.arrival === currDate) {
                     arrival.arriving.room++
@@ -146,7 +173,7 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
                 departedToday: `${departure.departedToday.room}-${departure.departedToday.person}`,
                 departing: `${departure.departing.room}-${departure.departing.person}`,
                 totalDeparture: `${departure.departedToday.room + departure.departing.room}-${departure.departedToday.person + departure.departing.person}`
-            }, table, meta: {
+            }, table, guestHistory, meta: {
                 total,
                 currPage: page,
                 lastPage,
