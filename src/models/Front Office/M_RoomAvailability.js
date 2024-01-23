@@ -102,7 +102,11 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                 for (rh of roomHistory) {
                     const key = `room_${rh.room.id}`;
                     rmHist[key] = {
-                        data: rh.guestName || '',
+                        data: {
+                            label: rh.guestName || '',
+                            resvId: rh.reservationId || null,
+                            resvRoomId: rh.resvRoomId || null,
+                        },
                         style: rh.resvStatus ? { color: rh.resvStatus.textColor, backgroundColor: rh.resvStatus.rowColor } : {}
                     }
                 }
