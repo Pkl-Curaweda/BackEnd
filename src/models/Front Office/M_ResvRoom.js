@@ -58,35 +58,4 @@ const createNewResvRoom = async (id, data) => {
   }
 }
 
-const deleteResvRoomByReservationId = async (reservationId, resvRooms = []) => {
-  try {
-    resvRooms.forEach(async resvRoom => {
-      await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoom.id } })
-      // await prisma.roomMaid.deleteMany({ where: { resvRoomId: resvRoom.id } })
-      await prisma.roomChange.deleteMany({ where: { resvRoomId: resvRoom.id } })
-      await prisma.resvRoom.delete({ where: { id: resvRoom.id } })
-    });
-    const ooo = await prisma.oooRoom.findMany({ where: { reservationId }, select: { reservationId: true } })
-    ooo.forEach(async ooo => {
-      await prisma.oooRoom.deleteMany({ where: { reservationId: ooo.reservationId } })
-    })
-
-    const clean = await prisma.cleanRoom.findMany({ where: { reservationId }, select: { reservationId: true } })
-    clean.forEach(async clean => {
-      await prisma.cleanRoom.deleteMany({ where: { reservationId: clean.reservationId } })
-    })
-
-    const dirty = await prisma.dirtyRoom.findMany({ where: { reservationId }, select: { reservationId: true } })
-    dirty.forEach(async dirty => {
-      await prisma.dirtyRoom.deleteMany({ where: { reservationId: dirty.reservationId } })
-    })
-
-    return await prisma.resvRoom.count({ where: { reservation: { id: reservationId } } })
-  } catch (err) {
-    ThrowError(err)
-  } finally {
-    await PrismaDisconnect();
-  }
-}
-
-module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId, deleteResvRoomByReservationId, };
+module.exports = { createNewResvRoom, getAllRoomIdReservedByReserverId };

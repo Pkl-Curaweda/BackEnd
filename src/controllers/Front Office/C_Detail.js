@@ -193,9 +193,9 @@ const putNewInvoiceData = async (req, res) => {
 
 //*   DELETE REQUEST  
 const deleteReservation = async (req, res) => {
-  const { reservationId } = req.params
+  const { reservationId, resvRoomId } = req.params
   try {
-    const message = await deleteReservationById(parseInt(reservationId))
+    const message = await deleteReservationById(parseInt(reservationId), +resvRoomId)
     return success(res, message);
   } catch (err) {
     return error(res, err.message, 404)

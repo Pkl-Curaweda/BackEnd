@@ -64,7 +64,7 @@ const orderReservationByIdentifier = (sortAndOrder) => {
         query.whereQuery = { room: { roomType: filter } }
         break;
       case 'bedSetup':
-        
+
         query.whereQuery = { room: { bedSetup: filter } }
         break;
       default:
@@ -353,14 +353,15 @@ const DetailCreateReservationHelper = async () => {
 }
 
 //?DELETE
-const deleteReservationById = async (id) => {
+const deleteReservationById = async (id, resvRoomId) => {
   try {
-    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: { select: { id: true } } } })
-    const { resvRooms } = reservation
-    const leftResvRoom = await deleteResvRoomByReservationId(id, resvRooms);
-    if(leftResvRoom != 0) return "Reservation Room has been deleted"
-    await prisma.reservation.delete({ where: { id } });
-    return "Reservation has been deleted"
+    const [reservationExist, resvroomExist] = await prisma.$transaction([
+      prisma.reservation.findFirstOrThrow({ where: { id } }),
+      prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId } }),
+    ])
+    await prisma.invoice.deleteMany({ where: { resvRoomId } })
+    await prisma.resvRoom.delete({ where: { id: resvRoomId } })
+    return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -450,7 +451,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         }
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate
-      break;
+        break;
       case 'checkout':
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")

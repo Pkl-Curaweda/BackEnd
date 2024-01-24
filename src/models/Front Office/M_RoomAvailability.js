@@ -3,31 +3,27 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, isDateInRange } = require("../../utils/helper");
 
 const filterRoomHistory = (roomHistory, filter) => {
-    let filteredRoomHistory = {};
+    let filteredRoomHistory = [];
     const filterIdentifier = filter.split("_")[0]
     filter = filter.split("_")[1]
     switch (filterIdentifier) {
         case "T":
-            Object.values(roomHistory).forEach((room) => {
-                if (room.room.roomType === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
-            });
+            for (room of roomHistory) if (room.room.roomType === filter) filteredRoomHistory.push(room);
             break;
         case "B":
-            Object.values(roomHistory).forEach((room) => {
-                if (room.room.bedSetup === filter) filteredRoomHistory[`room_${room.room.id}`] = room;
-            });
+            for (room of roomHistory) if (room.room.bedSetup === filter) filteredRoomHistory.push(room);
             break;
         default:
             filteredRoomHistory = roomHistory
             break;
     }
-    if (Object.keys(filteredRoomHistory).length === 0) filteredRoomHistory = 0
+    if (Object.keys(filteredRoomHistory).length === 0) filteredRoomHistory = []
     return filteredRoomHistory
 }
 
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
-        let logData = [], startDate, endDate, dates, averages = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }, roomAverage = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }
+        let logData = [], startDate, endDate, dates, roomAverage = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }
         if (dateQuery === undefined) {
             const dateNew = new Date();
             startDate = dateNew.toISOString().split('T')[0]
@@ -75,10 +71,21 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
         for (let date of dates) {
             let rmHist = { room_1: { data: '', style: {}, }, room_2: { data: '', style: {} }, room_3: { data: '', style: {}, }, room_4: { data: '', style: {}, }, room_5: { data: '', style: {}, }, room_6: { data: '', style: {}, }, room_7: { data: '', style: {}, }, room_8: { data: '', style: {} }, room_9: { data: '', style: {}, }, room_10: { data: '', style: {}, } }
-            const data = reservation.filter(rsv => {
+            let data = reservation.filter(rsv => {
                 let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
                 return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
             })
+            console.log(data)
+            if (filter != undefined) data = filterRoomHistory(data, filter)
+            if (search !== undefined) {
+                const searchTerm = search.toLowerCase();
+                data = Object.keys(data).reduce((filteredHistory, key) => {
+                    const guestName = data[key].reservation.reserver.guest.name
+                    if (guestName && guestName.toLowerCase().includes(searchTerm)) filteredHistory[key] = data[key];
+                    return filteredHistory;
+                }, {});
+                data = Object.values(data)
+            }
             for (let dt of data) {
                 const key = `room_${dt.room.id}`
                 const avgKey = `total_${dt.room.id}`
@@ -87,34 +94,27 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
                     style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
                 }
+                logData.push({
+                    date, rmHist
+                })
             }
-            if (filter != undefined) rmHist = filterRoomHistory(rmHist, filter)
-            if (search !== undefined) {
-                const searchTerm = search.toLowerCase();
-                rmHist = Object.keys(rmHist).reduce((filteredHistory, key) => {
-                    const guestName = rmHist[key].data.label
-                    if (guestName && guestName.toLowerCase().includes(searchTerm)) filteredHistory[key] = rmHist[key];
-                    return filteredHistory;
-                }, {});
-            }
-            logData.push({
-                date, rmHist
-            })
         }
         Object.keys(roomAverage).forEach(avgKey => {
             avgKey.replace('total_', '');
-            roomAverage[avgKey] = roomAverage[avgKey] > 0 ? parseInt( roomAverage[avgKey] / (dates.length * 100) * 100 ) : 0;
+            roomAverage[avgKey] = roomAverage[avgKey] > 0 ? parseInt(roomAverage[avgKey] / (dates.length * 100) * 100) : 0;
         });
-        
+
         const lastPage = Math.ceil(dates.length / perPage);
-        return { logData, roomAverage,  meta: {
-            total: dates.length,
-            currPage: page,
-            lastPage,
-            perPage,
-            prev: page > 1 ? page - 1 : null,
-            next: page < lastPage ? page + 1 : null
-        } }
+        return {
+            logData, roomAverage, meta: {
+                total: dates.length,
+                currPage: page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? page + 1 : null
+            }
+        }
     } catch (err) {
         ThrowError(err)
     } finally {
