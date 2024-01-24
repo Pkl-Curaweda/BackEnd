@@ -16,7 +16,7 @@ const ChangeRoom = async (id, reservationId, body) => {
         roomFromId: roomId,
         roomToId: body.roomId,
         resvRoomId: id,
-        note: body.note,
+        reason: body.note
       },
     });
 

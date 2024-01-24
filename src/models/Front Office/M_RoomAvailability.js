@@ -1,5 +1,6 @@
+const { date } = require("zod");
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, isDateInRange } = require("../../utils/helper");
 
 const filterRoomHistory = (roomHistory, filter) => {
     let filteredRoomHistory = {};
@@ -27,79 +28,132 @@ const filterRoomHistory = (roomHistory, filter) => {
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
         let logData = [], startDate, endDate, dates, averages = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 };
-        let startIndex = (page - 1) * perPage;
-        let endIndex = startIndex + perPage - 1;
-        if (dateQuery != "") {
+        // let startIndex = (page - 1) * perPage;
+        // let endIndex = startIndex + perPage - 1;
+        if (dateQuery != undefined) {
+            const dateNew = new Date();
+            startDate = dateNew.toISOString().split('T')[0]
+            endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 7);
+            endDate = endDate.toISOString().split('T')[0]
+        } else {
             startDate = new Date(dateQuery.split(' ')[0]).toISOString();
             endDate = new Date(dateQuery.split(' ')[1]).toISOString();
-            dates = generateDateBetweenStartAndEnd(startDate, endDate)
-        } else {
-            dates = generateDateBetweenNowBasedOnDays("past", 7) //?7 DAYS BEFORE NOW
         }
-        startIndex = Math.max(0, startIndex);
-        endIndex = Math.min(dates.length - 1, endIndex);
+        // startIndex = Math.max(0, startIndex);
+        // endIndex = Math.min(dates.length - 1, endIndex);
 
+        const reservation = await prisma.resvRoom.findMany({
+            where: {
+                reservation: {
+                    AND: [
+                        {
+                            arrivalDate: {
+                                gte: `${startDate}T00:00:00.000Z`,
+                            }
+                        },
+                        {
+                            departureDate: {
+                                lte: `${endDate}T23:59:59.999Z`
+                            }
+                        }
+                    ]
+                }
+            },
+            select: {
+                id: true,
+                arrangment: {
+                    select: { rate: true }
+                },
+                room: {
+                    select: { id: true, roomType: true, bedSetup: true }
+                },
+                reservation: {
+                    select: {
+                        id: true,
+                        arrivalDate: true,
+                        departureDate: true,
+                        resvStatus: { select: { rowColor: true, textColor: true } },
+                        reserver: { select: { guest: { select: { name: true } } } }
+                    }
+                }
+            }
+        })
+        // let roomAverage = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }
+        dates = generateDateBetweenStartAndEnd(startDate, endDate)
+        for (let date of dates) {
+            let rmHist = { room_1: { data: '', style: {}, }, room_2: { data: '', style: {} }, room_3: { data: '', style: {}, }, room_4: { data: '', style: {}, }, room_5: { data: '', style: {}, }, room_6: { data: '', style: {}, }, room_7: { data: '', style: {}, }, room_8: { data: '', style: {} }, room_9: { data: '', style: {}, }, room_10: { data: '', style: {}, } }
+            const data = reservation.filter(rsv => {
+                let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
+                return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
+            })
+            for (let dt of data) {
+                const key = `room_${dt.room.id}`
+                rmHist[key] = {
+                    data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
+                    style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
+                }
+            }
+            if (filter != undefined && rmHist != 0) rmHist = filterRoomHistory(rmHist, filter)
+            if (search !== undefined && rmHist !== 0) {
+                const searchTerm = search.toLowerCase();
+                rmHist = Object.keys(rmHist).reduce((filteredHistory, key) => {
+                    const guestName = rmHist[key].data.label
+                    if (guestName && guestName.toLowerCase().includes(searchTerm)) filteredHistory[key] = rmHist[key];
+                    return filteredHistory;
+                }, {});
+            }
+            Object.values(rmHist).forEach(history => {
+                averages[`total_${history.room.id}`] = history.occupied != 0 ? averages[`total_${history.room.id}`] + 1 : averages[`total_${history.room.id}`] + 0
+            })
+            logData.push({
+                date, rmHist
+            })
+        }
+        return { logData }
         for (let i = startIndex; i <= endIndex; i++) {
             const searchedDate = new Date(dates[i]);
             const searchDate = searchedDate.toISOString().split("T")[0];
             let logAvailability = { roomHistory: {} }
-            if (searchDate === new Date().toISOString().split('T')[0]) {
-                const reservation = await prisma.resvRoom.findMany({
-                    where: { reservation: { onGoingReservation: true } },
-                    select: {
-                        id: true,
-                        arrangment: {
-                            select: { rate: true }
-                        },
-                        room: {
-                            select: { id: true, roomType: true, bedSetup: true }
-                        },
-                        reservation: {
-                            select: {
-                                id: true,
-                                arrivalDate: true,
-                                departureDate: true,
-                                resvStatus: { select: { rowColor: true, textColor: true } },
-                                reserver: { select: { guest: { select: { name: true } } } }
-                            }
-                        }
-                    }
-                })
-                for (let res of reservation) {
-                    console.log(res.reservation.arrivalDate, res.reservation.departureDate)
-                    const key = `room_${res.room.id}`
-                    logAvailability.roomHistory[key] = {
-                        reservationId: res.reservation.id,
-                        resvRoomId: res.id,
-                        guestName: res.reservation.reserver.guest.name,
-                        resvStatus: {
-                            rowColor: res.reservation.resvStatus.rowColor,
-                            textColor: res.reservation.resvStatus.textColor
-                        },
-                        room: {
-                            id: res.room.id,
-                            roomType: res.room.roomType,
-                            bedSetup: res.room.bedSetup
-                        },
-                        occupied: 1,
-                        roomPrice: res.arrangment.rate
-                    }
-                }
-            } else {
-                logAvailability = await prisma.logAvailability.findFirst({
-                    where: {
-                        created_at: {
-                            gte: `${searchDate}T00:00:00.000Z`,
-                            lte: `${searchDate}T23:59:59.999Z`
-                        }
-                    }, select: {
-                        roomHistory: true
+            const reservation = await prisma.resvRoom.findMany({
+
+            })
+            for (let res of reservation) {
+                console.log(res.reservation.arrivalDate, res.reservation.departureDate)
+                const key = `room_${res.room.id}`
+                logAvailability.roomHistory[key] = {
+                    reservationId: res.reservation.id,
+                    resvRoomId: res.id,
+                    guestName: res.reservation.reserver.guest.name,
+                    resvStatus: {
+                        rowColor: res.reservation.resvStatus.rowColor,
+                        textColor: res.reservation.resvStatus.textColor
                     },
-                    orderBy: {
-                        created_at: 'desc'
-                    }
-                })
+                    room: {
+                        id: res.room.id,
+                        roomType: res.room.roomType,
+                        bedSetup: res.room.bedSetup
+                    },
+                    occupied: 1,
+                    roomPrice: res.arrangment.rate
+                }
             }
+
+            // else {
+            //     logAvailability = await prisma.logAvailability.findFirst({
+            //         where: {
+            //             created_at: {
+            //                 gte: `${searchDate}T00:00:00.000Z`,
+            //                 lte: `${searchDate}T23:59:59.999Z`
+            //             }
+            //         }, select: {
+            //             roomHistory: true
+            //         },
+            //         orderBy: {
+            //             created_at: 'desc'
+            //         }
+            //     })
+            // }
             let roomHistory = logAvailability ? logAvailability.roomHistory : 0;
             if (filter != undefined && roomHistory != 0) roomHistory = filterRoomHistory(roomHistory, filter)
             if (search !== undefined && roomHistory !== 0) {

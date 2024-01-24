@@ -35,32 +35,49 @@ const sortOrderCleanDirty = (ident, ascDesc) => {
         ThrowError(err)
     }
 }
-const getCleanDirtyData = async (sortOrder, arrival, departure) => {
+const getCleanDirtyData = async (sortOrder, arr, dep) => {
     let room = [], main = { VCU: 0, VC: 0, VD: 0, OC: 0, OD: 0, ED: 0, DnD: 0, OO: 0, OF: 0 }, ident, ascDesc, roomOrder = undefined;
     try {
+        if (arr === undefined) arr = new Date().toISOString().split('T')[0]
+        if (dep === undefined) {
+            dep = new Date(arr);
+            dep.setDate(dep.getDate() + 7);
+            dep = dep.toISOString().split('T')[0]
+        }
         if (sortOrder != undefined) [ident, ascDesc] = sortOrder.split(' ');
         if (sortOrder != undefined && ident === 'roomId' || sortOrder != undefined && ident === 'roomType') {
             sortOrder = sortOrderCleanDirty(sortOrder)
             roomOrder = sortOrder
         }
         const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
-        rs.forEach(async r => {
-            const resv = await prisma.resvRoom.findFirst({ where: { roomId: r.id }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' } })
-            if (resv != null) {
-                room.push({
-                    roomNo: r.id,
-                    roomStatus: r.roomStatus.longDescription,
-                    guestName: resv.reservation.reserver.guest.name,
-                    arrival: splitDateTime(resv.reservation.arrivalDate).date,
-                    departure: splitDateTime(resv.reservation.departureDate).date,
-                    pic: resv.roomMaids
-                })
-            }
+        for (let r of rs) {
+            const resv = await prisma.resvRoom.findFirst({
+                where: {
+                    roomId: r.id, reservation: {
+                        arrivalDate: {
+                            gte: `${arr}T00:00:00.000Z`,
+                            lte: `${dep}T23:59:59.999Z`
+                        },
+                        departureDate: {
+                            gte: `${arr}T00:00:00.000Z`,
+                            lte: `${dep}T23:59:59.999Z`
+                        }
+                    }
+                }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }
+            })
+            room.push({
+                roomNo: r.id,
+                roomStatus: r.roomStatus.longDescription,
+                guestName: resv ? resv.reservation.reserver.guest.name : "-",
+                arrival: resv ? splitDateTime(resv.reservation.arrivalDate).date : "-",
+                departure: resv ?  splitDateTime(resv.reservation.departureDate).date : "-",
+                pic: resv ? resv.roomMaids.user.name : "-"
+            })
             const status = r.roomStatus.shortDescription;
             if (main.hasOwnProperty(status)) {
                 main[status]++;
             }
-        });
+        };
         switch (ident) {
             case 'guestName':
                 room.sort((a, b) => a.guestName.localeCompare(b.guestName));

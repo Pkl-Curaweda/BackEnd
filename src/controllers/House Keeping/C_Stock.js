@@ -1,3 +1,5 @@
+
+
 const {prisma} = require('../../../prisma/seeder/config')
 const { error, success } = require('../../utils/response')
 

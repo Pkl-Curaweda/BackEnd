@@ -34,9 +34,9 @@ async function updateStatus(req, res){
 }
 
 const get = async  (req, res) => {
-  const { sortOrder } = req.query
+  const { sortOrder, arr, dep } = req.query
   try{
-    const data = await roomRepository.getCleanDirtyData(sortOrder)
+    const data = await roomRepository.getCleanDirtyData(sortOrder, arr, dep)
     return success(res, 'Clean Dirty Room Data', data)
   }catch(err){
     return error(res, err.message)

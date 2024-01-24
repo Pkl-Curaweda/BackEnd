@@ -16,7 +16,7 @@ const searchGet = (q) => {
     }
 }
 
-const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
+const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
     let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date;
     try {
         const dateNew = new Date();
@@ -40,14 +40,21 @@ const get = async (page = 1, perPage = 5, search, so, arr, dep) => {
         so = so ? orderReservationByIdentifier(so) : so
         if (search != "") search = searchGet(search)
         const [total, reservations] = await prisma.$transaction([
-            prisma.resvRoom.count(),
+            prisma.resvRoom.count({
+                where: {
+                    ...(so && so.whereQuery),
+                    reservation: {
+                        ...date,
+                        ...(search != "" && search),
+                    }
+                },
+            }),
             prisma.resvRoom.findMany({
                 where: {
                     ...(so && so.whereQuery),
                     reservation: {
                         ...date,
                         ...(search != "" && search),
-                        onGoingReservation: true
                     }
                 },
                 select: {
