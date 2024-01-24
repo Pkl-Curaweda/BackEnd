@@ -286,7 +286,7 @@ model RoomStatus {
 }
 
 model Room {
-  id              Int            @id @default(autoincrement())
+  id              Int            @id @default(autoincrement(101))
   roomType        RoomType
   roomImage       String
   roomStatus      RoomStatus     @relation(fields: [roomStatusId], references: [id])

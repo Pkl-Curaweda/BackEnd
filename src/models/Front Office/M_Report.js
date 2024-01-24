@@ -7,6 +7,7 @@ const {
   generateDateBetweenNowBasedOnDays,
   generateDateBetweenStartAndEnd,
   formatDecimal,
+  isDateInRange,
 } = require("../../utils/helper");
 
 //? REPORT
@@ -51,7 +52,7 @@ const findReportReservation = async () => {
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, sort, date) => {
   try {
-    let reports = [], dates, startIndex, endIndex, data = [], totalRoom = 0, searchDates = [], ident;
+    let reports = [], dates, startIndex, endIndex, data = [], totalRoom = 0, searchDates = [], ident, startDate, endDate, roomList = {};
     startIndex = (page - 1) * perPage;
     endIndex = startIndex + perPage - 1;
 
@@ -61,63 +62,79 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     ];
 
     if (date) {
-      startDate = date.split(' ')[0]
-      endDate = date.split(' ')[1]
-      dates = generateDateBetweenStartAndEnd(startDate, endDate)
-    } else { dates = generateDateBetweenNowBasedOnDays("past", 30); }
+      [startDate, endDate] = date.split(' ')
+    } else {
+      startDate = new Date().toISOString().split('T')[0]
+      endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate() + 7)
+      endDate = endDate.toISOString().split('T')[0]
+    }
 
+    dates = generateDateBetweenStartAndEnd(startDate, endDate)
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
+    const [rms, resvRooms] = await prisma.$transaction([
+      prisma.room.findMany({ select: { id: true } }),
+      prisma.resvRoom.findMany({
+        where: {
+          reservation: {
+            OR: [
+              { arrivalDate: { gte: `${startDate}T00:00:00.000Z` } },
+              { departureDate: { lte: `${endDate}T23:59:59.999Z` } }
+            ]
+          }
+        }, select: {
+          Invoice: {
+            select: { qty: true, rate: true, created_at: true }
+          },
+          reservation: {
+            select: { ResvPayment: true, arrivalDate: true, departureDate: true }
+          },
+          room: {
+            select: { id: true, occupied_status: true }
+          }
+        }
+      })
+    ])
+
+    for (let room of rms) {
+      const key = `room_${room.id}`
+      roomList[key] = 0
+    }
+
     for (let i = startIndex; i <= endIndex; i++) {
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTaxed = 0, rooms = { ...roomList };
       const searchDate = dates[i];
       searchDates.push(searchDate)
-      const logAvailability = await prisma.logAvailability.findFirst({
-        where: {
-          created_at: {
-            gte: `${searchDate}T00:00:00.000Z`,
-            lte: `${searchDate}T23:59:59.999Z`,
-          },
-        },
-        select: {
-          roomHistory: true,
-        },
-        orderBy: {
-          created_at: "desc",
-        },
-      });
-
-      const tPayment = await prisma.resvPayment.findMany({
-        where: {
-          created_at: {
-            gte: `${searchDate}T00:00:00.000Z`,
-            lte: `${searchDate}T23:59:59.999Z`,
-          }
-        },
-        select: { total: true, tax: true }
+      const rsv = resvRooms.filter(rsv => {
+        let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
+        return isDateInRange(new Date(searchDate), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
       })
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTaxed = 0;
-      for (pay of tPayment) {
-        const totalTax = + pay.tax
-        totalPayment = + pay.total
-        totalTaxed = + (totalPayment - totalTax)
-      }
-      roomRevenue = totalPayment
-
-      if (logAvailability && logAvailability.roomHistory) {
-        for (const history in logAvailability.roomHistory) {
-          if (logAvailability.roomHistory[history] != 0) roomAvailable++;
-          if (logAvailability.roomHistory[history]) occupied++;
-          totalRoom++;
+      for (let rs of rsv) {
+        rooms[`room_${rs.room.id}`] = 1
+        let payment = rs.reservation.ResvPayment.filter(pay => {
+          return isDateInRange(new Date(searchDate), new Date(`${pay.created_at.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${pay.created_at.toISOString().split('T')[0]}T23:59:59.999Z`))
+        })
+        let invoice = rs.Invoice.filter(inv => {
+          return isDateInRange(new Date(searchDate), new Date(`${inv.created_at.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${inv.created_at.toISOString().split('T')[0]}T23:59:59.999Z`))
+        })
+        for (let pay of payment) {
+          const totalTax = + pay.tax
+          totalPayment = + pay.total
+          totalTaxed = + (totalPayment - totalTax)
         }
+        for (let inv of invoice) totalPayment += (inv.qty * inv.rate)
       }
-      occ = totalRoom !== 0 ? formatDecimal((occupied / totalRoom) * 100) : 0;
-      arr = occupied !== 0 ? formatDecimal(roomRevenue / occupied) : 0;
+      const roomArray = Object.values(rooms)
+      for (let room of roomArray) room != 1 ? roomAvailable++ : occupied++
+      occ = formatDecimal((occupied / roomArray.length) * 100)
+      arr = formatDecimal(roomRevenue / occupied)
       added.rm_avail = roomAvailable;
       added.rno = occupied;
-      added.occ = added.rm_avail !== 0 ? formatDecimal((added.rno / added.rm_avail) * 100) : 0;
+      added.occ = formatDecimal((added.rno / added.rm_avail) * 100)
       added.rev = roomRevenue
-      added.arr = added.rno !== 0 ? formatDecimal((added.rev / added.rno)) : 0;
+      added.arr =  formatDecimal((added.rev / added.rno)) || 0
       const storedData = {
         date: searchDate,
         roomAvailable,
@@ -305,7 +322,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       ident,
       reports: data,
       meta: {
-        total: dates.length,
+        total: data.length,
         currPage: page,
         lastPage,
         perPage,

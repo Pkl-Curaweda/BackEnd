@@ -38,10 +38,11 @@ const assignTask = async (action, roomId, request, article) => {
                         shift++
                         prevSchedule = rms[shift - 1].currentSchedule
                         nextSchedule = formatToSchedule(prevSchedule, task.standardTime)
-                        if (prevSchedule === rms[shift - 1].shift.restTimeStart || nextSchedule >= rms[shift - 1].shift.restTimeStart && nextSchedule < rms[shift - 1].shift.restTimeEnd) {
+                        if (prevSchedule === rms[shift - 1].shift.restTimeStart) {
                             await prisma.roomMaid.update({ where: { id: rms[shift - 1].id }, data: { currentSchedule: rms[shift - 1].shift.restTimeEnd } })
                             shift++
                         }
+                        if(nextSchedule >= rms[shift - 1].shift.restTimeStart && nextSchedule < rms[shift - 1].shift.restTimeEnd) shift++
                         workload = rms[shift - 1].workload + task.standardTime
                     } while (workload > 480)
                     prevSchedule = rms[shift - 1].currentSchedule
@@ -56,7 +57,7 @@ const assignTask = async (action, roomId, request, article) => {
                         roomMaid: assignedRoomMaid.aliases,
                         workload: {
                             time: task.standardTime,
-                           
+                            schedule:  `${prevSchedule} - ${currentSchedule}`,
                             before: rms[shift - 1].workload,
                             after: assignedRoomMaid.workload
                         }

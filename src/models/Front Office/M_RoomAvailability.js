@@ -1,6 +1,6 @@
 const { date } = require("zod");
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, isDateInRange } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, isDateInRange, reverseObject } = require("../../utils/helper");
 
 const filterRoomHistory = (roomHistory, filter) => {
     let filteredRoomHistory = [];
@@ -35,7 +35,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         const reservation = await prisma.resvRoom.findMany({
             where: {
                 reservation: {
-                    AND: [
+                    OR: [
                         {
                             arrivalDate: {
                                 gte: `${startDate}T00:00:00.000Z`,
@@ -46,7 +46,8 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                                 lte: `${endDate}T23:59:59.999Z`
                             }
                         }
-                    ]
+                    ],
+                    onGoingReservation: true
                 }
             },
             select: {
@@ -94,10 +95,11 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
                     style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
                 }
-                logData.push({
-                    date, rmHist
-                })
             }
+            if(filter === "R_DESC") rmHist = reverseObject(rmHist)
+            logData.push({
+                date, rmHist
+            })
         }
         Object.keys(roomAverage).forEach(avgKey => {
             avgKey.replace('total_', '');

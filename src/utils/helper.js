@@ -613,11 +613,23 @@ const loginPath = (ident) => {
   return path
 }
 
+function reverseObject(obj) {
+  const reversedObject = {};
+  const keys = Object.keys(obj).reverse();
+
+  for (const key of keys) {
+    reversedObject[key] = obj[key];
+  }
+
+  return reversedObject;
+}
+
 module.exports = {
   splitDateTime,
   loginPath,
   isDateInRange,
   getWorkingShifts,
+  reverseObject,
   PrismaDisconnect,
   formatCurrency,
   formatDecimal,
