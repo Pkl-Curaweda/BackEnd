@@ -154,7 +154,7 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
 const addNewInvoiceFromArticle = async (b, reservationId, resvRoomId) => {
   try {
     const [exist, art] = await prisma.$transaction([
-      prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId } }),
+      prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } } }),
       prisma.articleType.findFirstOrThrow({ where: { id: b.articleId }, select: { price: true } }),
     ])
     const resvArt = await prisma.invoice.create({
@@ -162,6 +162,8 @@ const addNewInvoiceFromArticle = async (b, reservationId, resvRoomId) => {
         resvRoomId,
         qty: b.qty,
         articleTypeId: b.articleId,
+        dateUsed: exist.reservation.arrivalDate,
+        dateReturn: exist.reservation.departureDate,
         rate: art.price
       }
     })

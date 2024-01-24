@@ -9,7 +9,6 @@ const { departmentSeed } = require("./housekeeping/department.seeder");
 const { roomMaidSeed } = require("./housekeeping/roomMaid.seeder");
 const { roomBatchSeed } = require("./frontoffice/room");
 const { articleTypeSeed } = require("./frontoffice/Article/articleType.seeder");
-const { articleLogsSeed } = require("./frontoffice/Article/articleLog.seeder");
 const { ShiftSeed } = require("./housekeeping/shift.seeder");
 const { NotificationSeed } = require("./global/notification.seeder");
 
@@ -23,7 +22,6 @@ async function main() {
   await articleTypeSeed()
   await roomBatchSeed()
   await NotificationSeed()
-  await articleLogsSeed()
   await roomMaidSeed()
   
   /* front office seeed */

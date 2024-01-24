@@ -47,7 +47,7 @@ const assignTask = async (action, roomId, request, article) => {
                     prevSchedule = rms[shift - 1].currentSchedule
                     const currentSchedule = formatToSchedule(prevSchedule, task.standardTime)
                     const [createdTask, assignedRoomMaid] = await prisma.$transaction([
-                        prisma.maidTask.create({ data: { roomId: room.id, roomMaidId: rms[shift - 1].id, typeId: clnType, request: request ? request : "Messy room", status: "Need to be cleaned" } }),
+                        prisma.maidTask.create({ data: { roomId: room.id, roomMaidId: rms[shift - 1].id, typeId: clnType,  schedule: `${prevSchedule} - ${currentSchedule}` , request: request ? request : "Messy room", status: "Need to be cleaned" } }),
                         prisma.roomMaid.update({ where: { id: rms[shift - 1].id }, data: { workload: rms[shift - 1].workload + task.standardTime, currentSchedule } })
                     ])
                     assigne.push({
@@ -56,7 +56,7 @@ const assignTask = async (action, roomId, request, article) => {
                         roomMaid: assignedRoomMaid.aliases,
                         workload: {
                             time: task.standardTime,
-                            schedule: `${prevSchedule} - ${currentSchedule}`,
+                           
                             before: rms[shift - 1].workload,
                             after: assignedRoomMaid.workload
                         }

@@ -31,6 +31,25 @@ const assignRoomMaid = async (resvRoomId) => {
     }
 }
 
+const getRoomMaidTaskById = async (id) => {
+    try{
+        const currDate = new Date().toISOString().split('T')[0]
+        const [roomMaid] = await prisma.$transaction([
+            prisma.roomMaid.findFirstOrThrow({ where: { id }, select:{ user: { select: { name: true, role: { select: { name: true } } } } } }),
+            prisma.maidTask.findMany({ where: { roomMaidId: id, created_at: { gte: `${currDate}T00:00:00.000Z` } }, select: {
+                room: {
+                    select: { id: true, roomType: true }
+                },
+                
+            } })
+        ]) 
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
 const getRoomMaidReport = async (q) => {
     let { page = 1, perPage = 5, arr, dep, sortOrder } = q
     try {

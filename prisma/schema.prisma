@@ -221,19 +221,6 @@ model ArrangmentCode {
   Room     Room[]
 }
 
-model ArticleLog {
-  id            Int         @id @default(autoincrement())
-  dateUsed      DateTime
-  dateReturn    DateTime
-  qty           Int
-  room          Room        @relation(fields: [roomId], references: [id])
-  roomId        Int
-  articleType   ArticleType @relation(fields: [articleTypeId], references: [id])
-  articleTypeId Int
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-}
-
 model Invoice {
   id            Int          @id @default(autoincrement())
   resvRoom      ResvRoom     @relation(fields: [resvRoomId], references: [id])
@@ -242,6 +229,8 @@ model Invoice {
   articleTypeId Int?
   qty           Int
   rate          Float
+  dateUsed      DateTime?
+  dateReturn    DateTime?
   order         OrderDetail? @relation(fields: [orderId], references: [id])
   orderId       Int?
   paid          Boolean      @default(false)
@@ -250,10 +239,9 @@ model Invoice {
 }
 
 model ArticleType {
-  id          Int          @id @unique
-  description String       @db.Text
+  id          Int       @id @unique
+  description String    @db.Text
   price       Float
-  ArticleLog  ArticleLog[]
   Invoice     Invoice[]
   Stock       Stock[]
 }
@@ -319,7 +307,6 @@ model Room {
   oooRooms        OooRoom[]
   lostFounds      LostFound[]
   MaidTask        MaidTask[]
-  ArticleLog      ArticleLog[]
 }
 
 model RoomChange {
@@ -374,6 +361,7 @@ model MaidTask {
   roomMaidId  Int
   type        TaskType @relation(fields: [typeId], references: [id])
   typeId      String
+  schedule    String?
   startTime   String?
   endTime     String?
   taskRemarks String?  @db.Text

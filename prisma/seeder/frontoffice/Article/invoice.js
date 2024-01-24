@@ -25,11 +25,16 @@ const Invoices = [
 ]
 
 async function invoiceSeeder(resvRoomId) {
+    const dateUsed = new Date()
+    const dateReturn = new Date(dateUsed)
+    dateReturn.setDate(dateReturn.getDate() + 7)
     for (let inv of Invoices) {
         await prisma.invoice.create({
             data: {
                 resvRoomId,
-                ...inv
+                ...inv,
+                dateUsed,
+                dateReturn
             }
         })
     }
