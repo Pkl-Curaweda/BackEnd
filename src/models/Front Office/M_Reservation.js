@@ -355,12 +355,15 @@ const DetailCreateReservationHelper = async () => {
 //?DELETE
 const deleteReservationById = async (id, resvRoomId) => {
   try {
+    console.log(id, resvRoomId)
     const [reservationExist, resvroomExist] = await prisma.$transaction([
-      prisma.reservation.findFirstOrThrow({ where: { id } }),
+      prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: true } }),
       prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId } }),
     ])
+    console.log(reservationExist, resvroomExist)
     await prisma.invoice.deleteMany({ where: { resvRoomId } })
-    await prisma.resvRoom.delete({ where: { id: resvRoomId } })
+    await prisma.roomChange.deleteMany({ where: { resvRoomId } })
+    await prisma.resvRoom.deleteMany({ where: { id: resvroomExist.id } })
     return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);
