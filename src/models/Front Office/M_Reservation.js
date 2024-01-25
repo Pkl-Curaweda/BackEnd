@@ -117,7 +117,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
     }
     if (sortAndOrder != "") orderBy = orderReservationByIdentifier(sortAndOrder);
-
     const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
@@ -125,7 +124,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         ...(dateQuery && { reservation: { departureDate } }),
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
         ...(orderBy && orderBy.whereQuery),
-        ...(history != true && { deleted: false })
+        ...(history != "true" && { deleted: false })
       },
       select: {
         id: true,
@@ -203,7 +202,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
       if (resv.deleted != false) {
         resv.reservation.resvStatus.textColor = "#808080";
-        resv.reservation.resvStatus.rowColor = "#ffffff";
+        resv.reservation.resvStatus.rowColor = "#808080";
         resv.reservation.borderColor = "#f7f7f7";
       }
       delete resv.reservationId
