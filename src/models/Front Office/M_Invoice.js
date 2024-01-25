@@ -58,7 +58,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         })
       ])
 
-      for(let i of inv){
+      for (let i of inv) {
         invoices.push({
           art: i.articleType.id ? i.articleType.id : "In Room",
           uniqueId: i.id,
@@ -151,23 +151,25 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
   }
 }
 
-const addNewInvoiceFromArticle = async (b, reservationId, resvRoomId) => {
+const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
+  let addedArticle = []
   try {
-    const [exist, art] = await prisma.$transaction([
-      prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } } }),
-      prisma.articleType.findFirstOrThrow({ where: { id: b.articleId }, select: { price: true } }),
-    ])
-    const resvArt = await prisma.invoice.create({
-      data: { 
-        resvRoomId,
-        qty: b.qty,
-        articleTypeId: b.articleId,
-        dateUsed: exist.reservation.arrivalDate,
-        dateReturn: exist.reservation.departureDate,
-        rate: art.price
-      }
-    })
-    return resvArt
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } } })
+    for (let body of b) {
+      const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+      const resvArt = await prisma.invoice.create({
+        data: {
+          resvRoomId,
+          qty: body.qty,
+          articleTypeId: body.articleId,
+          dateUsed: resvRoom.reservation.arrivalDate,
+          dateReturn: resvRoom.reservation.departureDate,
+          rate: art.price
+        }
+      })
+      addedArticle.push(resvArt)
+    }
+    return addedArticle
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -180,8 +182,9 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, invoiceId) => {
     let detail;
     const balanceTotal = await generateBalanceAndTotal({ balance: true, total: true }, reservationId, resvRoomId)
     let addressComment = await prisma.reservation.findFirst({ where: { id: reservationId }, select: { idCard: { select: { address: true } }, reserver: { select: { billComment: true } } } })
-    addressComment = { address: addressComment.idCard.address || "",comment: addressComment.reserver.billComment || "" }
-    const i = await prisma.invoice.findFirstOrThrow({ where: { id: invoiceId } ,
+    addressComment = { address: addressComment.idCard.address || "", comment: addressComment.reserver.billComment || "" }
+    const i = await prisma.invoice.findFirstOrThrow({
+      where: { id: invoiceId },
       select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true, order: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } }
     })
 
@@ -323,22 +326,22 @@ const putInvoiceData = async (reservationId, resvRoomId, args, data) => {
 }
 
 const deleteInvoiceData = async (reservationId, resvRoomId, id) => {
-  try{
+  try {
     const [exist, deleted] = await prisma.$transaction([
       prisma.invoice.findFirstOrThrow({ where: { id, resvRoomId } }),
       prisma.invoice.delete({ where: { id, resvRoomId } })
     ])
     return deleted
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
 
 const printInvoice = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ 
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({
       where: {
         id: resvRoomId, reservationId
       },
@@ -366,10 +369,10 @@ const printInvoice = async (reservationId, resvRoomId, sortIdentifier, page, per
     const inv = await GetInvoiceByResvRoomId(reservationId, resvRoomId, sortIdentifier, page, perPage, search, date)
     return {
       billNumber: `#${reservationId}-${resvRoomId}`,
-      resourceName:  reservation.reserver.resourceName,
+      resourceName: reservation.reserver.resourceName,
       guestName: reservation.reserver.guest.name,
       arrivalDate: splitDateTime(reservation.arrivalDate).date,
-      departureDate:  splitDateTime(reservation.departureDate).date,
+      departureDate: splitDateTime(reservation.departureDate).date,
       invoices: inv.invoices
     }
   } catch (err) {
