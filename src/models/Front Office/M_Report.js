@@ -134,7 +134,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       added.rno = occupied;
       added.occ = formatDecimal((added.rno / added.rm_avail) * 100)
       added.rev = roomRevenue
-      added.arr =  formatDecimal((added.rev / added.rno)) || 0
+      added.arr = formatDecimal((added.rev / added.rno)) || 0
       const storedData = {
         date: searchDate,
         roomAvailable,
@@ -337,70 +337,79 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
   }
 };
 
-
+//TODO: FIX THIS DETAIL REPORT
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
   try {
-    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates, startDate, endDate, searchedDate
+    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {  }, dates, startDate, endDate, searchedDate
+    startDate = date != undefined ? date : new Date().toISOString().split('T')[0]
     switch (displayOption) {
       case "day":
-        dates = generateDateBetweenStartAndEnd(date, date);
+        endDate = startDate
         break;
       case "week":
-        dates = [];
-        searchedDate = new Date(date);
-        for (let i = 0; i <= 7 - 1; i++) {
-          const listDate = new Date(searchedDate);
-          listDate.setDate(searchedDate.getDate() - i);
-          dates.push(listDate.toISOString().split('T')[0]);
-        }
+        endDate = startDate
+        startDate = new Date(startDate)
+        startDate.setDate(startDate.getDate() - 7)
+        startDate = startDate.toISOString().split('T')[0]
         break;
       case "month":
         searchedDate = new Date(date)
         startDate = new Date(searchedDate.setDate(searchedDate.getDate() - (searchedDate.getDate() - 1)))
         const lastDate = new Date(searchedDate.getFullYear(), searchedDate.getMonth() + 1, 0).getDate();
         endDate = new Date(searchedDate.setDate(lastDate))
-        dates = generateDateBetweenStartAndEnd(startDate, endDate)
       case "year":
         const currentYear = new Date(date).getFullYear();
         startDate = `${currentYear}-01-01`;
         endDate = `${currentYear}-12-31`;
-        dates = generateDateBetweenStartAndEnd(startDate, endDate);
         break;
     }
-
-    for (let searchDate of dates) {
-      const logAvailability = await prisma.logAvailability.findFirst({
+    console.log(startDate, endDate)
+    dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    const [resvRoom, rooms] = await prisma.$transaction([
+      prisma.resvRoom.findMany({
         where: {
-          created_at: {
-            gte: `${searchDate}T00:00:00.000Z`,
-            lte: `${searchDate}T23:59:59.999Z`,
-          },
-        },
-        select: { roomHistory: true },
-        orderBy: { created_at: "desc" },
-      });
-      if (logAvailability != null) {
-        Object.values(logAvailability.roomHistory).forEach((roomHistory) => {
-          const { roomType, id } = roomHistory.room;
-          const key = `room_${id}`;
-          if (roomHistory.occupied !== 0) {
-            total.RESERVATION++;
-            total[roomType]++;
-            const percentageKeyExists = percentages.hasOwnProperty(key);
-            percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
-          } else {
-            if (!percentages.hasOwnProperty(key)) percentages[key] = 0;
+          reservation: {
+            AND: [
+              { arrivalDate: { gte: `${startDate}T00:00:00.000Z` } },
+              { departureDate: { lte: `${endDate}T23:59:59.999Z` } }
+            ]
           }
+        }, select: {
+          room: { select: { id: true, roomType: true } },
+          reservation: {
+            select: {
+              arrivalDate: true,
+              departureDate: true
+            }
+          }
+        }
+      }),
+      prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
+    ])
+
+    for(let room of rooms) percentages[`room_${room.id}`] = 0
+    for (let date of dates) {
+      const resv = resvRoom.filter(rsv => {
+        let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
+        return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
+      })
+      for (let rs of resv) {
+        Object.values(rs).forEach((rsv) => {
+          const { roomType, id } = rsv;
+          total.RESERVATION++;
+          total[roomType]++;
+          const key = `room_${id}`;
+          const percentageKeyExists = percentages.hasOwnProperty(key);
+          percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
         });
       }
     }
 
-    const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
-    rooms.forEach(room => {
+    for (let room of rooms) {
       const { id, roomType, bedSetup } = room
-      const detailKey = `${id}-${roomType}-${bedSetup}`;
       let key = `room_${id}`, percent = percentages[key];
+      const detailKey = `${id}-${roomType}-${bedSetup}`;
       if (percentages[key] > 1) {
         percent = dates.length / percentages[`room_${id}`] * 100
         percent = parseFloat(percent.toFixed(1))
@@ -408,7 +417,9 @@ const getReportDetailData = async (date, displayOption) => {
       if (!detail.hasOwnProperty(detailKey)) {
         detail[detailKey] = { id, roomType, bedSetup, percent };
       }
-    });
+    }
+
+
     return { detail, total };
   } catch (err) {
     ThrowError(err);
