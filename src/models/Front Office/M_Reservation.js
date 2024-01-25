@@ -96,7 +96,7 @@ const displayByIdentifier = (disOpt) => {
   }
 }
 
-const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage) => {
+const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage, history) => {
   try {
     let orderBy, name, whereQuery, arrivalDate, departureDate;
     name = nameQuery || "";
@@ -124,7 +124,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         ...(dateQuery && { reservation: { arrivalDate } }),
         ...(dateQuery && { reservation: { departureDate } }),
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
-        ...(orderBy && orderBy.whereQuery)
+        ...(orderBy && orderBy.whereQuery),
+        ...(history != true && { deleted: false })
       },
       select: {
         id: true,
@@ -149,6 +150,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
             }
           }
         },
+        deleted: true,
         reservation: {
           select: {
             reserver: {
@@ -198,6 +200,11 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         const specialTreatment = reservation.specialTreatment
         resv.reservation.resvStatus.rowColor = specialTreatment.rowColor;
         resv.reservation.resvStatus.textColor = specialTreatment.textColor;
+      }
+      if (resv.deleted != false) {
+        resv.reservation.resvStatus.textColor = "#808080";
+        resv.reservation.resvStatus.rowColor = "#ffffff";
+        resv.reservation.borderColor = "#f7f7f7";
       }
       delete resv.reservationId
       delete resv.reservation.specialTreatmentId

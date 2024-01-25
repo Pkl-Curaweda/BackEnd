@@ -23,7 +23,7 @@ const filterRoomHistory = (roomHistory, filter) => {
 
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
-        let logData = [], startDate, endDate, dates, roomAverage = { total_1: 0, total_2: 0, total_3: 0, total_4: 0, total_5: 0, total_6: 0, total_7: 0, total_8: 0, total_9: 0, total_10: 0 }
+        let logData = [], startDate, endDate, dates, roomAverage = { total_101: 0, total_102: 0, total_103: 0, total_104: 0, total_105: 0, total_106: 0, total_107: 0, total_108: 0, total_109: 0, total_110: 0 }
         if (dateQuery === undefined) {
             const dateNew = new Date();
             startDate = dateNew.toISOString().split('T')[0]
