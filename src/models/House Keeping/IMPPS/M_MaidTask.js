@@ -25,7 +25,7 @@ const assignTask = async (action, roomId, request, article) => {
                     }
                 }
                 const maidTask = await prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, typeId: "GREQ" } })
-                await createNotification({ content: `Room ${roomId} need ${article.description}` })
+                await createNotification({ content: `Room ${roomId} need ${article ? article.description : request}` })
                 return maidTask
             case "DLYCLEAN":
                 for (let room of rooms) {

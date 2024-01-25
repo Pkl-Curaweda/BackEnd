@@ -202,7 +202,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       }
       if (resv.deleted != false) {
         resv.reservation.resvStatus.textColor = "#808080";
-        resv.reservation.resvStatus.rowColor = "#808080";
+        resv.reservation.resvStatus.rowColor = "#f7f7f7";
         resv.reservation.borderColor = "#f7f7f7";
       }
       delete resv.reservationId

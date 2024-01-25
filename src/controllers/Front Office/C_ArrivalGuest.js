@@ -1,5 +1,4 @@
 const { getAllReservation, changeSpecialTreatment } = require("../../models/Front Office/M_Reservation");
-const { ThrowError } = require("../../utils/helper");
 const { success, error } = require("../../utils/response");
 
 const getArrivalGuestData = async (req, res) => {
