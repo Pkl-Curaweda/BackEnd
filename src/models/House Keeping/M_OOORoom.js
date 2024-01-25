@@ -138,7 +138,6 @@ async function all(option) {
  * @return {Promise<import('@prisma/client').oooRoom>}
  */
 async function createOooRoom(oooRoom) {
-  console.log(oooRoom)
   try {
     return await prisma.oooRoom.create({
       data: oooRoom,

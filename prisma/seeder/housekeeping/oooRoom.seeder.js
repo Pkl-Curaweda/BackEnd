@@ -3,7 +3,7 @@ const { prisma } = require("../config");
 const oooRooms = [
   {
     room: {
-      connect: { id: 5 }
+      connect: { id: 105 }
     },
     user: {
       connect: { id: 3 }

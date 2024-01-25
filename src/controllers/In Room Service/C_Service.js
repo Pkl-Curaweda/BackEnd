@@ -66,7 +66,6 @@ const createService = async (req, res) => {
   try {
     const accessToken = getAccessToken(req);
     const decoded = verifyToken(accessToken);
-    console.log(req.body)
     const { name, price, desc, serviceTypeId, subTypeId } = req.body;
     const picture = req.file.filename;
     const pictureUrl = generateAssetUrl(picture);

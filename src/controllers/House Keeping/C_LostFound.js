@@ -38,7 +38,6 @@ async function create(req, res) {
     const lostFound = await lostFoundRepository.create(req.body, req.file.filename, req.user.id)
     return success(res, 'Create lost and found success', lostFound)
   } catch (e) {
-    console.log(e)
     return error(res, 'Create lost and found failed')
   }
 }

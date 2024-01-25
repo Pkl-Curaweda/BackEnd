@@ -3,6 +3,7 @@ const { faker } = require('@faker-js/faker');
 
 const rooms = [
   {
+    id: 101,
     roomType: "DELUXE",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -13,16 +14,7 @@ const rooms = [
     rate: "DLX-RO"
   },
   {
-    roomType: "DELUXE",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
-    roomStatusId: 1,
-    floor: 1,
-    occupied_status: false,
-    description: faker.person.bio(),    
-    bedSetup: "KING",
-    rate: "DLX-RO"
-  },
-  {
+    id: 102,
     roomType: "DELUXE",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -33,6 +25,18 @@ const rooms = [
     rate: "DLX-RO"
   },
   {
+    id: 103,
+    roomType: "DELUXE",
+    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomStatusId: 1,
+    floor: 1,
+    occupied_status: false,
+    description: faker.person.bio(),    
+    bedSetup: "KING",
+    rate: "DLX-RO"
+  },
+  {
+    id: 104,
     roomType: "DELUXE",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -43,6 +47,7 @@ const rooms = [
     rate: "DLX-RO"
   },
   {
+    id: 105,
     roomType: "FAMILY",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -53,6 +58,7 @@ const rooms = [
     rate: "FML-RO"
   },
   {
+    id: 106,
     roomType: "FAMILY",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -63,6 +69,7 @@ const rooms = [
     rate: "FML-RO"
   },
   {
+    id: 107,
     roomType: "FAMILY",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -73,6 +80,7 @@ const rooms = [
     rate: "FML-RO"
   },
   {
+    id: 108,
     roomType: "STANDARD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -83,6 +91,7 @@ const rooms = [
     rate: "STD-RO"
   },
   {
+    id: 109,
     roomType: "STANDARD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -93,6 +102,7 @@ const rooms = [
     rate: "STD-RO"
   },
   {
+    id: 110,
     roomType: "STANDARD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
@@ -105,13 +115,12 @@ const rooms = [
 ];
 
 async function roomSeed() {
-  let id = 1;
-  for(room of rooms){
-    const exist = await prisma.room.findFirst({ where: { id } })
-    if(!exist){
-      await prisma.room.create({ data: room })
-    } 
-    id++
+  for(let room of rooms){
+    await prisma.room.upsert({
+      where: { id: room.id },
+      update: { ...room },
+      create: { ...room }
+    })
   }
 }
 

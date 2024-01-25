@@ -3,7 +3,6 @@ const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, isDateInRa
 
 const getAllAmenitiesData = async (art, q) => {
     let { page = 1, perPage = 5, from, to } = q, usedLog = []
-    console.log(q)
     try {
         if (from === undefined) from = new Date().toISOString().split("T")[0]
         if (to === undefined) {
@@ -12,7 +11,6 @@ const getAllAmenitiesData = async (art, q) => {
             to = to.toISOString().split('T')[0]
         }
         const dates = generateDateBetweenStartAndEnd(from, to)
-        console.log(dates)
         const [stock, usedArticle] = await prisma.$transaction([
             prisma.stock.findFirst({ where: { articleTypeId: +art }, select: { rStock: true } }),
             prisma.invoice.findMany({
@@ -33,7 +31,6 @@ const getAllAmenitiesData = async (art, q) => {
                 take: +perPage
             })
         ])
-        console.log(usedArticle)
 
         for (date of dates) {
             let remain = stock.rStock

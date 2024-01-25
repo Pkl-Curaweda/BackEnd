@@ -98,7 +98,6 @@ const getInvoiceDetail = async (req, res) => {
 }
 
 const getPreviousCard = async (req, res) => {
-  console.log(req.params)
   const { reservationId } = req.params;
   try {
     const idCard = await GetPreviousIdCard(parseInt(reservationId))
@@ -115,7 +114,7 @@ const postNewReservation = async (req, res) => {
     const reservation = await CreateNewReservation(body);
     return success(res, 'Reservation Created', reservation);
   } catch (err) {
-    return error(res, 'Unsuccess Create Reservation', 500, err);
+    return error(res, err.message);
   }
 }
 
@@ -180,7 +179,6 @@ const putNewInvoiceData = async (req, res) => {
   const { reservationId, resvRoomId, date } = req.params;
   const { ids } = req.query;
   const [id, uniqueId] = ids.split('-');
-  console.log(id, uniqueId)
   const body = req.body
   try{
     const updatedData = await putInvoiceData(parseInt(reservationId), parseInt(resvRoomId), { date, id: parseInt(id), uniqueId: parseInt(uniqueId) }, body)

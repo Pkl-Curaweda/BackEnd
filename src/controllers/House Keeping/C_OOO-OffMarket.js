@@ -75,8 +75,7 @@ async function create(req, res) {
     return success(res, 'Create ooo room success', oooRoom)
   }
   catch (e) {
-    console.log(e)
-    return error(res, 'Create ooo room failed')
+    return error(res, e)
   }
 }
 

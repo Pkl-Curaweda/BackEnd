@@ -1,41 +1,46 @@
 const { rm } = require("fs");
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, splitDateTime, isArrangementMatch } = require("../../utils/helper");
 
 const ChangeRoom = async (id, reservationId, body) => {
   try {
-    const { roomId } = await prisma.resvRoom.findFirstOrThrow({
-      where: { id, reservationId },
-      select: { id: true, roomId: true },
-    });
-
-    console.log(roomId);
-
+    const [resvRoom, room] = await prisma.$transaction([
+      prisma.resvRoom.findFirstOrThrow({
+        where: { id, reservationId },
+        select: { room: { select: { id: true, rate: true}}},
+      }),
+      prisma.room.findFirstOrThrow({ where: { id: body.roomId }, select: { rate: true } })
+    ])
+    if(body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
+    await isArrangementMatch(body.roomId, body.arrangmentCodeId)
     const changeRoomLog = await prisma.roomChange.create({
       data: {
-        roomFromId: roomId,
+        roomFromId: resvRoom.room.id,
         roomToId: body.roomId,
         resvRoomId: id,
         reason: body.note
       },
     });
 
-    const updatedResvRoom = await prisma.resvRoom.update({
-      where: { id },
-      data: { roomId: body.roomId, arrangmentCodeId: body.arrangmentCodeId },
-    });
-
-    const updatedRoom = await prisma.room.update({
-      where: { id: roomId },
-      data: {
-        roomType: body.newRoomType,
-        rate: body.arrangmentCodeId,
-      },
-    });
-
+    const [updatedResvRoom, updatedRoom] = await prisma.$transaction([
+      prisma.resvRoom.update({
+        where: { id },
+        data: { roomId: body.roomId, arrangmentCodeId: body.arrangmentCodeId },
+      }),
+      prisma.room.update({
+        where: { id: body.roomId },
+        data: {
+          occupied_status: true,
+          roomType: body.newRoomType,
+          rate: body.arrangmentCodeId,
+        },
+      })
+    ])
     return { updatedResvRoom, changeRoomLog, updatedRoom };
   } catch (err) {
     ThrowError(err);
+  }finally{
+    await PrismaDisconnect()
   }
 };
 

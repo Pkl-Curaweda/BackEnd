@@ -613,6 +613,37 @@ const loginPath = (ident) => {
   return path
 }
 
+async function isRoomAvailable(date = { arr: '', dep: '' }, roomId){
+  try{
+    const roomAvailable = await prisma.resvRoom.findMany({
+      where: {  
+        roomId, reservation: {
+          AND: [
+            { arrivalDate: { gte:  `${date.arr.split('T')[0]}T00:00:00.00Z` } },
+            { departureDate: { lte: `${date.dep.split('T')[0]}T23:59:59.999Z` } }
+          ]
+        }
+      }
+    })
+    if(roomAvailable.length != 0) throw Error('Room are used')
+    return
+  }catch(err){
+    ThrowError(err)
+  }
+}
+
+async function isArrangementMatch(roomId, checkArrangment) {
+  try{
+    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { rate: true }})
+    if(checkArrangment.split('-')[0] != room.rate.split('-')[0]) throw Error('Unmatched Arrangment Code')
+    return 
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 function reverseObject(obj) {
   const reversedObject = {};
   const keys = Object.keys(obj).reverse();
@@ -628,8 +659,10 @@ module.exports = {
   splitDateTime,
   loginPath,
   isDateInRange,
+  isArrangementMatch,
   getWorkingShifts,
   reverseObject,
+  isRoomAvailable,
   PrismaDisconnect,
   formatCurrency,
   formatDecimal,

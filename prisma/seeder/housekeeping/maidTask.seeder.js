@@ -2,7 +2,7 @@ const { prisma } = require("../config");
 
 const maidTasks = [
   {
-    roomId: 1,
+    roomId: 101,
     request: "Please clean, there's a coffee on the celling",
     roomMaidId: 1,
     typeId: "FCLN-DELUXE"

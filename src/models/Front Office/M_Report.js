@@ -364,13 +364,12 @@ const getReportDetailData = async (date, displayOption) => {
         endDate = `${currentYear}-12-31`;
         break;
     }
-    console.log(startDate, endDate)
     dates = generateDateBetweenStartAndEnd(startDate, endDate)
     const [resvRoom, rooms] = await prisma.$transaction([
       prisma.resvRoom.findMany({
         where: {
           reservation: {
-            AND: [
+            OR: [
               { arrivalDate: { gte: `${startDate}T00:00:00.000Z` } },
               { departureDate: { lte: `${endDate}T23:59:59.999Z` } }
             ]

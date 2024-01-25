@@ -72,7 +72,6 @@ const getChart = async () => {
                 select: { roomId: true }
             })
             for (rs of rsv) {
-                console.log(rs)
                 const { roomId } = rs
                 const keyExist = hkChart.hasOwnProperty(roomId);
                 hkChart[roomId] = !keyExist ? 1 : hkChart[roomId]++

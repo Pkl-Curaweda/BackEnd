@@ -6,7 +6,7 @@ const cleanRooms = [
     reservationId: 1,
     resvStatusId: 2,
     description: "Room cleaned thoroughly, ready for next guest.",
-    roomId: 1,
+    roomId: 101,
     created_at: new Date(),
     updated_at: new Date(),
   },

@@ -71,12 +71,11 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         })
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
         for (let date of dates) {
-            let rmHist = { room_1: { data: '', style: {}, }, room_2: { data: '', style: {} }, room_3: { data: '', style: {}, }, room_4: { data: '', style: {}, }, room_5: { data: '', style: {}, }, room_6: { data: '', style: {}, }, room_7: { data: '', style: {}, }, room_8: { data: '', style: {} }, room_9: { data: '', style: {}, }, room_10: { data: '', style: {}, } }
+            let rmHist = { room_101: { data: '', style: {}, }, room_102: { data: '', style: {} }, room_103: { data: '', style: {}, }, room_104: { data: '', style: {}, }, room_105: { data: '', style: {}, }, room_106: { data: '', style: {}, }, room_107: { data: '', style: {}, }, room_108: { data: '', style: {} }, room_109: { data: '', style: {}, }, room_110: { data: '', style: {}, } }
             let data = reservation.filter(rsv => {
                 let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
                 return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
             })
-            console.log(data)
             if (filter != undefined) data = filterRoomHistory(data, filter)
             if (search !== undefined) {
                 const searchTerm = search.toLowerCase();
@@ -87,16 +86,18 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                 }, {});
                 data = Object.values(data)
             }
-            for (let dt of data) {
-                const key = `room_${dt.room.id}`
-                const avgKey = `total_${dt.room.id}`
-                roomAverage[avgKey] += 100
-                rmHist[key] = {
-                    data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
-                    style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
+            if (data.length > 0) {
+                for (let dt of data) {
+                    const key = `room_${dt.room.id}`
+                    const avgKey = `total_${dt.room.id}`
+                    roomAverage[avgKey] += 100
+                    rmHist[key] = {
+                        data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
+                        style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
+                    }
                 }
+                if (filter === "R_DESC") rmHist = reverseObject(rmHist)
             }
-            if(filter === "R_DESC") rmHist = reverseObject(rmHist)
             logData.push({
                 date, rmHist
             })

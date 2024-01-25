@@ -57,6 +57,14 @@ enum LostFoundStatus {
 
 // Front Office Area ==========================================================
 
+model Role {
+  id         Int      @id @default(autoincrement())
+  name       String
+  users      User[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 model Guest {
   id       Int          @id @default(autoincrement())
   name     String?
@@ -69,13 +77,6 @@ model Guest {
 }
 
 // This table is for admin & mitra (hotel)
-model Role {
-  id         Int      @id @default(autoincrement())
-  name       String
-  users      User[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-}
 
 model User {
   id          Int          @id @default(autoincrement())
@@ -180,6 +181,7 @@ model ResvRoom {
   roomMaidId       Int
   billComment      String?        @db.Text
   voucherNo        Int            @unique
+  deleted          Boolean        @default(false)
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
@@ -286,7 +288,7 @@ model RoomStatus {
 }
 
 model Room {
-  id              Int            @id @default(autoincrement(101))
+  id              Int            @id @default(autoincrement())
   roomType        RoomType
   roomImage       String
   roomStatus      RoomStatus     @relation(fields: [roomStatusId], references: [id])

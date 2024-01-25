@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, paginateFO } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, paginateFO, isRoomAvailable } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
@@ -288,12 +288,11 @@ const CreateNewReservation = async (data) => {
     arrivalDate = new Date(data.arrivalDate).toISOString();
     departureDate = new Date(data.departureDate).toISOString();
     manyNight = countNight(arrivalDate, departureDate);
-
+    await isRoomAvailable({ arr: arrivalDate, dep: departureDate }, data.room.roomId)
     const guestName = data.nameContact.split('/')[0];
     const guestContact = data.nameContact.split('/')[1];
     const createdGuest = await CreateNewGuest(guestName, guestContact);
     const createdReserver = await CreateNewReserver(createdGuest.guest.id, data);
-
     const createdReservation = await prisma.reservation.create({
       data: {
         reserver: {
@@ -355,15 +354,11 @@ const DetailCreateReservationHelper = async () => {
 //?DELETE
 const deleteReservationById = async (id, resvRoomId) => {
   try {
-    console.log(id, resvRoomId)
     const [reservationExist, resvroomExist] = await prisma.$transaction([
       prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: true } }),
       prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId } }),
     ])
-    console.log(reservationExist, resvroomExist)
-    await prisma.invoice.deleteMany({ where: { resvRoomId } })
-    await prisma.roomChange.deleteMany({ where: { resvRoomId } })
-    await prisma.resvRoom.deleteMany({ where: { id: resvroomExist.id } })
+    await prisma.resvRoom.update({ where: { id: resvroomExist.id }, data: { deleted: true } })
     return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);

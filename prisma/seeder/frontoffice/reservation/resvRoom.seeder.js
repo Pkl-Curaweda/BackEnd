@@ -5,7 +5,7 @@ const { roomMaidSeed } = require("../../housekeeping/roomMaid.seeder");
 const { invoiceSeeder } = require("../Article/Invoice");
 
 const resvRooms = {
-	roomId: 1,
+	roomId: 101,
 	reservationId: 1,
 	roomMaidId: 2,
 	voucherNo: 21321,
@@ -16,11 +16,11 @@ const resvRooms = {
 
 async function ResvRoomSeed(reservationId) {
 	resvRooms.reservationId = reservationId
-	resvRooms.roomId = randomInt(1, 10),
+	resvRooms.roomId = randomInt(101, 110),
 	resvRooms.voucherNo = randomInt(100)
 	const rType = ['DLX', 'DLX', 'DLX', 'DLX', 'FML', 'FML', 'FML', 'STD', 'STD', 'STD']
 	const rbRo = ['RB', 'RO']
-	resvRooms.arrangmentCodeId = `${rType[resvRooms.roomId - 1]}-${rbRo[randomInt(0,  2)]}` 
+	resvRooms.arrangmentCodeId = `${rType[resvRooms.roomId - 100]}-${rbRo[randomInt(0,  2)]}` 
 	const resvRoom = await prisma.resvRoom.create({
 		data: resvRooms,
 	});

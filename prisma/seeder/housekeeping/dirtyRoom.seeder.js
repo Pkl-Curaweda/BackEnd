@@ -7,7 +7,7 @@ const dirtyRooms = [
     resvStatusId: 2,
     description:
       "Room requires thorough cleaning. Stains on the carpet and beddings need attention.",
-    roomId: 1,
+    roomId: 101,
     created_at: new Date(),
     updated_at: new Date(),
   },

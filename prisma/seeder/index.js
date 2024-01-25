@@ -11,6 +11,7 @@ const { roomBatchSeed } = require("./frontoffice/room");
 const { articleTypeSeed } = require("./frontoffice/Article/articleType.seeder");
 const { ShiftSeed } = require("./housekeeping/shift.seeder");
 const { NotificationSeed } = require("./global/notification.seeder");
+const { ThrowError, PrismaDisconnect } = require("../../src/utils/helper");
 
 
 async function main() {
@@ -46,7 +47,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (err) => {
-    console.log(err);
-    await prisma.$disconnect();
+    ThrowError(err)
+    await PrismaDisconnect()
     process.exit(1);
   });

@@ -18,7 +18,6 @@ const assignTask = async (action, roomId, request, article) => {
                 const workingShift = await getWorkingShifts(new Date())
                 for (let shift of workingShift) {
                     for (let workload of shift.RoomMaid) {
-                        console.log(workload)
                         if (workload.workload < lowestWorkload) {
                             lowestWorkload = workload.workload;
                             lowestRoomMaidId = workload.id;

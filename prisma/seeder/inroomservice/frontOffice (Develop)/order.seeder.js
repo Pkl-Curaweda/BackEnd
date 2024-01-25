@@ -6,7 +6,7 @@ const { generateId } = require("./uniqueHandler");
 const orders = [{
     id: "OR-1",
     guestId: 1,
-    roomId: 1,
+    roomId: 101,
     subtotal: 400000,
     total: 30000,
     ppn: 50000,
