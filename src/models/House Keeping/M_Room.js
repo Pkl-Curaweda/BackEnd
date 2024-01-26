@@ -54,7 +54,17 @@ const postStatusChange = async (payload) => {
     }
 }
 
-const changeRoomStatus = async (id, roomStatusId) => {
+const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
+    try{
+        return await prisma.room.update({ where: {  id: roomId}, data: { roomStatus: { connect: { shortDescription } } } })
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+const changeRoomStatusByStatusId = async (id, roomStatusId) => {
     try{
         return await prisma.room.update({ where: { id }, data: { roomStatusId } } )
     }catch(err){
@@ -64,4 +74,4 @@ const changeRoomStatus = async (id, roomStatusId) => {
     }
 }
 
-module.exports = { getAllAvailableRoom, getRoomStatWithId, postStatusChange, getAllRoomStatus, changeRoomStatus}
+module.exports = { getAllAvailableRoom, getRoomStatWithId, postStatusChange, getAllRoomStatus, changeRoomStatusByDescription, changeRoomStatusByStatusId}

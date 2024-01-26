@@ -1,6 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const { search } = require("../../routes/R_Login")
-const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, splitDateTime } = require("../../utils/helper")
 const { getAllRoomStatus } = require("./M_Room")
 
 const getRoomOccupancyData = async (q) => {
@@ -13,7 +13,7 @@ const getRoomOccupancyData = async (q) => {
         const roomStatus = await prisma.room.findMany({
             where: {
                 ...(roomType != undefined && roomType)
-            },select: {
+            }, select: {
                 id: true,
                 roomType: true,
                 roomStatus: {
@@ -23,8 +23,20 @@ const getRoomOccupancyData = async (q) => {
         })
         for (let room of roomStatus) {
             const [r, estR] = await prisma.$transaction([
-                prisma.resvRoom.findFirst({ where: { roomId: room.id, reservation: { checkInDate: { not: null }, onGoingReservation: true } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
-                prisma.resvRoom.findMany({ where: { roomId: room.id, reservation: { arrivalDate: { gte: currentDate.toISOString() } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } })
+                prisma.resvRoom.findFirst({
+                    where: {
+                        roomId: room.id, reservation: {
+                            checkInDate: { not: null }, onGoingReservation: true
+                        }
+                    }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+                }),
+                prisma.resvRoom.findMany({
+                    where: {
+                        roomId: room.id, reservation: {
+                            arrivalDate: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z` }
+                        }
+                    }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+                })
             ])
             switch (room.roomStatus.shortDescription) {
                 case "OC" || "OD":
@@ -42,17 +54,16 @@ const getRoomOccupancyData = async (q) => {
             }
             if (estR.length != 0) {
                 currData.estOcc.room++
-                const estPersom = 0
-                for (let resv of estR) {
-                    estPersom += (resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild)
-                }
-                currData.estOcc.person = + estPersom
+                let estPerson = 0
+                for (let resv of estR) estPerson += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
+                currData.estOcc.person += estPerson
             }
-
-            percData = { ...currData }
         }
+        percData = { ...currData }
+        console.log(percData)
         let startDate, endDate
         const currentYear = currentDate.getFullYear()
+
         //?PERCENTAGES
         switch (disOpt) {
             case "week":
@@ -73,14 +84,31 @@ const getRoomOccupancyData = async (q) => {
                 [startDate, endDate] = [`${currentDate.toISOString().split('T')[0]}T00:00:00.000Z`, `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z`]
                 break;
         }
+
         const [r, ooo] = await prisma.$transaction([
-            prisma.resvRoom.findMany({ where: { reservation: { arrivalDate: { gte: startDate, lte: endDate, not: currentDate.toISOString() }, departureDate: { gte: startDate, lte: endDate, not: currentDate.toISOString() } } }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } } }),
-            prisma.oooRoom.count({ where: { created_at: { not: currentDate.toISOString() } } })
+            prisma.resvRoom.findMany({
+                where: {
+                    reservation: {
+                        AND: [
+                            { arrivalDate: { gte: startDate, not: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } } },
+                            { departureDate: { lte: endDate, not: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } } }
+                        ]
+                    }
+                },
+                select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+            }),
+            prisma.oooRoom.count({
+                where: {
+                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                }
+            })
         ])
+
         let estPers = 0
-        for (let resv of r) estPers += (resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild)
-        currData.estOcc.person = + estPers
+        for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
+        percData.estOcc.person = + estPers
         percData.ooo.room += ooo
+        console.log(percData, currData)
         return { currData, percData, roomStatus }
     } catch (err) {
         ThrowError(err)

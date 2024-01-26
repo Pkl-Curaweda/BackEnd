@@ -9,13 +9,14 @@ const { error } = require("../utils/response");
  */
 const auth = (roles) => async (req, res, next) => {
     try {
+        console.log('Test ')
         const { authorization } = req.headers;
         if (!authorization) return error(res, 'Forbidden authorization token is not found', 403)
-
         const accessToken = authorization.split(' ')[1];
         const refreshToken = req.cookies['refresh_token'];
         await prisma.userToken.findFirstOrThrow({ where: { refreshToken } })
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
+        console.log(decoded)
         const userData = await prisma.user.findUniqueOrThrow({
             where: {
                 id: +decoded.sub

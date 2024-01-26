@@ -55,6 +55,12 @@ const roomStatuses = [
     rowColor: "#000000",
     textColor: "#F10000",
   },
+  {
+    shortDescription: "HU",
+    longDescription: "House Use",
+    rowColor: "#666666",
+    textColor: "#ffffff",
+  },
 ];
 
 async function roomStatusSeed() {

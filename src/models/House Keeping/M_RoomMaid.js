@@ -31,21 +31,62 @@ const assignRoomMaid = async (resvRoomId) => {
     }
 }
 
-const getRoomMaidTaskById = async (id) => {
+const getAllRoomMaid = async (id) => {
     try{
-        const currDate = new Date().toISOString().split('T')[0]
-        const [roomMaid] = await prisma.$transaction([
-            prisma.roomMaid.findFirstOrThrow({ where: { id }, select:{ user: { select: { name: true, role: { select: { name: true } } } } } }),
-            prisma.maidTask.findMany({ where: { roomMaidId: id, created_at: { gte: `${currDate}T00:00:00.000Z` } }, select: {
-                room: {
-                    select: { id: true, roomType: true }
-                },
-                
-            } })
-        ]) 
+        const roomMaids = await prisma.roomMaid.findMany({ select: {
+            id: true,
+            aliases: true,
+            workload: true,
+            performance: true,
+            user: { select: { name: true } }
+        } })
+        return roomMaids
     }catch(err){
         ThrowError(err)
     }finally{
+        await PrismaDisconnect()
+    }
+}
+
+const getRoomMaidTaskById = async (id) => {
+    let listTask = []
+    try {
+        const currDate = new Date().toISOString().split('T')[0]
+        const[roomMaid ,maidTask] = await prisma.$transaction([
+            prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { performance: true } }),
+            prisma.maidTask.findMany({
+                where: {
+                    roomMaidId: id, AND: [
+                        { created_at: { gte: `${currDate}T00:00:00.000Z` } },
+                        { created_at: { lte: `${currDate}T23:59:59.999Z` } }
+                    ]
+                }, select: {
+                    room: {
+                        select: { id: true, roomType: true }
+                    },
+                    schedule: true,
+                    request: true,
+                    comment: true,
+                    status: true,
+                    type: { select: { standardTime: true } }
+                }, orderBy: { created_at: 'asc' }
+            })
+        ])
+        for(let mTask of maidTask){
+            listTask.push({
+                roomNo: mTask.room.id,
+                roomType: mTask.room.roomType,
+                schedule: mTask.schedule,
+                actual: mTask.type.standardTime,
+                remarks: mTask.request ? mTask.request : "-",
+                status: mTask.status ? mTask.status : "-",
+                comments: mTask.comment ? mTask.comment : "-"
+            })
+        }
+        return { performance: roomMaid.performance, listTask }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -90,8 +131,8 @@ const getRoomMaidReport = async (q) => {
                 },
                 orderBy: { updated_at: 'desc' }
             })
-            let pic  = ''
-            if(r){
+            let pic = ''
+            if (r) {
                 const roomMaid = r.room.RoomMaid
                 pic = roomMaid.length != 0 ? roomMaid[0].aliases : ''
             }
@@ -142,21 +183,21 @@ const getRoomMaidReport = async (q) => {
 }
 
 const resetRoomMaid = async () => {
-    try{
+    try {
         const roomMaids = await prisma.roomMaid.findMany({ select: { id: true, shift: { select: { startTime: true } } } })
-        for(let rm of roomMaids){
+        for (let rm of roomMaids) {
             await prisma.roomMaid.update({
                 where: { id: rm.id },
-                data:{
+                data: {
                     workload: 0,
                     currentSchedule: rm.shift.startTime
                 }
             })
         }
         return "Success"
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -299,4 +340,4 @@ async function remove(id) {
 }
 
 
-module.exports = { resetRoomMaid, assignRoomMaid, all, get, create, update, remove, getRoomMaidReport }
+module.exports = { resetRoomMaid, getAllRoomMaid, assignRoomMaid, all, get, create, update, remove, getRoomMaidReport, getRoomMaidTaskById }

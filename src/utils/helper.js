@@ -573,11 +573,13 @@ const getMinutesFromTimeString = (timeString) => {
 
 const getWorkingShifts = async (currentTime) => {
   const currentHour = currentTime.getHours() * 60 + currentTime.getMinutes();
-  const shifts = await prisma.shift.findMany({ select: { startTime: true, endTime: true, RoomMaid: { select: { id: true, workload: true } } } });
+  const shifts = await prisma.shift.findMany({ select: { startTime: true, endTime: true, restTimeEnd: true, restTimeStart: true, RoomMaid: { select: { id: true, workload: true } } } });
   const currentShifts = shifts.filter((shift) => {
     const shiftStartTime = getMinutesFromTimeString(shift.startTime);
     const shiftEndTime = getMinutesFromTimeString(shift.endTime);
-    return currentHour >= shiftStartTime && currentHour < shiftEndTime;
+    const restStartTime = getMinutesFromTimeString(shift.restTimeStart);
+    const restEndTime = getMinutesFromTimeString(shift.restTimeEnd);
+    if(!(currentHour >= restStartTime && currentHour < restEndTime)) return currentHour >= shiftStartTime && currentHour < shiftEndTime;
   });
   return currentShifts;
 };

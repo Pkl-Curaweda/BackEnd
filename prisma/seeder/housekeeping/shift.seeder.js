@@ -20,7 +20,7 @@ const Shifts = [
         UoM: "Minute",
     },
     {
-        description: "Shift 3",
+    description: "Shift 3",
         startTime: "13:00",
         endTime: "23:00",
         restTimeStart: "18:00",

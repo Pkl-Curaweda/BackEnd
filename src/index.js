@@ -13,6 +13,7 @@ const R_InRoomService = require("./routes/R_InRoomService");
 const dashboard = require('./models/Front Office/M_Dashboard');
 const { success, error } = require("./utils/response");
 const { getAllNotification } = require("./controllers/Front Office/C_Notification");
+const R_IMPPS = require("./routes/R_IMPPS");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -48,6 +49,7 @@ app.get('/dashboard', async (req, res) => {
 app.get('/notif', getAllNotification)
 app.use("/fo", R_FrontOffice);
 app.use('/hk', R_HouseKeeping)
+app.use('/impps', R_IMPPS)
 app.use('/irs', R_InRoomService)
 // app.use(middleware(['Admin', 'Super Admin']));
 

@@ -363,10 +363,10 @@ model MaidTask {
   roomMaidId  Int
   type        TaskType @relation(fields: [typeId], references: [id])
   typeId      String
-  schedule    String?
+  schedule    String
   startTime   String?
   endTime     String?
-  taskRemarks String?  @db.Text
+  comment String?  @db.Text
   status      String?
   mainStatus  String   @default("WAITING")
   updated_at  DateTime @updatedAt

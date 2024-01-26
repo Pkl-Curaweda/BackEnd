@@ -9,7 +9,7 @@ R_Login.get("/user", getAllUsers)
 R_Login.post("/user/login", postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);
-R_Login.get('/user/me', auth , getCurrentUser);
+R_Login.get('/user/me',auth(),  getCurrentUser);
 R_Login.get('/notif', getAllNotification)
 
 //Guest Login
