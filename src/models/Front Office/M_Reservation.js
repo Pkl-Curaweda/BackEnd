@@ -6,6 +6,7 @@ const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRo
 const { getAllAvailableRoom, changeRoomStatusByStatusId } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
+const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
 
 const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -432,6 +433,18 @@ const editReservation = async (reservationId, resvRoomId, data) => {
   }
 };
 
+const AddWaitingList = async (reservationId, resvRoomId, request) => {
+  try{
+    const exist = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId, reservationId: +reservationId }, select: { roomId: true } })
+    const task = await genearateListOfTask("GUEREQ", exist.roomId, request)
+    return task
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
     let currentStat;
@@ -534,6 +547,7 @@ module.exports = {
   ChangeReservationProgress,
   DetailCreateReservationHelper,
   AddNewIdCard,
+  AddWaitingList,
   orderReservationByIdentifier,
   changeSpecialTreatment,
   checkCurrentStatus,

@@ -1,7 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config.js");
 const { GetInvoiceDetailByArt, putInvoiceData, deleteInvoiceData } = require("../../models/Front Office/M_Invoice.js");
 const { getReportDetailData } = require("../../models/Front Office/M_Report.js");
-const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard } = require("../../models/Front Office/M_Reservation.js");
+const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard, AddWaitingList } = require("../../models/Front Office/M_Reservation.js");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom.js");
 const { assignTask } = require("../../models/House Keeping/IMPPS/M_MaidTask.js");
 const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange.js");
@@ -149,8 +149,7 @@ const postWaitingList = async (req, res) => {
   const { reservationId, resvRoomId} = req.params
   const { request } = req.body
   try{
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId, reservationId: +reservationId }, select: { roomId: true } })
-    const task = await assignTask('GUEREQ', resvRoom.roomId, request)
+    const task = await AddWaitingList(reservationId, resvRoomId, request)
     return success(res, 'Operation Success', task)
   }catch(err){
     return error(res, err.message)
