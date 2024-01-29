@@ -137,7 +137,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       added.arr = formatDecimal((added.rev / added.rno)) || 0
       const storedData = {
         date: searchDate,
-        roomAvailable,
+        roomAvailable: totalPayment,
         occupied,
         occ,
         roomRevenue,

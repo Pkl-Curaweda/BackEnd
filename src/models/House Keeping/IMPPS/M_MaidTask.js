@@ -12,36 +12,41 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 prisma.shift.findFirst({ where: { id: 1 }, select: { startTime: true } }),
                 prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })
             ])
-            if (action === "DLYCLEAN") {
-                currentSchedule = latestTask != null ? latestTask.schedule.split('-')[1] : shift.startTime
-                console.log(currentSchedule)
-                hours = parseInt(currentSchedule.split(":")[0])
-                minutes = parseInt(currentSchedule.split(":")[1])
-            } else {
-                const { time } = splitDateTime(currentDate.toISOString())
-                console.log(time)
-                hours = parseInt(time.split(':')[0])  + 7
-                minutes = parseInt(time.split(':')[1])
-                currentSchedule = `${hours}:${minutes}`
-                console.log(hours, minutes)
+            if (currentSchedule === undefined) {
+                if (action === "DLYCLEAN") {
+                    currentSchedule = latestTask != null ? latestTask.schedule.split('-')[1] : shift.startTime
+                    console.log(currentSchedule)
+                    hours = parseInt(currentSchedule.split(":")[0])
+                    minutes = parseInt(currentSchedule.split(":")[1])
+                } else {
+                    const { time } = splitDateTime(currentDate.toISOString())
+                    console.log(time)
+                    hours = parseInt(time.split(':')[0]) + 7
+                    minutes = parseInt(time.split(':')[1])
+                    currentSchedule = `${hours}:${minutes}`
+                    console.log(hours, minutes)
+                }
+                currentDate.setHours(hours);
+                currentDate.setMinutes(minutes);
             }
-            console.log(action)
-            console.log(hours, minutes)
-            currentDate.setHours(hours);
-            currentDate.setMinutes(minutes);
 
-            console.log(currentDate)
             const workingShift = await getWorkingShifts(currentDate)
             do {
+                console.log(workingShift)
+                console.log(workload)
                 while (lowestRoomMaidId < 1) {
                     if (workingShift.length > 0) {
                         for (let shift of workingShift) {
                             for (let workload of shift.RoomMaid) {
+                                console.log(workload.workload)
                                 if (workload.workload < 480) {
                                     if (workload.workload < lowestWorkload) {
+                                        const taskWorkload = workload.workload
                                         lowestWorkload = workload.workload;
                                         lowestRoomMaidId = workload.id;
                                     }
+                                }else{
+                                    continue
                                 }
                             }
                         }
@@ -50,7 +55,9 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 maidWorkload = lowestWorkload + workload
             } while (workload > 480)
             const previousSchedule = currentSchedule
+            console.log(currentSchedule)
             currentSchedule = formatToSchedule(currentSchedule, workload)
+            console.log(currentSchedule)
             const [createdTask, assigned] = await prisma.$transaction([
                 prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, schedule: `${previousSchedule}-${currentSchedule}`, typeId } }),
                 prisma.roomMaid.update({ where: { id: lowestRoomMaidId }, data: { workload: maidWorkload } })
