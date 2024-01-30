@@ -325,21 +325,22 @@ model RoomChange {
 }
 
 model RoomMaid {
-  id              Int        @id @default(autoincrement())
-  user            User       @relation(fields: [userId], references: [id])
-  userId          Int
-  aliases         String
-  shift           Shift      @relation(fields: [shiftId], references: [id])
-  shiftId         Int
-  performance     Float      @default(5)
-  finishedTask    Int        @default(0)
-  workload        Int
-  currentSchedule String
-  department      Department @relation(fields: [departmentId], references: [id])
-  departmentId    Int
-  MaidTask        MaidTask[]
-  ResvRoom        ResvRoom[]
-  updated_at      DateTime   @updatedAt
+  id            Int        @id @default(autoincrement())
+  user          User       @relation(fields: [userId], references: [id])
+  userId        Int
+  aliases       String
+  shift         Shift      @relation(fields: [shiftId], references: [id])
+  shiftId       Int
+  urgentTask    Int?
+  currentTask   Int?
+  rawPerfomance Int        @default(0)
+  finishedTask  Int        @default(0)
+  workload      Int
+  department    Department @relation(fields: [departmentId], references: [id])
+  departmentId  Int
+  MaidTask      MaidTask[]
+  ResvRoom      ResvRoom[]
+  updated_at    DateTime   @updatedAt
 }
 
 model Shift {
@@ -355,22 +356,25 @@ model Shift {
 }
 
 model MaidTask {
-  id          Int      @id @default(autoincrement())
-  room        Room     @relation(fields: [roomId], references: [id])
+  id          Int       @id @default(autoincrement())
+  room        Room      @relation(fields: [roomId], references: [id])
   roomId      Int
-  request     String   @db.Text
-  roomMaid    RoomMaid @relation(fields: [roomMaidId], references: [id])
+  request     String    @db.Text
+  roomMaid    RoomMaid  @relation(fields: [roomMaidId], references: [id])
   roomMaidId  Int
-  type        TaskType @relation(fields: [typeId], references: [id])
+  type        TaskType  @relation(fields: [typeId], references: [id])
   typeId      String
   schedule    String
-  startTime   String?
-  endTime     String?
-  comment String?  @db.Text
+  finished    Boolean   @default(false)
+  performance Int?
+  startTime   DateTime?
+  endTime     DateTime?
+  checkedTime DateTime?
+  comment     String?   @db.Text
   status      String?
-  mainStatus  String   @default("WAITING")
-  updated_at  DateTime @updatedAt
-  created_at  DateTime @default(now())
+  mainStatus  String    @default("WAITING")
+  updated_at  DateTime  @updatedAt
+  created_at  DateTime  @default(now())
 }
 
 model TaskType {
@@ -440,23 +444,22 @@ model Stock {
 }
 
 model LostFound {
-  id           Int             @id @default(autoincrement())
-  room         Room            @relation(fields: [roomId], references: [id])
-  roomId       Int
-  pic          User            @relation("LostFound_pic", fields: [picId], references: [id])
-  picId        Int
-  user         User            @relation("LostFound_user", fields: [userId], references: [id])
-  userId       Int
-  time         String
-  phoneNumber  String
-  reportedDate DateTime        @db.Date
-  location     String
-  image        String
-  status       LostFoundStatus @default(value: LOST)
-  description  String          @db.Text
-  created_at   DateTime        @default(now())
-  updated_at   DateTime        @updatedAt
-  deleted      Boolean         @default(false)
+  id          Int             @id @default(autoincrement())
+  room        Room            @relation(fields: [roomId], references: [id])
+  roomId      Int
+  pic         User            @relation("LostFound_pic", fields: [picId], references: [id])
+  picId       Int
+  user        User?            @relation("LostFound_user", fields: [userId], references: [id])
+  userId      Int?
+  phoneNumber String?
+  location    String
+  image       String
+  status      LostFoundStatus @default(value: LOST)
+  description String          @db.Text
+  finished_at DateTime?
+  created_at  DateTime        @default(now())
+  updated_at  DateTime        @updatedAt
+  deleted     Boolean         @default(false)
 }
 
 // End House Keeping Area =====================================================

@@ -314,7 +314,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
           break;
       }
     }
-
+    const total = data.length
     data = data.slice(startIndex, endIndex + 1)
     const lastPage = Math.ceil(dates.length / perPage);
 
@@ -322,7 +322,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       ident,
       reports: data,
       meta: {
-        total: data.length,
+        total,
         currPage: page,
         lastPage,
         perPage,

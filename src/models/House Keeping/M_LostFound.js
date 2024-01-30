@@ -1,4 +1,4 @@
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper");
 const { prisma } = require("../../../prisma/seeder/config");
 
 /**
@@ -19,13 +19,13 @@ const { prisma } = require("../../../prisma/seeder/config");
 
 const select = {
   created_at: true,
-  time: true,
   roomId: true,
   pic: {
     select: {
       name: true,
     }
   },
+  finished_at: true,
   description: true,
   user: {
     select: {
@@ -33,7 +33,6 @@ const select = {
       phone: true,
     }
   },
-  reportedDate: true,
   location: true,
   image: true,
 }
@@ -87,11 +86,11 @@ async function all(option) {
       description: {
         contains: search,
       },
-      reportedDate: {
-        gte: `${date}T00:00:00.000Z`,
-        lte: `${date}T23:59:59.999Z`,
-      },
-      deleted: false, //?Deleted = Done
+      AND: [
+        { created_at: { gte: `${date}T00:00:00.000Z` } },
+        { created_at: { lte: `${date}T23:59:59.999Z` } },
+      ],
+      deleted: false,
     }
     orderBy = sortingLostFound(sortOrder)
 
@@ -102,7 +101,25 @@ async function all(option) {
         skip: (page - 1) * perPage,
         where,
         orderBy,
-        select
+        select: {
+          created_at: true,
+          roomId: true,
+          pic: {
+            select: {
+              name: true,
+            }
+          },
+          finished_at: true,
+          description: true,
+          user: {
+            select: {
+              name: true,
+              phone: true,
+            }
+          },
+          location: true,
+          image: true,
+        }
       }),
       prisma.lostFound.count({ where: { status: 'FOUND' } }),
       prisma.lostFound.count({ where: { status: 'LOST' } })
@@ -110,9 +127,25 @@ async function all(option) {
 
     graph.found = found
     graph.lost = lost
+    const list = []
+    for (let lf of lostFounds) {
+      console.log(lf)
+      const { date, time } = splitDateTime(lf.created_at)
+      list.push({
+        date, time,
+        roomNo: lf.roomId,
+        pic: lf.pic ? lf.pic.name : '-' ,
+        desc: lf.description,
+        reportedBy: lf.user ? lf.user.name : '-',
+        phoneNumber: lf.user? lf.user.phone : '-',
+        reportedDate: lf.finished_at != null ? splitDateTime(lf.finished_at).date : '-',
+        location: lf.location || '-',
+        image: lf.image
+      })
+    }
     const lastPage = Math.ceil(total / perPage);
     return {
-      graph, lostFounds, meta: {
+      graph, lostFounds: list, meta: {
         total,
         currPage: page,
         lastPage,
@@ -132,14 +165,16 @@ async function all(option) {
 /**
  * @param {import('@prisma/client').LostFound} lostFound
  * @param {string} image
- * @param {string} userId
+ * @param {object} sender
  * @throws {Error}
  * @return {Promise<import('@prisma/client').LostFound>}
  */
-async function create(lostFound, image, userId) {
+async function create(lostFound, image, sender) {
   try {
+    const { date, time } = splitDateTime(new Date())
     const roomId = lostFound.roomId
     delete lostFound.roomId
+    lostFound.phoneNumber = sender.phone
     return await prisma.lostFound.create({
       data: {
         ...lostFound,
@@ -149,14 +184,9 @@ async function create(lostFound, image, userId) {
             id: roomId,
           }
         },
-        pic: {
-          connect: {
-            id: +userId
-          }
-        },
         user: {
           connect: {
-            id: +userId
+            id: +sender.id
           }
         }
       },
@@ -165,6 +195,19 @@ async function create(lostFound, image, userId) {
   } catch (err) {
     ThrowError(err)
   } finally {
+    await PrismaDisconnect()
+  }
+}
+
+const finishLostFound = async (lostFoundId, sender) => {
+  try{
+    const [exist, lostFound] = await prisma.$transaction([
+      prisma.lostFound.findFirstOrThrow({ where: { id: +lostFoundId } }),
+      prisma.lostFound.update({ where: { id: +lostFoundId }, data: { finished_at: new Date(),  userId: sender.id, phoneNumber: sender.phone } })
+    ])
+  }catch(err){
+    ThrowError(err)
+  }finally{
     await PrismaDisconnect()
   }
 }
@@ -237,5 +280,6 @@ module.exports = {
   remove,
   create,
   update,
+  finishLostFound,
   softDelete,
 }

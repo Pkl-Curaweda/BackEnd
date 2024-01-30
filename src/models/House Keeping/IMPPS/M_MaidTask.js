@@ -1,6 +1,37 @@
+const { create } = require("qrcode")
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
+const { countPerfomance, countTaskPerformance } = require("../M_RoomMaid")
+
+const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
+    try {
+        const currDate = new Date().toISOString().split('T')[0]
+        return await prisma.maidTask.findMany({
+            where: {
+                ...where,
+                AND: [
+                    { created_at: { gte: `${currDate}T00:00:00.000Z` } },
+                    { created_at: { lte: `${currDate}T23:59:59.999Z` } }
+                ]
+            }, ...(select && { select }), ...(orderBy && { orderBy }), ...(take && { take: +take }), ...(skip && { skip: (skip - 1) * take })
+        })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getAllWorkingTaskId = async () => {
+    try {
+        return await prisma.roomMaid.findMany({ select: { id: true, currentTask: true } })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
 
 const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Request / Note', workload: 0, typeId: 'CLN' }]) => {
     let assigne = [], currentDate = new Date(), currentSchedule; //The example of current schedule is a string like this: 08:00
@@ -41,13 +72,10 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                                 console.log(workload.workload)
                                 if (workload.workload < 480) {
                                     if (workload.workload < lowestWorkload) {
-                                        const taskWorkload = workload.workload
                                         lowestWorkload = workload.workload;
                                         lowestRoomMaidId = workload.id;
                                     }
-                                }else{
-                                    continue
-                                }
+                                } else continue
                             }
                         }
                     } else throw Error('No one is working on this shift')
@@ -165,4 +193,46 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
     }
 }
 
-module.exports = { genearateListOfTask }
+const taskAction = async (action, maidId, taskId, payload = { comment: '', perfomance: '' }) => {
+    let updateTask, updateMaid
+    try {
+        const [roomMaid, task] = await prisma.$transaction([
+            prisma.roomMaid.findFirstOrThrow({ where: { id: maidId } }),
+            prisma.maidTask.findFirstOrThrow({ where: { id: taskId, roomMaidId: maidId } })
+        ])
+        const currentDate = new Date().toISOString()
+        if(task.finished != false) throw Error('Task already finished')
+        switch (action) {
+            case "start":
+                if (roomMaid.currentTask != null || roomMaid.urgentTask != null) throw Error("You need to finish your current / urgent task first")
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", mainStatus: "ON PROGRESS" } })
+                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
+                break;
+            case "end":
+                if (roomMaid.currentTask != taskId) throw Error("You cannot end this task, need to be started")
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { endTime: currentDate, status: "Need to be check", mainStatus: "CHECKING" } })
+                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: null } })
+                break;
+            case "re-clean":
+                if(roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Sorry you already give task to this ${roomMaid.aliases}`)
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment }, select: { roomId: true } })
+                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { urgentTask: updateTask.id }, select: { user: { select: { name: true } } } })
+                await createNotification({ content: `${updateMaid.user.name} please clean room no ${updateTask.roomId}` })
+                break;
+            case "ok":
+                const maidPerfomance = await countTaskPerformance(task.id, 4)
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance } })
+                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: null, rawPerfomance: roomMaid.rawPerfomance + maidPerfomance, finishedTask: roomMaid.finishedTask + 1 } })
+                await createNotification({ content: `Task / Request ${task.roomId} finished` })
+                break;
+            default:
+                throw Error('No action matched')
+        }
+        return { updateMaid, updateTask }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction }

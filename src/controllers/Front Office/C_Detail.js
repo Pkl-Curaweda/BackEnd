@@ -75,7 +75,7 @@ const getEditReservationHelper = async (req, res) => {
     let detail = { reservation: undefined, data: undefined }
     detail.reservation = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
     detail.data = await DetailCreateReservationHelper();
-    return success(res, 'Helper Running', detail)
+    return success(res, `Shown Reservation | ${detail.reservation.id}`, detail)
   } catch (err) {
     return error(res, err.message)
   }

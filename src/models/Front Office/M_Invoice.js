@@ -155,8 +155,9 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } } })
+    console.log(b)
     for (let body of b) {
-      if(body.qty <= 0){
+      if (!(body.qty <= 0)) {
         const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
         const resvArt = await prisma.invoice.create({
           data: {
@@ -168,8 +169,10 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
             rate: art.price
           }
         })
+        console.log(addedArticle)
         addedArticle.push(resvArt)
-      }
+        console.log(addedArticle)
+      } else continue
     }
     return addedArticle
   } catch (err) {

@@ -1,6 +1,27 @@
 const { randomInt } = require("crypto")
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, splitDateTime, generatePercentageValues, getTimeDifferenceInMinutes, getMaidPerfomance } = require("../../utils/helper")
+
+const getAllRoomMaid = async () => {
+    try {
+        const roomMaids = await prisma.roomMaid.findMany({
+            select: {
+                id: true,
+                aliases: true,
+                workload: true,
+                urgentTask: true,
+                currentTask: true,
+                performance: true,
+                user: { select: { name: true } }
+            }
+        })
+        return roomMaids
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
 
 const assignRoomMaid = async (resvRoomId) => {
     try {
@@ -31,59 +52,47 @@ const assignRoomMaid = async (resvRoomId) => {
     }
 }
 
-const getAllRoomMaid = async (id) => {
-    try{
-        const roomMaids = await prisma.roomMaid.findMany({ select: {
-            id: true,
-            aliases: true,
-            workload: true,
-            performance: true,
-            user: { select: { name: true } }
-        } })
-        return roomMaids
-    }catch(err){
-        ThrowError(err)
-    }finally{
-        await PrismaDisconnect()
-    }
-}
 
-const getRoomMaidTaskById = async (id) => {
-    let listTask = []
+const getRoomMaidTaskById = async (id, q) => {
+    const { page = 1, perPage = 5 } = q
     try {
         const currDate = new Date().toISOString().split('T')[0]
-        const[roomMaid ,maidTask] = await prisma.$transaction([
-            prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { performance: true } }),
-            prisma.maidTask.findMany({
-                where: {
-                    roomMaidId: id, AND: [
-                        { created_at: { gte: `${currDate}T00:00:00.000Z` } },
-                        { created_at: { lte: `${currDate}T23:59:59.999Z` } }
-                    ]
-                }, select: {
-                    room: {
-                        select: { id: true, roomType: true }
-                    },
-                    schedule: true,
-                    request: true,
-                    comment: true,
-                    status: true,
-                    type: { select: { standardTime: true } }
-                }, orderBy: { created_at: 'asc' }
-            })
-        ])
-        for(let mTask of maidTask){
-            listTask.push({
+        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true } })
+        const maidTask = await prisma.maidTask.findMany({
+            where: {
+                roomMaidId: id, AND: [
+                    { created_at: { gte: `${currDate}T00:00:00.000Z` } },
+                    { created_at: { lte: `${currDate}T23:59:59.999Z` } }
+                ],
+                finished: false
+            }, select: {
+                room: {
+                    select: { id: true, roomType: true }
+                },
+                id: true,
+                schedule: true,
+                request: true,
+                comment: true,
+                status: true,
+                type: { select: { standardTime: true } }
+            }, orderBy: { created_at: 'asc' }, take: +perPage, skip: (page - 1) * perPage
+        })
+        const maidPerfomance = await convertPerfomance(roomMaid.id)
+        console.log(maidPerfomance)
+        const listTask = maidTask.map(mTask => {
+            return {
+                taskId: mTask.id,
                 roomNo: mTask.room.id,
                 roomType: mTask.room.roomType,
                 schedule: mTask.schedule,
+                rowColor: mTask.id === roomMaid.currentTask ? "#fffc06" : "#ffffff",
                 actual: mTask.type.standardTime,
                 remarks: mTask.request ? mTask.request : "-",
                 status: mTask.status ? mTask.status : "-",
                 comments: mTask.comment ? mTask.comment : "-"
-            })
-        }
-        return { performance: roomMaid.performance, listTask }
+            };
+        })
+        return { performance: maidPerfomance , listTask }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -182,6 +191,30 @@ const getRoomMaidReport = async (q) => {
     }
 }
 
+const countTaskPerformance = async (taskId, spvPerformance) => {
+    try {
+        const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, select: { endTime: true, startTime: true, type: { select: { standardTime: true } } } })
+        const minutes = getTimeDifferenceInMinutes(task.startTime, task.endTime)
+        const maidPerfomance = getMaidPerfomance(minutes, task.type.standardTime)
+        return (spvPerformance + maidPerfomance) / 2
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const convertPerfomance = async (roomMaidId) => {
+    try {
+        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId } })
+        return roomMaid.finishedTask != 0 ? parseInt(roomMaid.rawPerfomance / roomMaid.finishedTask) : 5
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const resetRoomMaid = async () => {
     try {
         const roomMaids = await prisma.roomMaid.findMany({ select: { id: true, shift: { select: { startTime: true } } } })
@@ -202,142 +235,4 @@ const resetRoomMaid = async () => {
     }
 }
 
-/**
- * @typedef {object} GetAllRoomMaidOption
- * @property {number} page
- * @property {number} show
- * @property {string} query
- * @property {string} sort
- * @property {'asc'|'desc'} order
- * @property {Date} from
- * @property {Date} to
- */
-
-/**
- * @typedef {object} GetAllRoomMaidResult
- * @property {number} total
- * @property {import('@prisma/client').User[]} users
- */
-
-/**
- * @param {GetAllRoomMaidOption} option
- * @throws {Error}
- * @return {Promise<GetAllRoomMaidResult>}
- */
-async function all(option) {
-    const {
-        page,
-        show,
-        query,
-        sort,
-        order,
-        departure,
-        arrival
-    } = option
-
-    const where = {
-        AND: [
-            {
-                OR: [
-                    { username: { contains: query } },
-                    { email: { contains: query } },
-                    { name: { contains: query } },
-                ]
-            },
-            {
-                birthday: {
-                    gte: from,
-                    lte: to,
-                },
-            },
-            {
-                roleId
-            }
-        ],
-    }
-
-    const [total, users] = await prisma.$transaction([
-        prisma.roomMaid.count({ where }),
-        prisma.roomMaid.findMany({
-            take: show,
-            skip: (page - 1) * show,
-            where: {
-                resvRoom: {
-                    reservation: {
-                        departureDate: {
-                            lte: departure
-                        },
-                        arrivalDate: {
-                            gte: arrival
-                        }
-                    }
-                }
-            },
-            orderBy: {
-                [sort]: order,
-            },
-            select
-        })
-    ])
-
-    return { users, total }
-}
-
-/**
- * @param {string} id
- * @throws {Error}
- * @return {Promise<import('@prisma/client').User>}
- */
-async function get(id) {
-    return await prisma.user.findUniqueOrThrow({
-        where: {
-            id: parseInt(id)
-        },
-        select
-    })
-}
-
-/**
- * @param {import('@prisma/client').User} user
- * @throws {Error}
- * @return {Promise<import('@prisma/client').User>}
- */
-async function create(user) {
-    return await prisma.user.create({
-        data: user,
-        select
-    })
-}
-
-/**
- * @param {string} id
- * @param {import('@prisma/client').User} user
- * @throws {Error}
- * @return {Promise<import('@prisma/client').User>}
- */
-async function update(id, user) {
-    return await prisma.user.update({
-        where: {
-            id: parseInt(id)
-        },
-        data: user,
-        select
-    })
-}
-
-/**
- * @param {string} id
- * @throws {Error}
- * @return {Promise<import('@prisma/client').User>}
- */
-async function remove(id) {
-    return await prisma.user.delete({
-        where: {
-            id: parseInt(id)
-        },
-        select
-    })
-}
-
-
-module.exports = { resetRoomMaid, getAllRoomMaid, assignRoomMaid, all, get, create, update, remove, getRoomMaidReport, getRoomMaidTaskById }
+module.exports = { resetRoomMaid, getAllRoomMaid, convertPerfomance, assignRoomMaid, countTaskPerformance, getRoomMaidReport, getRoomMaidTaskById }

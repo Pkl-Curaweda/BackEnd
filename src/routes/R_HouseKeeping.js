@@ -6,10 +6,10 @@ const multer = require('multer');
 const { error } = require('../utils/response.js');
 
 //Middleware
-const authMiddleware = require('../middlewares/auth.js')
+const {auth} = require('../middlewares/auth.js')
 // import authMiddleware from '#middleware/auth.js'
 
-//Validation
+//Validatio
 const { createLostFoundValidation, getLostFoundValidation, updateLostFoundValidation } = require('../validations/lost-found.validation.js');
 const { getExtraBedValidation, createExtrabedValidation, updateExtrabedValidation } = require('../validations/extrabed.validation.js');
 const { getOooRoomValidation, createOooRoomValidation } = require('../validations/ooo-room.validation.js');
@@ -22,7 +22,7 @@ const { getStockValidation } = require('../validations/stock-validation.js');
 
 //Controller
 const lostFound = require('../controllers/House Keeping/C_LostFound.js');
-const auth = require('../controllers/C_Auth.js')
+// const auth = require/('../controllers/C_Auth.js')
 const amenities = require('../controllers/House Keeping/C_Amenities.js');
 const ooorooms = require('../controllers/House Keeping/C_OOO-OffMarket.js');
 const user = require('../controllers/House Keeping/C_User.js');
@@ -70,12 +70,12 @@ const upload = multer({
 
 router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
-//Start Auth
-router.post('/login', auth.login)
-router.post('/refresh', auth.refresh)
-router.post('/logout', auth.logout)
-router.get('/me', auth.me)
-//End Auth
+// //Start Auth
+// router.post('/login', auth.login)
+// router.post('/refresh', auth.refresh)
+// router.post('/logout', auth.logout)
+// router.get('/me', auth.me)
+// //End Auth
 
 //Start Profile
 router.get('/profile/:id/', profile.get)
@@ -99,7 +99,9 @@ router.delete('/users/:id', user.remove)
 
 //Start Lost Found
 router.get('/lostfound/', getLostFoundValidation, lostFound.findAll)
-router.post('/lostfound/', upload.single('image'), (req, res, next) => {
+router.post('/lostfound/', auth(['Room Boy']), 
+upload.single('image'), 
+(req, res, next) => {
     if (req.fileValidationError) {
         return error(res, req.fileValidationError)
     }

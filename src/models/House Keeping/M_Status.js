@@ -46,7 +46,7 @@ const getStatusData = async (q) => {
             }),
             prisma.room.findFirst({ select: { id: true, roomStatus: { select: { longDescription: true } } }, orderBy: { updatedAt: 'desc' } }),
             prisma.maidTask.count(),
-            prisma.maidTask.findMany({ select: { roomId: true, request: true, roomMaid: { select: { user: { select: { name: true } } } }, mainStatus: true }, take: +taskPerPage, skip: (taskPage - 1) * taskPerPage })
+            prisma.maidTask.findMany({ where: { NOT: [{ typeId: 'GREQ' }] }, select: { roomId: true, request: true, roomMaid: { select: { user: { select: { name: true } } } }, mainStatus: true }, take: +taskPerPage, skip: (taskPage - 1) * taskPerPage })
         ])
         const roomLastPage = Math.ceil(roomTotal / roomPerPage);
         const taskLastPage = Math.ceil(taskTotal / taskPerPage)

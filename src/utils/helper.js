@@ -542,10 +542,11 @@ function generateSignature(payload, method, url) {
 
 const splitDateTime = (date) => {
   try {
-    date = new Date(date).toISOString();
+    const inputDate = new Date(date);
+    const wibDate = new Date(inputDate.getTime() + (7 * 60 * 60 * 1000));
     return {
-      date: date.split('T')[0],
-      time: date.split('T')[1].split('.')[0]
+      date: wibDate.toISOString().split('T')[0],
+      time: wibDate.toISOString().split('T')[1].split('.')[0]
     };
   } catch (err) {
     ThrowError(err)
@@ -579,7 +580,7 @@ const getWorkingShifts = async (currentTime) => {
     const shiftEndTime = getMinutesFromTimeString(shift.endTime);
     const restStartTime = getMinutesFromTimeString(shift.restTimeStart);
     const restEndTime = getMinutesFromTimeString(shift.restTimeEnd);
-    if(!(currentHour >= restStartTime && currentHour < restEndTime)) return currentHour >= shiftStartTime && currentHour < shiftEndTime;
+    if (!(currentHour >= restStartTime && currentHour < restEndTime)) return currentHour >= shiftStartTime && currentHour < shiftEndTime;
   });
   return currentShifts;
 };
@@ -600,7 +601,7 @@ const isDateInRange = (date, rangeStart, rangeEnd) => {
 const loginPath = (ident) => {
   let path
   switch (ident) {
-  case "Admin":
+    case "Admin":
       path = `${process.env.ALLOWED_ORIGINS}/`
       break;
     case "Supervisor":
@@ -615,33 +616,33 @@ const loginPath = (ident) => {
   return path
 }
 
-async function isRoomAvailable(date = { arr: '', dep: '' }, roomId){
-  try{
+async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
+  try {
     const roomAvailable = await prisma.resvRoom.findMany({
-      where: {  
+      where: {
         roomId, reservation: {
           AND: [
-            { arrivalDate: { gte:  `${date.arr.split('T')[0]}T00:00:00.00Z` } },
+            { arrivalDate: { gte: `${date.arr.split('T')[0]}T00:00:00.00Z` } },
             { departureDate: { lte: `${date.dep.split('T')[0]}T23:59:59.999Z` } }
           ]
         }
       }
     })
-    if(roomAvailable.length != 0) throw Error('Room are used')
+    if (roomAvailable.length != 0) throw Error('Room are used')
     return
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
   }
 }
 
 async function isArrangementMatch(roomId, checkArrangment) {
-  try{
-    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { rate: true }})
-    if(checkArrangment.split('-')[0] != room.rate.split('-')[0]) throw Error('Unmatched Arrangment Code')
-    return 
-  }catch(err){
+  try {
+    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { rate: true } })
+    if (checkArrangment.split('-')[0] != room.rate.split('-')[0]) throw Error('Unmatched Arrangment Code')
+    return
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
@@ -657,10 +658,32 @@ function reverseObject(obj) {
   return reversedObject;
 }
 
+function getTimeDifferenceInMinutes(isoTimestamp1, isoTimestamp2) {
+  const date1 = new Date(isoTimestamp1);
+  const date2 = new Date(isoTimestamp2);
+
+  const timeDifferenceMs = Math.abs(date2 - date1);
+
+  return Math.floor(timeDifferenceMs / (1000 * 60));
+}
+
+function getMaidPerfomance(minuteFinish, standardMinute) {
+  const percentages = [1.4, 1.2, 1, 0.9, 0.8];
+  percentages.map((factor) => standardMinute * factor);
+  for (let i = 0; i < percentages.length; i++) {
+    if (minuteFinish >= percentages[i]) {
+      return i + 1;
+    }
+  }
+}
+
+
 module.exports = {
   splitDateTime,
   loginPath,
+  getMaidPerfomance,
   isDateInRange,
+  getTimeDifferenceInMinutes,
   isArrangementMatch,
   getWorkingShifts,
   reverseObject,

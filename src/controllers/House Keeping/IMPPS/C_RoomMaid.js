@@ -1,4 +1,4 @@
-const { assignCleaningTask, assignTask, genearateListOfTask } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
+const { assignCleaningTask, assignTask, genearateListOfTask, taskAction } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
 const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
 const { ThrowError } = require("../../../utils/helper")
 const { error, success } = require("../../../utils/response")
@@ -6,7 +6,7 @@ const { error, success } = require("../../../utils/response")
 const get = async (req, res) => {
     const { id } = req.params
     try {
-        const { performance, listTask } = await getRoomMaidTaskById(+id)
+        const { performance, listTask } = await getRoomMaidTaskById(+id, req.query)
         return success(res, 'Operation Success', { performance, listTask })
     } catch (err) {
         return error(res, err.message)
@@ -14,10 +14,35 @@ const get = async (req, res) => {
 }
 
 const getAll = async (req, res) => {
-    try{
+    try {
         const roomMaids = await getAllRoomMaid()
         return success(res, 'Operation Success', roomMaids)
-    }catch(err){
+    } catch (err) {
+        return error(res, err.message)
+    }
+}
+
+const post = async (req, res) => {
+    let { action, taskId, id } = req.params, data
+    try {
+        switch (action) {
+            case "start-task":
+                data = await taskAction("start", +id, +taskId)
+                break;
+            case "end-task":
+                data = await taskAction("end", +id, +taskId)
+                break;
+            case "re-clean":
+                data = await taskAction('re-clean', +id, +taskId)
+                break;
+            case "ok":
+                data = await taskAction('ok', +id, +taskId)
+                break;
+            default:
+                throw Error('No Action Matched')
+        }
+        return success(res, 'Operation Success', data)
+    } catch (err) {
         return error(res, err.message)
     }
 }
@@ -34,33 +59,6 @@ const dailyCleaning = async (req, res) => {
 const amenitiesTask = async (req, res) => {
     const { roomId } = req.params
     try {
-        console.log(`
-⢀⣶⣿⣷⣦⣙⠶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⢹⣿⣿⣿⣿⣷⣤⣉⠛⣡⣅⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⢠⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠉⠻⣿⣿⣿⣿⣿⣿⣿⣷⡌⠻⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠉⠛⠛⢿⣿⣿⣿⣿⠇⠈⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣷⣖⣤⣾⣷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⣿⣿⣿⣿⣿⣿⣿⣦⡀⢤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣠⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢿⣿⣿⣿⣿⣿⣿⣿⣌⠹⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠚⠉⠈⠉⠉⠻⢶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣁⣤⣾⡇⢻⡶⢦⡬⢿⡆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢰⣿⠿⠛⢡⣷⣾⡄⠀⠀⠈⣷⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣿⣿⣿⣿⣟⣻⣿⣗⠀⠈⠳⠀⠀⠀⠀⠀⠀⠀⠀⠀⢘⣿⡟⠒⣼⡿⠟⠃⠀⠀⣼⡽⣷⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⣿⣿⣿⣿⣿⣿⣿⣴⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣿⣷⣜⣉⣁⣀⣠⣄⣹⢥⠞⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⢿⣿⣿⣿⣿⣿⣿⣿⣦⡀⢦⡀⠀⠀⠀⠀⠀⠀⠀⠈⢹⣿⣿⣿⣿⣿⣏⣻⣟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠂⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⣿⣿⣿⣷⣾⡗⣆⠀⢀⠀⠀⠀⠀⠀⣨⡿⠟⣍⠻⡍⠉⠁⠙⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠧⠄⠀⠠⠄⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⢻⡄⠈⠁⠸⣤⣤⠾⠁⠀⠐⠹⣦⠤⠄⠒⠉⠈⠳⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢳⡄⠹⣿⣿⣿⣿⣿⣿⣿⣿⣿⣼⣧⢰⣷⢤⣽⣿⣿⣷⣦⣄⢀⣠⡴⠶⣤⣤⡤⢝⠺⠗⠒⠦⠤⢤⣀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣆⠈⠻⣿⣿⣿⣿⣿⣿⣿⣿⢯⣿⡃⠀⠈⠛⠁⠙⣿⣿⣿⡹⠖⠀⠀⠀⠧⢤⣀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠆⠀⠀⠹⣿⣿⣿⣿⣿⡿⠟⢹⡅⠀⠀⠀⠀⠀⠈⢿⢿⣿⣦⡀⠀⠀⠀⠀⠈⢙⠿⠦⣄⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠿⣿⣿⣿⡀⠀⣸⡷⠒⠋⠀⠀⠀⠀⠈⠉⠙⢿⣷⣦⣀⠀⠀⠀⣞⣷⠀⠈⣶⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠻⣿⡗⠒⢻⡇⠀⠀⠀⢀⣤⣤⣤⡅⠒⠲⣝⠿⠛⠛⠓⠦⣯⣝⠃⠀⢸⡗⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠰⢹⣿⣄⣠⣴⣶⣿⣿⡿⣿⣿⠗⠃⠀⠀⠈⡇⠀⠀⠀⠀⠀⠈⠁⠳⢾⡇⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⣿⣿⣿⣿⡗⣉⣴⣷⣤⡀⠤⠤⣧⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡿⠟⠋⠉⠉⠉⠈⣿⣿⣷⣿⣿⣷⣄⣰⣿⣷⣶⡦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⢯⡾⠀⠀⠀⠀⠀⢠⠉⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⢟⡖⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣦⣤⣤⣀⣀⣀⡀
-        `)
         const task = await genearateListOfTask("GUEREQ", +roomId, "Please fast, my Tochter need this asf", 110, 2)
         return success(res, 'Success', task)
     } catch (err) {
@@ -77,4 +75,4 @@ const resetSchedule = async (req, res) => {
     }
 }
 
-module.exports = { get, dailyCleaning, amenitiesTask, getAll,resetSchedule }
+module.exports = { get, dailyCleaning, amenitiesTask, getAll, resetSchedule, post }

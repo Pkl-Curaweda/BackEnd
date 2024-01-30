@@ -20,10 +20,6 @@ const updateLostFoundValidation = validate({
 })
 
 const createLostFoundValidation = validate({
-  reportedDate: z.coerce.date(),
-  time: z.string().refine(time => /^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(time), {
-    message: 'Time must be in format hh:mm:ss'
-  }),
   roomId: z.coerce.number().refine(recordExist('room', 'id'), {
     message: 'Room does not exist',
   }),

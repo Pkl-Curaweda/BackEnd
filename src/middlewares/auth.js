@@ -22,9 +22,11 @@ const auth = (roles) => async (req, res, next) => {
                 id: +decoded.sub
             },
             select: {
+                id: true,
                 username: true,
                 email: true,
                 name: true,
+                phone: true,
                 picture: true,
                 role: {
                     select: {
@@ -34,7 +36,7 @@ const auth = (roles) => async (req, res, next) => {
             }
         })
         if (roles !== undefined) {
-            const isAllowed = roles.some((role) => role === user.role.name);
+            const isAllowed = roles.some((role) => role === userData.role.name);
             if (!isAllowed) return error(res, 'Forbidden, you are not allowed access this resource', 403);
         }
         req.user = userData
