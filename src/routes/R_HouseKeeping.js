@@ -107,6 +107,7 @@ upload.single('image'),
     }
     next()
 }, createLostFoundValidation, lostFound.create)
+router.post('/lostfound/:id', auth(['Room Boy']), lostFound.finish)
 router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
 router.delete('/lostfound/:id/:act', lostFound.remove)
 //End Lost Found

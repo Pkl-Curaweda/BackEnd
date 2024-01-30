@@ -171,7 +171,6 @@ async function all(option) {
  */
 async function create(lostFound, image, sender) {
   try {
-    const { date, time } = splitDateTime(new Date())
     const roomId = lostFound.roomId
     delete lostFound.roomId
     lostFound.phoneNumber = sender.phone
@@ -205,6 +204,7 @@ const finishLostFound = async (lostFoundId, sender) => {
       prisma.lostFound.findFirstOrThrow({ where: { id: +lostFoundId } }),
       prisma.lostFound.update({ where: { id: +lostFoundId }, data: { finished_at: new Date(),  userId: sender.id, phoneNumber: sender.phone } })
     ])
+    return lostFound
   }catch(err){
     ThrowError(err)
   }finally{

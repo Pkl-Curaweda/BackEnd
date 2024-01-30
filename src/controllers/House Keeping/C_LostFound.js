@@ -29,9 +29,9 @@ async function findOne(req, res) {
 }
 
 async function finish(req, res) {
-  const { lostFoundId } = req.params
+  const  { id } = req.params
   try{
-    const data = await lostFoundRepository.finishLostFound(lostFoundId, req.user)
+    const data = await lostFoundRepository.finishLostFound(id, req.user)
     return success(res, 'Update Success', data)
   }catch(err){
     return error(res, err.message)
@@ -45,7 +45,6 @@ async function finish(req, res) {
 async function create(req, res) {
   try {
     req.file.filename = process.env.BASE_URL + '/assets/lost-found/' + req.file.filename
-    console.log(req.user)
     const lostFound = await lostFoundRepository.create(req.body, req.file.filename, req.user)
     return success(res, 'Create lost and found success', lostFound)
   } catch (e) {
@@ -82,4 +81,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { findAll, findOne, create, update, remove }
+module.exports = { findAll, findOne, create, update, remove, finish }

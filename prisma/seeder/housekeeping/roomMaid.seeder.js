@@ -6,7 +6,7 @@ const roomMaids = [
     user: { connect: { id: 2 } },
     aliases: 'AL',
     workload: 0,
-    shift: { connect:  { id: 3 } },
+    shift: { connect: { id: 3 } },
     department: { connect: { id: 1 } }
   },
   {
@@ -14,33 +14,24 @@ const roomMaids = [
     aliases: 'AR',
     workload: 0,
     shift: { connect: { id: 2 } },
-    department: { connect: { id:1 } }
+    department: { connect: { id: 1 } }
+  },
+  {
+    user: { connect: { id: 4 } },
+    aliases: 'AQ',
+    workload: 0,
+    shift: { connect: { id: 1 } },
+    department: { connect: { id: 1 } }
   },
 ];
 
-async function roomMaidSeed(resvRoomId, roomId) {
-  if (resvRoomId) {
-    const roomMaids = await prisma.user.findMany({ where: { roleId: 3 } })
-    const { id } = roomMaids[randomInt(roomMaids.length)]
-    await prisma.roomMaid.create({
-      data: {
-        user: {
-          connect: { id }
-        },
-        aliases: 'AA',
-        workload: 0,
-        shift:{
-          connect: { id: 1 },
-        },
-        department: { connect: { id: 2 } }
-      }
-    })
-  } else {
-    for (let roomMaid of roomMaids) {
-      await prisma.roomMaid.create({
-        data: roomMaid,
-      });
-    }
+async function roomMaidSeed() {
+  for (let roomMaid of roomMaids) {
+    await prisma.roomMaid.upsert({
+      where: { id: roomMaid.user.connect.id },
+      update: { ...roomMaid },
+      create: { ...roomMaid }
+    });
   }
 }
 

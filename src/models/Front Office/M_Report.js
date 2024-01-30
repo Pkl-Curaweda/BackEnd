@@ -132,15 +132,15 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       arr = formatDecimal(roomRevenue / occupied)
       added.rm_avail = roomAvailable;
       added.rno = occupied;
-      added.occ = formatDecimal((added.rno / added.rm_avail) * 100)
+      added.occ = formatDecimal((added.rno / roomArray.length) * 100)
       added.rev = roomRevenue
-      added.arr = formatDecimal((added.rev / added.rno)) || 0
+      added.arr = added.rno > 0 ? formatDecimal((added.rev / added.rno)) : 0 
       const storedData = {
         date: searchDate,
-        roomAvailable: totalPayment,
+        roomAvailable,
         occupied,
         occ,
-        roomRevenue,
+        roomRevenue: totalPayment,
         arr,
         added: {
           rm_avail: added.rm_avail,
@@ -394,6 +394,7 @@ const getReportDetailData = async (date, displayOption) => {
         return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
       })
       for (let rs of resv) {
+        console.log(rs)
         Object.values(rs).forEach((rsv) => {
           const { roomType, id } = rsv;
           total.RESERVATION++;

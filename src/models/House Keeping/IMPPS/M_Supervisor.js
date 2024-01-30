@@ -10,7 +10,7 @@ const getSupervisorData = async () => {
                 select: { id: true, roomType: true }
             },
             roomMaid: {
-                select: { id: true, aliases: true }
+                select: { id: true, aliases: true, currentTask: true }
             },
             id: true,
             roomMaidId: true,
@@ -20,6 +20,7 @@ const getSupervisorData = async () => {
             status: true,
             type: { select: { standardTime: true } }
          }, { created_at: 'asc' }, 10, 1)
+         
          const listTask = tasks.map((task) => {
             return {
                 taskId: task.id,

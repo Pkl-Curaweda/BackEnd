@@ -58,68 +58,36 @@ const get = async (page, perPage, date) => {
 }
 
 const getChart = async () => {
-    let resvChart = {}, hkChart = {}
+    let resvChart = {}, hkChart = { 101: 0, 102: 0, 103: 0, 104: 0, 105: 0, 106: 0, 107: 0, 108: 0, 109: 0, 110: 0 }
     try {
-        const dts = generateDateBetweenNowBasedOnDays('past', 7)
+        const dts = generateDateBetweenNowBasedOnDays('future', 7)
+        const resvRoom = await prisma.resvRoom.findMany({
+            where: {
+                reservation: {
+                    AND: [
+                        { arrivalDate: { gte: `${dts[0]}T00:00:00.000Z` } },
+                        { departureDate: { lte: `${dts[6]}T23:59:59.999Z` } },
+                    ]
+                }
+            },
+            select: { roomId: true, reservation: { select: { onGoingReservation: true, checkInDate: true, checkoutDate: true, created_at: true } } }
+        })
+        // dts.reverse();
         for (dt of dts) {
-            const rsv = await prisma.resvRoom.findMany({
-                where: {
-                    created_at: {
-                        gte: `${dt}T00:00:00.000Z`,
-                        lte: `${dt}T23:59:59.999Z`,
-                    }
-                },
-                select: { roomId: true }
-            })
-            for (rs of rsv) {
-                const { roomId } = rs
-                const keyExist = hkChart.hasOwnProperty(roomId);
-                hkChart[roomId] = !keyExist ? 1 : hkChart[roomId]++
-            }
-        }
-
-        dts.shift()
-        dts.reverse();
-        for (dt of dts) {
+            let data = { ci: 0, co: 0 }
             newDt = new Date(dt)
+            console.log('===========================', dt)
             const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
-            const [nw, ci, co] = await prisma.$transaction([
-                prisma.resvRoom.count({
-                    where: {
-                        reservation: {
-                            onGoingReservation: true,
-                            created_at: {
-                                gte: `${dt}T00:00:00.000Z`,
-                                lte: `${dt}T23:59:59.999Z`,
-                            }
-                        }
-                    }
-                }),
-                prisma.resvRoom.count({
-                    where: {
-                        reservation: {
-                            onGoingReservation: true,
-                            checkInDate: {
-                                gte: `${dt}T00:00:00.000Z`,
-                                lte: `${dt}T23:59:59.999Z`,
-                            }
-                        }
-                    }
-                }),
-                prisma.resvRoom.count({
-                    where: {
-                        reservation: {
-                            onGoingReservation: true,
-                            checkoutDate: {
-                                gte: `${dt}T00:00:00.000Z`,
-                                lte: `${dt}T23:59:59.999Z`,
-                            }
-                        }
-                    }
-                }),
-            ])
-
-            resvChart[dtName] = { ident: dtName, nw, ci, co }
+            const newReservation = resvRoom.filter((rsv) => { `${dt}T00:00:00.000Z` >= rsv.reservation.created_at && `${dt}T23:59:59.999Z` < rsv.reservation.created_at; }).length
+            const reservations = resvRoom.filter((rsv) => { `${dt}T00:00:00.000Z` >= rsv.reservation.checkInDate && `${dt}T23:59:59.999Z` < rsv.reservation.checkoutDate; })
+            console.log(newReservation, reservations)
+            for (let rs of reservations) {
+                const { reservation, roomId } = rs
+                hkChart[roomId]++
+                if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
+                if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
+            }
+            resvChart[dtName] = { ident: dt, nw: newReservation, ...data }
         }
         return { resvChart, hkChart }
     } catch (err) {
