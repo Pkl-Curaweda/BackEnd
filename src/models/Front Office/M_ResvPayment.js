@@ -18,7 +18,7 @@ const getBillingSummary = async (id, reservationId) => {
                     select: {
                         arrivalDate: true, departureDate: true,
                         reserver: {
-                            select: { resourceName: true, guest: { select: { id: true, name: true } } }
+                            select: { resourceName: true, guest: { select: { id: true, name: true, contact: true } } }
                         }
                     }
                 }
@@ -82,7 +82,7 @@ const getBillingSummary = async (id, reservationId) => {
             billNumber: `${reservationId}-${resvRoom.voucherNo}`,
             reservationResource: resvRoom.reservation.resourceName,
             arrivalDate, departureDate,
-            guestName: guest.name
+            guestName: `${guest.name} - ${guest.contact}`
         }
         return {
             add,

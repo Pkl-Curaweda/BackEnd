@@ -89,6 +89,7 @@ const getChart = async () => {
             }
             resvChart[dtName] = { ident: dtName, nw: newReservation, ...data }
         }
+        
         hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
     } catch (err) {
