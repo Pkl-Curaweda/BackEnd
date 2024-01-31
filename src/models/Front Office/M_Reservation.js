@@ -490,7 +490,6 @@ const ChangeReservationProgress = async (id, changeTo) => {
       })
     }
     delete reservation.resvRooms
-    console.log(changeTo)
     reservation.inHouseIndicator = changeTo != 'checkin' ? false : true
     reservation.borderColor = progressColor[progressIndex];
     reservation.onGoingReservation = changeTo != 'checkout' ? true : false
