@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays, paginate, paginateFO } = require("../../utils/helper");
+const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays, paginate, paginateFO, isDateInRange } = require("../../utils/helper");
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 
 const get = async (page, perPage, date) => {
@@ -64,32 +64,37 @@ const getChart = async () => {
         const resvRoom = await prisma.resvRoom.findMany({
             where: {
                 reservation: {
-                    AND: [
+                    OR: [
                         { arrivalDate: { gte: `${dts[0]}T00:00:00.000Z` } },
-                        { departureDate: { lte: `${dts[6]}T23:59:59.999Z` } },
+                        { departureDate: { lte: `${dts[dts.length - 1]}T23:59:59.999Z` } },
                     ]
                 }
             },
-            select: { roomId: true, reservation: { select: { onGoingReservation: true, checkInDate: true, checkoutDate: true, created_at: true } } }
+            select: { roomId: true, reservation: { select: { inHouseIndicator: true, arrivalDate: true, departureDate: true, checkInDate: true, checkoutDate: true, created_at: true, inHouseIndicator: true } } }
         })
-        // dts.reverse();
+
+        console.log(resvRoom, dts)
+        // dts.reverse()
         for (dt of dts) {
-            let data = { ci: 0, co: 0 }
+            let data = { nw: 0, ci: 0, co: 0 }
             newDt = new Date(dt)
-            console.log('===========================', dt)
-            const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
-            const newReservation = resvRoom.filter((rsv) => { `${dt}T00:00:00.000Z` >= rsv.reservation.created_at && `${dt}T23:59:59.999Z` < rsv.reservation.created_at; }).length
-            const reservations = resvRoom.filter((rsv) => { `${dt}T00:00:00.000Z` >= rsv.reservation.checkInDate && `${dt}T23:59:59.999Z` < rsv.reservation.checkoutDate; })
-            console.log(newReservation, reservations)
-            for (let rs of reservations) {
-                const { reservation, roomId } = rs
-                hkChart[roomId]++
-                if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
-                if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
+            const rsv = resvRoom.filter(rsv => {
+                let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
+                return isDateInRange(new Date(dt), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
+            })
+            for (let rs of rsv) {
+                if (rs.reservation.created_at >= `${dt}T00:00:00.000Z` && rs.reservation.created_at < `${dt}T23:59:59.999Z`) data.nw++
+                if (rs.reservation.checkInDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkInDate < `${dt}T23:59:59.999Z`) data.ci++
+                if (rs.reservation.checkoutDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkoutDate < `${dt}T23:59:59.999Z`) data.co++
+
+                hkChart[rs.roomId]++
             }
-            resvChart[dtName] = { ident: dtName, nw: newReservation, ...data }
+            const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
+            // for(let rs of resvRoom){
+            //     if(`${dt}T00:00:00.000Z` >= rs.reservation.arrivalDate && `${dt}T23:59:59.999Z` < rs.reservation.departureDate) 
+            // }
+            resvChart[dtName] = { ident: dtName, ...data }
         }
-        
         hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
     } catch (err) {

@@ -11,7 +11,7 @@ const oooRooms = [
     reservation: {
       connect: { id: 1 }
     },
-    reason: "Segs party",
+    reason: "Big hole in the celling",
     from: new Date(),
     until: new Date(),
     department: {

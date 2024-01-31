@@ -105,6 +105,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       const displayOptionAndQuery = displayByIdentifier(displayOption);
       displayOption = displayOptionAndQuery.displayOption;
       whereQuery = displayOptionAndQuery.whereQuery;
+      console.log(displayOption, whereQuery)
     } else {
       if (dateQuery != "") {
         arrivalDate = {
@@ -482,17 +483,18 @@ const ChangeReservationProgress = async (id, changeTo) => {
       default:
         throw Error("No Progress Sync");
     }
-    if (changeTo = ! 'reservation') {
+    if (changeTo != 'reservation') {
       roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
       resvRooms.forEach(async room => {
         await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
       })
     }
     delete reservation.resvRooms
+    console.log(changeTo)
     reservation.inHouseIndicator = changeTo != 'checkin' ? false : true
     reservation.borderColor = progressColor[progressIndex];
     reservation.onGoingReservation = changeTo != 'checkout' ? true : false
-
+    console.log(reservation)
     const updatedReservation = await prisma.reservation.update({ where: { id }, data: reservation })
     return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor, checkInDate: updatedReservation.checkInDate, checkOutDate: updatedReservation.checkoutDate }
   } catch (err) {
