@@ -21,6 +21,7 @@ const CheckToken = async (type, refreshToken) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     token = await tokenClient.findUniqueOrThrow({ where: { refreshToken } });
+    console.log(token)
     if (!token) throw Error('Invalid refresh token')
     if (Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
     return token;
@@ -33,8 +34,10 @@ const CheckToken = async (type, refreshToken) => {
 
 const RemoveToken = async (type, refreshToken) => {
   try {
-    const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
-    const deletedToken = await tokenClient.delete({ where: { refreshToken } });
+    const [exist, deletedToken] = await prisma.$transaction([
+      prisma.userToken.findFirstOrThrow({ where: { refreshToken } }),
+      prisma.userToken.delete({ where: { refreshToken } })
+    ])
     return deletedToken;
   } catch (err) {
     ThrowError(err)

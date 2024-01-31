@@ -87,8 +87,9 @@ const getChart = async () => {
                 if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
                 if (rs.reservation.onGoingReservation != false && `${dt}T00:00:00.000Z` >= reservation.checkInDate && `${dt}T23:59:59.999Z` < reservation.checkInDate) data.ci++
             }
-            resvChart[dtName] = { ident: dt, nw: newReservation, ...data }
+            resvChart[dtName] = { ident: dtName, nw: newReservation, ...data }
         }
+        hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
     } catch (err) {
         ThrowError(err)

@@ -35,12 +35,11 @@ const UserLogin = async (email, password) => {
 const UserLogout = async (RefreshToken) => {
   try {
     const removeToken = await RemoveToken("user", RefreshToken);
-    if (!removeToken) throw Error('Unsuccess Logout')
     return removeToken
   } catch (err) {
     ThrowError(err)
-  } finally {
-    n
+  } finally{
+    await PrismaDisconnect()
   }
 }
 

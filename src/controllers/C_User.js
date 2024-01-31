@@ -4,18 +4,18 @@ const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken")
 
 const getAllUsers = async (req, res) => {
-    try{
+    try {
         const users = await GetAllUsers();
         return success(res, 'Succes', users);
-    }catch(err){
+    } catch (err) {
         return error(res, err.message)
     }
 }
 
 const getCurrentUser = async (req, res) => {
-    try{
+    try {
         return success(res, 'Operation Success', req.user);
-    }catch(err){
+    } catch (err) {
         return error(res, err.message)
     }
 }
@@ -23,8 +23,8 @@ const getCurrentUser = async (req, res) => {
 const getNewUserRefreshToken = async (req, res) => {
     try {
         const cookie = req.cookies.refresh_token;
-        if(cookie === undefined) throw Error("Cookie Didn't Exist")
-        
+        if (cookie === undefined) throw Error("Cookie Didn't Exist")
+
         const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
         const newRefreshToken = await RefreshToken("user", cookie, expires);
         res.cookie('refresh_token', newRefreshToken.refreshToken, {
@@ -33,7 +33,7 @@ const getNewUserRefreshToken = async (req, res) => {
             sameSite: 'none',
             expires
         })
-        const accessToken = jwt.sign({ }, process.env.SECRET_CODE, {
+        const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
             expiresIn: '15m',
             subject: newRefreshToken.userId.toString()
         })
@@ -62,7 +62,7 @@ const postLogin = async (req, res) => {
         delete payload.user.password;
         return success(res, 'Login Success', { user: payload.user, path: payload.path, accessToken });
     } catch (err) {
-        return error(res, err.message, 404)
+        return error(res, err.message)
     }
 }
 
@@ -70,20 +70,19 @@ const postLogout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refresh_token
         await UserLogout(refreshToken);
-    } catch (err) {
-        return error(res, err.message)
-    } finally {
         res.clearCookie('refresh_token');
         return success(res, 'Logout sucess')
+    } catch (err) {
+        return error(res, err.message)
     }
 }
 
 const getNotification = async (req, res) => {
-    try{
-      
-    }catch(err){
-      return error(res, err.message)
+    try {
+
+    } catch (err) {
+        return error(res, err.message)
     }
-  }
+}
 
 module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }

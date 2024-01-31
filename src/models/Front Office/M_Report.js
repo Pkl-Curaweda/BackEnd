@@ -10,45 +10,6 @@ const {
   isDateInRange,
 } = require("../../utils/helper");
 
-//? REPORT
-const findReportReservation = async () => {
-  const report = await prisma.logAvailability.findMany({
-    select: {
-      id: true,
-      roomHistory: true,
-      created_at: true,
-      updated_at: true,
-    },
-  });
-
-  report.map((value) => {
-    value.roomAvailable = 0;
-    value.occupied = 0;
-    value.roomRevenue = 0;
-    value.totalRoom = 0;
-
-    for (const history in value.roomHistory) {
-      if (value.roomHistory[history] !== 0) {
-        value.roomAvailable++;
-        if (value.roomHistory[history].roomPrice) {
-          value.roomRevenue += value.roomHistory[history].roomPrice;
-        }
-      } else {
-        value.occupied++;
-      }
-      value.totalRoom++;
-    }
-    value.occ = (value.occupied / value.totalRoom) * 100;
-    value.arr = value.roomRevenue / value.occupied;
-
-    //value.totalAvailableSatuBulan (date, room avail)
-
-    return value;
-  });
-
-  return report;
-};
-
 //? GET ALL REPORT DATA
 const getReportData = async (disOpt, page, perPage, sort, date) => {
   try {
@@ -101,11 +62,13 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     for (let room of rms) {
       const key = `room_${room.id}`
       roomList[key] = 0
+      totalRoom++
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
       let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTaxed = 0, rooms = { ...roomList };
       const searchDate = dates[i];
+      console.log("======================", searchDate)
       searchDates.push(searchDate)
       const rsv = resvRooms.filter(rsv => {
         let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
@@ -129,12 +92,12 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       const roomArray = Object.values(rooms)
       for (let room of roomArray) room != 1 ? roomAvailable++ : occupied++
       occ = formatDecimal((occupied / roomArray.length) * 100)
-      arr = formatDecimal(roomRevenue / occupied)
+      arr = occupied > 0 ? formatDecimal(roomRevenue / occupied) : 0
       added.rm_avail = roomAvailable;
       added.rno = occupied;
       added.occ = formatDecimal((added.rno / roomArray.length) * 100)
       added.rev = roomRevenue
-      added.arr = added.rno > 0 ? formatDecimal((added.rev / added.rno)) : 0 
+      added.arr = added.rno > 0 ? formatDecimal((added.rev / added.rno)) : 0
       const storedData = {
         date: searchDate,
         roomAvailable,
@@ -156,6 +119,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       };
       reports.push(storedData);
     }
+
     switch (disOpt) {
       case "week":
         ident = "WTD"
@@ -192,11 +156,11 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               sendedData.taxService.unTax += report.taxService.unTax
               sendedData.taxService.taxed += report.taxService.taxed
             })
-            sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+            sendedData.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
             sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
             sendedData.added.rm_avail = sendedData.roomAvailable;
             sendedData.added.rno = sendedData.occupied;
-            sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
+            sendedData.added.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
             sendedData.added.rev = sendedData.roomRevenue
             sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
           })
@@ -210,7 +174,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       case "month":
         ident = "MTD"
         const months = [...new Set(dates.map(date => new Date(date).getMonth()))];
-        for (month of months) {
+        for (let month of months) {
           let sendedData = {
             roomAvailable: 0,
             occupied: 0,
@@ -229,7 +193,9 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               taxed: 0
             }
           }
+          console.log("==========", month)
           const report = reports.filter((report) => new Date(report.date).getMonth() === month);
+          console.log(report)
           report.forEach(report => {
             sendedData.roomAvailable += report.roomAvailable,
               sendedData.occupied += report.occupied,
@@ -238,12 +204,11 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.taxed += report.taxService.taxed
           })
 
-          sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+          sendedData.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
           sendedData.added.rno = sendedData.occupied;
-          sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
-          sendedData.added.rev = sendedData.roomRevenue
+          sendedData.added.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
           sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
 
           data.push({
@@ -285,11 +250,11 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
             sendedData.taxService.unTax += report.taxService.unTax
             sendedData.taxService.taxed += report.taxService.taxed
           })
-          sendedData.occ = totalRoom !== 0 ? formatDecimal((sendedData.occupied / totalRoom) * 100) : 0;
+          sendedData.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
           sendedData.arr = sendedData.occupied !== 0 ? formatDecimal(sendedData.roomRevenue / sendedData.occupied) : 0;
           sendedData.added.rm_avail = sendedData.roomAvailable;
           sendedData.added.rno = sendedData.occupied;
-          sendedData.added.occ = sendedData.added.rm_avail !== 0 ? formatDecimal((sendedData.added.rno / sendedData.added.rm_avail) * 100) : 0;
+          sendedData.added.occ = sendedData.roomAvailable > 0 ? formatDecimal((sendedData.occupied / (sendedData.roomAvailable + sendedData.occupied)) * 100) : 0
           sendedData.added.rev = sendedData.roomRevenue
           sendedData.added.arr = sendedData.added.rno !== 0 ? formatDecimal((sendedData.added.rev / sendedData.added.rno)) : 0;
           data.push({
@@ -316,7 +281,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     }
     const total = data.length
     data = data.slice(startIndex, endIndex + 1)
-    const lastPage = Math.ceil(dates.length / perPage);
+    const lastPage = Math.ceil(data.length / perPage);
 
     return {
       ident,
@@ -341,7 +306,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
 //? REPORT DETAIL
 const getReportDetailData = async (date, displayOption) => {
   try {
-    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {  }, dates, startDate, endDate, searchedDate
+    let total = { RESERVATION: 0, DELUXE: 0, FAMILY: 0, STANDARD: 0 }, detail = {}, percentages = {}, dates, startDate, endDate, searchedDate
     startDate = date != undefined ? date : new Date().toISOString().split('T')[0]
     switch (displayOption) {
       case "day":
@@ -387,22 +352,19 @@ const getReportDetailData = async (date, displayOption) => {
       prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
     ])
 
-    for(let room of rooms) percentages[`room_${room.id}`] = 0
+    for (let room of rooms) percentages[`room_${room.id}`] = 0
     for (let date of dates) {
       const resv = resvRoom.filter(rsv => {
         let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
         return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
       })
       for (let rs of resv) {
-        console.log(rs)
-        Object.values(rs).forEach((rsv) => {
-          const { roomType, id } = rsv;
-          total.RESERVATION++;
-          total[roomType]++;
-          const key = `room_${id}`;
-          const percentageKeyExists = percentages.hasOwnProperty(key);
-          percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
-        });
+        const { roomType, id } = rs.room;
+        total.RESERVATION++;
+        total[roomType]++;
+        const key = `room_${id}`;
+        const percentageKeyExists = percentages.hasOwnProperty(key);
+        percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;
       }
     }
 
@@ -431,7 +393,6 @@ const getReportDetailData = async (date, displayOption) => {
 
 
 module.exports = {
-  findReportReservation,
   getReportData,
   getReportDetailData,
 };
