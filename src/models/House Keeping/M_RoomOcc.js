@@ -1,3 +1,4 @@
+const { object } = require("zod")
 const { prisma } = require("../../../prisma/seeder/config")
 const { search } = require("../../routes/R_Login")
 const { ThrowError, PrismaDisconnect, generateDateBetweenNowBasedOnDays, generateDateBetweenStartAndEnd, splitDateTime } = require("../../utils/helper")
@@ -8,7 +9,7 @@ const getRoomOccupancyData = async (q) => {
     const currentDate = new Date()
     let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
-        //TODO: GRAPH ROOM OCCUPANCY
+        //TODO: HOUSE USE, COMP
         const roomType = filt ? { roomType: filt } : undefined
         const roomStatus = await prisma.room.findMany({
             where: {
@@ -49,6 +50,8 @@ const getRoomOccupancyData = async (q) => {
                 case "OM":
                     currData.om.room++;
                     break;
+                case "HU":
+                    currData.om.room++
                 default:
                     break;
             }
@@ -106,10 +109,18 @@ const getRoomOccupancyData = async (q) => {
 
         let estPers = 0
         for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
-        percData.estOcc.person = + estPers
+        percData.estOcc.person += estPers
         percData.ooo.room += ooo
+        let roomPerc = [], personPerc = [], graph = { room: 0,  person: 0 }
+        Object.values(percData).forEach(( data, ind ) => {
+            console.log(data.room)
+            roomPerc[ind] = data.room
+            personPerc[ind] = data.person
+            graph.room += data.room
+            graph.person += data.person
+        })
         console.log(percData, currData)
-        return { currData, percData, roomStatus }
+        return { currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
         ThrowError(err)
     } finally {
