@@ -4,7 +4,7 @@ const { dirtyRoomSeed } = require("./dirtyRoom.seeder");
 const { lostFoundSeed } = require("./lostFound.seeder");
 const { maidTaskSeed } = require("./maidTask.seeder");
 const { oooRoomSeed } = require("./oooRoom.seeder");
-const { StockSeed } = require("./stock");
+const { StockSeed } = require("./stock.seeder");
 const { taskTypeSeed } = require("./taskType.seeder");
 
 async function houseKeepingSeed() {

@@ -3,7 +3,7 @@ const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, pagin
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
-const { getAllAvailableRoom, changeRoomStatusByStatusId } = require("../House Keeping/M_Room");
+const { getAllAvailableRoom, changeRoomStatusByDescription } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
@@ -465,7 +465,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
         for (let room of reservation.resvRooms) {
-          await changeRoomStatusByStatusId(room.roomId, 5)
+          await changeRoomStatusByDescription(room.roomId, "  OC")
         }
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate
@@ -474,7 +474,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
         for (let room of reservation.resvRooms) {
-          await changeRoomStatusByStatusId(room.roomId, 3)
+          await changeRoomStatusByDescription(room.roomId, "VD")
         }
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")

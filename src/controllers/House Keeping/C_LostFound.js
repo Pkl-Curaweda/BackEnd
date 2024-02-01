@@ -8,10 +8,10 @@ const lostFoundRepository = require('../../models/House Keeping/M_LostFound.js')
 async function findAll(req, res) {
   try {
     const lf = await lostFoundRepository.all(req.query)
-    return success(res, 'Get all lost and found success', lf)
+    return success(res, 'Get Success', lf)
 
-  } catch {
-    return error(res, 'Get all lost and found failed')
+  } catch(err) {
+    return error(res, err.message)
   }
 }
 

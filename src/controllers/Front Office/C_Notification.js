@@ -4,7 +4,7 @@ const { ThrowError } = require("../../utils/helper")
 const getAllNotification = async (req, res) => {
     try{
         const data = await notification.get()
-        return success(res, 'Operation Success', data)
+        return success(res, 'Showing Notification', data)
     }catch(err){
         return error(res, err.message)
     }

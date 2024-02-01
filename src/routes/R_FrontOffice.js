@@ -5,6 +5,7 @@ const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../contr
 const { getAllReport, getReportPDF, postReportPDF } = require("../controllers/Front Office/C_Report");
 const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard, putNewInvoiceData, deleteInvoice } = require("../controllers/Front Office/C_Detail");
+const { auth } = require("../middlewares/auth");
 
 const R_FrontOffice = new Router();
 
@@ -27,7 +28,7 @@ R_FrontOffice.put("/arrival", putChangeTreatment);
 //?FLOOR PLAN
 R_FrontOffice.get("/floorplan", getFloorPlan);
 R_FrontOffice.get("/floorplan/detail/:id?", getFloorPLanDetail)
-R_FrontOffice.post("/floorplan/detail/:id/:stId", postStat)
+R_FrontOffice.post("/floorplan/detail/:id/:status", auth(), postStat)
 
 //?lOG AVAILABILITY
 R_FrontOffice.get("/roomavail", getRoomAvailability);
@@ -35,14 +36,12 @@ R_FrontOffice.post("/roomavail/create-log", CreateLog);
 
 //?REPORT PAGE
 R_FrontOffice.get("/report/", getAllReport);
-R_FrontOffice.post("/report/print", postReportPDF)
 
 //?INVOICE
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
 R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
-R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/print", postInvoicePDF);
 R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInvoice)
 
 module.exports = R_FrontOffice;

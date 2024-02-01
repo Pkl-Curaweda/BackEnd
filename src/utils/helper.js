@@ -602,13 +602,13 @@ const loginPath = (ident) => {
   let path
   switch (ident) {
     case "Admin":
-      path = `${process.env.ALLOWED_ORIGINS}/`
+      path = `/`
       break;
     case "Supervisor":
-      path = `${process.env.ALLOWED_ORIGINS}/impps/supervisor/`
+      path = `/hk/spv/dashboard/`
       break
     case "Room Boy":
-      path = `${process.env.ALLOWED_ORIGINS}/impps/roomboy/`
+      path = `/hk/rb/dashboard`
       break
     default:
       throw Error('Unmatched identifier')

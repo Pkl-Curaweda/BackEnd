@@ -25,7 +25,7 @@ const sortingStatusPage = (q) => {
 }
 
 const getStatusData = async (q) => {
-    let { roomPage = 1, roomPerPage = 5, taskPage = 1, taskPerPage = 1, roomSortOrder } = q
+    let { roomPage = 1, roomPerPage = 10, taskPage = 1, taskPerPage = 1, roomSortOrder } = q
     try {
         roomSortOrder = sortingStatusPage(roomSortOrder)
         const [listStatus, roomTotal, roomStatus, latestChange, taskTotal, taskData] = await prisma.$transaction([
@@ -41,7 +41,7 @@ const getStatusData = async (q) => {
                     }
                 },
                 skip: (roomPage - 1) * roomPerPage,
-                take: roomPerPage,
+                take: +roomPerPage,
                 orderBy: { ...roomSortOrder }
             }),
             prisma.room.findFirst({ select: { id: true, roomStatus: { select: { longDescription: true } } }, orderBy: { updatedAt: 'desc' } }),

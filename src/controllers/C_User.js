@@ -14,7 +14,7 @@ const getAllUsers = async (req, res) => {
 
 const getCurrentUser = async (req, res) => {
     try {
-        return success(res, 'Operation Success', req.user);
+        return success(res, 'Get Success', req.user);
     } catch (err) {
         return error(res, err.message)
     }
@@ -37,7 +37,7 @@ const getNewUserRefreshToken = async (req, res) => {
             expiresIn: '15m',
             subject: newRefreshToken.userId.toString()
         })
-        return success(res, 'Refresh token success', { accessToken });
+        return success(res, 'Token Refresh Successfully', { accessToken });
     } catch (err) {
         return error(res, err.message, 401)
     }
@@ -60,7 +60,7 @@ const postLogin = async (req, res) => {
         });
 
         delete payload.user.password;
-        return success(res, 'Login Success', { user: payload.user, path: payload.path, accessToken });
+        return success(res, `Login Success as ${payload.user.name}`, { user: payload.user, path: payload.path, accessToken });
     } catch (err) {
         return error(res, err.message)
     }
@@ -77,12 +77,19 @@ const postLogout = async (req, res) => {
     }
 }
 
-const getNotification = async (req, res) => {
+/**
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+async function create(req, res) {
     try {
-
-    } catch (err) {
-        return error(res, err.message)
+      req.body.password = await bcrypt.hash(req.body.password, 10)
+      const user = await userRepository.create(req.body)
+      return success(res, 'Create user success', user)
+    } catch {
+      return error(res, 'Create user failed')
     }
-}
+  }
+
 
 module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }

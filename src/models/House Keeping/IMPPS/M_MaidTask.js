@@ -194,7 +194,7 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
 }
 
 const taskAction = async (action, maidId, taskId, payload = { comment: '', perfomance: '' }) => {
-    let updateTask, updateMaid
+    let updateTask, updateMaid, message=''
     try {
         const [roomMaid, task] = await prisma.$transaction([
             prisma.roomMaid.findFirstOrThrow({ where: { id: maidId } }),
@@ -207,28 +207,32 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 if (roomMaid.currentTask != null || roomMaid.urgentTask != null) throw Error("You need to finish your current / urgent task first")
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", mainStatus: "ON PROGRESS" } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
+                message = `Room Maid ${roomMaid.aliases} | Starting new Task`
                 break;
-            case "end":
-                if (roomMaid.currentTask != taskId) throw Error("You cannot end this task, need to be started")
-                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { endTime: currentDate, status: "Need to be check", mainStatus: "CHECKING" } })
+                case "end":
+                    if (roomMaid.currentTask != taskId) throw Error("You cannot end this task, need to be started")
+                    updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { endTime: currentDate, status: "Need to be check", mainStatus: "CHECKING" } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: null } })
+                messageSend = `Room Maid ${roomMaid.aliases} | Finishing Task`
                 break;
-            case "re-clean":
-                if(roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Sorry you already give task to this ${roomMaid.aliases}`)
-                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment }, select: { roomId: true } })
+                case "re-clean":
+                    if(roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Sorry you already give task to this ${roomMaid.aliases}`)
+                    updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment }, select: { roomId: true } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { urgentTask: updateTask.id }, select: { user: { select: { name: true } } } })
                 await createNotification({ content: `${updateMaid.user.name} please clean room no ${updateTask.roomId}` })
+                message = `Supervisor requesting Re - Clean to Room Maid ${roomMaid.aliases}`
                 break;
             case "ok":
                 const maidPerfomance = await countTaskPerformance(task.id, 4)
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: null, rawPerfomance: roomMaid.rawPerfomance + maidPerfomance, finishedTask: roomMaid.finishedTask + 1 } })
                 await createNotification({ content: `Task / Request ${task.roomId} finished` })
+                message = `Task finished`
                 break;
             default:
                 throw Error('No action matched')
         }
-        return { updateMaid, updateTask }
+        return { updateMaid, updateTask, message }
     } catch (err) {
         ThrowError(err)
     } finally {

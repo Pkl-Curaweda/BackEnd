@@ -42,21 +42,11 @@ const getRoomStatWithId = async (id) => {
     }
 }
 
-const postStatusChange = async (payload) => {
-    try {
-        const { id, roomStatusId } = payload
-        const chgStat = await prisma.room.update({ where: { id: parseInt(id) }, data: { roomStatusId: parseInt(roomStatusId) }, select: { id: true, roomStatus: { select: { longDescription: true } } } })
-        return { roomId: chgStat.id, statusId: chgStat.roomStatus.longDescription }
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
-
 const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
     try{
-        return await prisma.room.update({ where: {  id: roomId}, data: { roomStatus: { connect: { shortDescription } } } })
+        const roomStatusExist = await prisma.roomStatus.findFirstOrThrow({where: { shortDescription }, select: { id: true, shortDescription: true } })
+        await prisma.room.findFirstOrThrow({ where: { id: roomId }})
+        return await prisma.room.update({ where: {  id: roomId}, data: { roomStatus: { connect: { id: roomStatusExist.id } }}, include: { roomStatus: { select: { shortDescription: true, longDescription: true } } } })
     }catch(err){
         ThrowError(err)
     }finally{
@@ -64,14 +54,4 @@ const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
     }
 }
 
-const changeRoomStatusByStatusId = async (id, roomStatusId) => {
-    try{
-        return await prisma.room.update({ where: { id }, data: { roomStatusId } } )
-    }catch(err){
-        ThrowError(err)
-    }finally{
-        await PrismaDisconnect()
-    }
-}
-
-module.exports = { getAllAvailableRoom, getRoomStatWithId, postStatusChange, getAllRoomStatus, changeRoomStatusByDescription, changeRoomStatusByStatusId}
+module.exports = { getAllAvailableRoom, getRoomStatWithId, getAllRoomStatus, changeRoomStatusByDescription}

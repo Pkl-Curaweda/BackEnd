@@ -38,7 +38,7 @@ async function login(req, res) {
   })
 
   delete user.password
-  return success(res, 'Login success', { user, accessToken })
+  return success(res, `Login success as ${user.name}`, { user, accessToken })
 }
 
 /**
@@ -84,7 +84,7 @@ async function refresh(req, res) {
     subject: newRefreshToken.userId.toString()
   })
 
-  return success(res, 'Refresh token success', { accessToken })
+  return success(res, 'Token Refresh Successfully', { accessToken })
 }
 
 /**
@@ -108,7 +108,7 @@ async function logout(req, res) {
  * @param {import('express').Response} res
  */
 function me(req, res) {
-  return success(res, 'Me success', req.user)
+  return success(res, 'Get Success', req.user)
 }
 
 module.exports = { login, refresh, logout, me }

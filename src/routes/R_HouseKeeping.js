@@ -25,13 +25,9 @@ const lostFound = require('../controllers/House Keeping/C_LostFound.js');
 // const auth = require/('../controllers/C_Auth.js')
 const amenities = require('../controllers/House Keeping/C_Amenities.js');
 const ooorooms = require('../controllers/House Keeping/C_OOO-OffMarket.js');
-const user = require('../controllers/House Keeping/C_User.js');
-const profile = require('../controllers/House Keeping/C_Profile.js');
+const user = require('../controllers/Maybe-Used/C_User.js');
 const cleanDirty = require('../controllers/House Keeping/C_CleanDirtyRoom.js')
-const discrepancy = require('../controllers/House Keeping/C_Discrepency.js')
-const roomMaid = require('../controllers/House Keeping/C_RoomMaidReport.js')
 const status = require('../controllers/House Keeping/C_Status.js')
-const stock = require('../controllers/House Keeping/C_Stock.js')
 const roomChange = require('../controllers/House Keeping/C_RoomChange.js')
 const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js');
 const roomOcc = require('../controllers/House Keeping/C_RoomOCC.js')
@@ -77,22 +73,15 @@ router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 // router.get('/me', auth.me)
 // //End Auth
 
-//Start Profile
-router.get('/profile/:id/', profile.get)
-router.put('/profile/:id', profile.update)
-//End Profile
-
 //Start OOO Room
 router.get('/ooo-rooms/', ooorooms.findAll)
 router.post('/ooo-rooms/', createOooRoomValidation, ooorooms.create)
-router.post('/ooo-rooms/print', ooorooms.print)
 //End OOO Room
 
 //Start User
 router.get('/users/', getUserValidation, user.findAll)
 router.get('/users/document', getUserValidation, user.document)
 router.get('/users/:id', user.findOne)
-router.post('/users/', createUserValidation, user.create)
 router.put('/users/:id', updateUserValidation, user.update)
 router.delete('/users/:id', user.remove)
 //End User
@@ -123,12 +112,10 @@ router.get('/roomocc', roomOcc.get)
 
 //Start Room Change
 router.get('/roomchange', roomChange.get)
-router.post('/roomchange/print', roomChange.print)
 //End Room Change
 
 //Start Extra Bed
 router.get('/amenities/:art', amenities.findAll)
-router.post('/amenities/:art/print', amenities.print)
 //End Extra Bed
 
 //Start Clean Dirty Room
@@ -136,24 +123,13 @@ router.get('/clean-dirty', cleanDirty.get)
 router.put("/clean-dirty/:id", updateRoomStatusValidation, cleanDirty.updateStatus)
 //End Clean Dirty Room
 
-//Start Discrepancy 
-router.get('/discrepancy', getDiscrepancyValidation, discrepancy.index)
-//End Discrepancy
-
 //Start Room  Maid
-router.get('/room-maid', roomMaid.findAll)
-router.post('/room-maid/print', roomMaid.print)
 router.get('/room-maid/reset', resetSchedule)
-router.get('/room-maid/:id', roomMaid.findOne)
 //End Room Maid
 
 //Start Maid Task
 router.get('/task/dc', dailyCleaning)
 router.get('/task/at/:roomId?', amenitiesTask)
 //End Maid Task
-
-//Start Stock
-router.get('/stock', getStockValidation, stock.index)
-//End Stock
 
 module.exports = router

@@ -55,6 +55,12 @@ enum LostFoundStatus {
   ONPROGRESS
 }
 
+enum xTypeRoom {
+  OOO
+  OM
+  HU
+}
+
 // Front Office Area ==========================================================
 
 model Role {
@@ -96,13 +102,13 @@ model User {
   cleanRooms  CleanRoom[]
   Tokens      UserToken[]
   DirtyRoom   DirtyRoom[]
-  OooRoom     OooRoom[]
   roomMaids   RoomMaid[]
   created_at  DateTime     @default(now())
   updated_at  DateTime     @updatedAt
 
   lostFounds    LostFound[] @relation("LostFound_user")
   lostFoundsPic LostFound[] @relation("LostFound_pic")
+  OooOmRoom     OooOmRoom[]
 }
 
 model UserToken {
@@ -146,9 +152,9 @@ model Reservation {
   resvRooms          ResvRoom[]
   cleanRooms         CleanRoom[]
   dirtyRooms         DirtyRoom[]
-  oooRooms           OooRoom[]
   ResvPayment        ResvPayment[]
   idCard             idCard[]
+  OooOmRoom          OooOmRoom[]
 }
 
 model SpecialTreatment {
@@ -209,13 +215,6 @@ model idCard {
   address        String         @db.Text
 }
 
-model LogAvailability {
-  id          Int      @id @default(autoincrement())
-  roomHistory Json
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-}
-
 model ArrangmentCode {
   id       String     @id
   rate     Float
@@ -270,12 +269,12 @@ model Notification {
 
 // House Keeping Area =========================================================
 model Department {
-  id        Int        @id @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   shortDesc String
-  longDesc  String     @db.Text
+  longDesc  String      @db.Text
   roomMaids RoomMaid[]
-  oooRooms  OooRoom[]
   TaskType  TaskType[]
+  OooOmRoom OooOmRoom[]
 }
 
 model RoomStatus {
@@ -306,9 +305,9 @@ model Room {
   resvRooms       ResvRoom[]
   cleanRooms      CleanRoom[]
   dirtyRooms      DirtyRoom[]
-  oooRooms        OooRoom[]
   lostFounds      LostFound[]
   MaidTask        MaidTask[]
+  OooOmRoom       OooOmRoom[]
 }
 
 model RoomChange {
@@ -417,20 +416,21 @@ model DirtyRoom {
   updated_at    DateTime    @updatedAt
 }
 
-model OooRoom {
+model OooOmRoom {
   id            Int         @id @default(autoincrement())
+  xType         xTypeRoom
   room          Room        @relation(fields: [roomId], references: [id])
   roomId        Int
   user          User        @relation(fields: [userId], references: [id])
   userId        Int
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
-  reservationId Int
+  reservation   Reservation? @relation(fields: [reservationId], references: [id])
+  reservationId Int?
   reason        String      @db.Text
   from          DateTime
   until         DateTime
   description   String      @db.Text
-  departmentId  Int
-  department    Department  @relation(fields: [departmentId], references: [id])
+  departmentId  Int?
+  department    Department?  @relation(fields: [departmentId], references: [id])
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
 }
@@ -449,7 +449,7 @@ model LostFound {
   roomId      Int
   pic         User            @relation("LostFound_pic", fields: [picId], references: [id])
   picId       Int
-  user        User?            @relation("LostFound_user", fields: [userId], references: [id])
+  user        User?           @relation("LostFound_user", fields: [userId], references: [id])
   userId      Int?
   phoneNumber String?
   location    String

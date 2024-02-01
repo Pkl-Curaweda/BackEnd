@@ -5,7 +5,7 @@ const { error, success } = require("../../utils/response")
 const get = async (req, res) => {
     try {
         const statusData = await getStatusData(req.query)
-        return success(res, 'Operation Success', statusData)
+        return success(res, 'Get Success', statusData)
     } catch (err) {
         return error(res, err.message)
     }

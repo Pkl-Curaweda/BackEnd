@@ -41,7 +41,7 @@ app.get('/dashboard', async (req, res) => {
   let { page = 1, perPage = 5, date } = req.query
   try {
     const dsbd = await dashboard.get(parseInt(page), parseInt(perPage), date);
-    return success(res, 'Operation Success', dsbd)
+    return success(res, 'Get Success', dsbd)
   } catch (err) {
     return error(res, err.message)
   }

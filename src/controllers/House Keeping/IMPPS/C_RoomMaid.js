@@ -7,7 +7,7 @@ const get = async (req, res) => {
     const { id } = req.params
     try {
         const { performance, listTask } = await getRoomMaidTaskById(+id, req.query)
-        return success(res, 'Operation Success', { performance, listTask })
+        return success(res, `Get Success`, { performance, listTask })
     } catch (err) {
         return error(res, err.message)
     }
@@ -16,7 +16,7 @@ const get = async (req, res) => {
 const getAll = async (req, res) => {
     try {
         const roomMaids = await getAllRoomMaid()
-        return success(res, 'Operation Success', roomMaids)
+        return success(res, 'Get Success', roomMaids)
     } catch (err) {
         return error(res, err.message)
     }
@@ -41,7 +41,7 @@ const post = async (req, res) => {
             default:
                 throw Error('No Action Matched')
         }
-        return success(res, 'Operation Success', data)
+        return success(res, data.message, data)
     } catch (err) {
         return error(res, err.message)
     }
@@ -50,7 +50,7 @@ const post = async (req, res) => {
 const dailyCleaning = async (req, res) => {
     try {
         const assigne = await genearateListOfTask("DLYCLEAN")
-        return success(res, 'Operation Success', assigne)
+        return success(res, 'Daily Cleaning Task Assigned', assigne)
     } catch (err) {
         return error(res, err.message)
     }
@@ -60,7 +60,7 @@ const amenitiesTask = async (req, res) => {
     const { roomId } = req.params
     try {
         const task = await genearateListOfTask("GUEREQ", +roomId, "Please fast, my Tochter need this asf", 110, 2)
-        return success(res, 'Success', task)
+        return success(res, `Task Assigned`, task)
     } catch (err) {
         return error(res, err.message)
     }
@@ -69,7 +69,7 @@ const amenitiesTask = async (req, res) => {
 const resetSchedule = async (req, res) => {
     try {
         const roomMaid = await resetRoomMaid()
-        return success(res, roomMaid)
+        return success(res, 'Reset All Room Maid Workload' ,roomMaid)
     } catch (err) {
         return error(res, err.message)
     }

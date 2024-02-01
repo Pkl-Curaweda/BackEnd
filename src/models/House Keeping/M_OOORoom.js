@@ -58,7 +58,7 @@ const select = {
  */
 async function all(option) {
   try {
-    let { page = 1, perPage = 5, sortOrder, arr, dep } = option
+    let { page = 1, perPage = 5, sortOrder, arr, dep, type = "OOO" } = option
     if (arr === undefined) arr = new Date().toISOString().split('T')[0]
     if (dep === undefined) {
       dep = new Date(arr);
@@ -67,6 +67,7 @@ async function all(option) {
     }
     if (sortOrder != undefined) sortOrder = sortingOrderOOOOffRoom(sortOrder)
     const where = {
+      xType: type,
       AND: [
         {
           from: { gte: `${arr}T00:00:00.000Z` },
@@ -77,8 +78,8 @@ async function all(option) {
       ]
     }
     const [total, oooRooms] = await prisma.$transaction([
-      prisma.oooRoom.count({ where }),
-      prisma.oooRoom.findMany({
+      prisma.oooOmRoom.count({ where }),
+      prisma.oooOmRoom.findMany({
         take: +perPage,
         skip: (page - 1) * perPage,
         orderBy: { ...sortOrder },
@@ -101,8 +102,8 @@ async function all(option) {
     ])
 
     const OOORoom = [];
-    for(let ooo of oooRooms){
-     OOORoom.push({
+    for (let ooo of oooRooms) {
+      OOORoom.push({
         roomNo: ooo.room.id,
         reason: ooo.reason,
         from: splitDateTime(ooo.from).date,
@@ -114,6 +115,7 @@ async function all(option) {
     }
     const lastPage = Math.ceil(total / perPage)
     return {
+      ident: type != "OOO" ? "OM" : "O-O-O",
       OOORoom, meta: {
         total,
         currPage: +page,
@@ -137,10 +139,13 @@ async function all(option) {
  * @throws {Error}
  * @return {Promise<import('@prisma/client').oooRoom>}
  */
-async function createOooRoom(oooRoom) {
+async function createOooRoom(xType, oooRoom) {
   try {
-    return await prisma.oooRoom.create({
-      data: oooRoom,
+    return await prisma.oooOmRoom.create({
+      data: {
+        ...oooRoom,
+        xType
+      }
     })
   } catch (e) {
     console.log(e);
@@ -157,7 +162,7 @@ async function createOooRoom(oooRoom) {
  */
 async function update(id, oooRoom) {
   try {
-    return await prisma.oooRoom.update({
+    return await prisma.oooOmRoom.update({
       where: {
         id: parseInt(id)
       },
@@ -176,7 +181,7 @@ async function update(id, oooRoom) {
  */
 async function remove(id) {
   try {
-    return await prisma.oooRoom.delete({
+    return await prisma.oooOmRoom.delete({
       where: {
         id: parseInt(id)
       },

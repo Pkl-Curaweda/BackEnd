@@ -34,19 +34,7 @@ async function findOne(req, res) {
   }
 }
 
-/**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-async function create(req, res) {
-  try {
-    req.body.password = await bcrypt.hash(req.body.password, 10)
-    const user = await userRepository.create(req.body)
-    return success(res, 'Create user success', user)
-  } catch {
-    return error(res, 'Create user failed')
-  }
-}
+
 
 /**
  * @param {import('express').Request} req
@@ -100,4 +88,4 @@ async function document(req, res) {
 
 }
 
-module.exports = { findAll, document, remove, update, create, findOne }
+module.exports = { findAll, document, remove, update, findOne }

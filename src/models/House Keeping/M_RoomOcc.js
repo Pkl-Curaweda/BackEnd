@@ -51,7 +51,7 @@ const getRoomOccupancyData = async (q) => {
                     currData.om.room++;
                     break;
                 case "HU":
-                    currData.om.room++
+                    currData.houseUse.room++
                 default:
                     break;
             }
@@ -88,7 +88,7 @@ const getRoomOccupancyData = async (q) => {
                 break;
         }
 
-        const [r, ooo] = await prisma.$transaction([
+        const [r, ooo, om] = await prisma.$transaction([
             prisma.resvRoom.findMany({
                 where: {
                     reservation: {
@@ -100,8 +100,15 @@ const getRoomOccupancyData = async (q) => {
                 },
                 select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
             }),
-            prisma.oooRoom.count({
+            prisma.oooOmRoom.count({
                 where: {
+                    xType: "000",
+                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                }
+            }),
+            prisma.oooOmRoom.count({
+                where: {
+                    xType: "OM",
                     created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
                 }
             })
@@ -111,6 +118,7 @@ const getRoomOccupancyData = async (q) => {
         for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
         percData.estOcc.person += estPers
         percData.ooo.room += ooo
+        percData.om.room += om
         let roomPerc = [], personPerc = [], graph = { room: 0,  person: 0 }
         Object.values(percData).forEach(( data, ind ) => {
             console.log(data.room)

@@ -6,7 +6,7 @@ const getArrivalDepartureData = async (req, res) => {
     const { page, perPage, sortOrder, search, arrival, depart } = req.query
     try{
         const data = await arrivalDeparture.get(page, perPage, search, sortOrder, arrival, depart)
-        return success(res, 'Success', data)
+        return success(res, 'Get Success', data)
     }catch(err){
         return error(res, err.message)
     }

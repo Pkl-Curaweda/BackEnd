@@ -5,7 +5,7 @@ const { success, error } = require("../../utils/response");
 const get = async (req, res) => {
     try {
         const roomOcc = await getRoomOccupancyData(req.query);
-        return success(res, 'Operation Succes', roomOcc)
+        return success(res, 'Get Success', roomOcc)
     } catch (err) {
         return error(res, err.message)
     }

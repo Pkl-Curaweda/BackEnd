@@ -54,7 +54,7 @@ const getDetailData = async (req, res) => {
   const { reservationId, resvRoomId } = req.params
   try {
     const detail = await getDetailById(parseInt(resvRoomId), parseInt(reservationId))
-    return success(res, 'Operation Success', detail)
+    return success(res, `Detail Reservation | ${resvRoomId} Shown`, detail)
   } catch (err) {
     return error(res, err.message)
   }
@@ -63,7 +63,7 @@ const getDetailData = async (req, res) => {
 const getCreateResevationHelper = async (req, res) => {
   try {
     const detail = await DetailCreateReservationHelper();
-    return success(res, 'Helper Running', detail)
+    return success(res, 'Create New Reservation', detail)
   } catch (err) {
     return error(res, err.message)
   }
@@ -75,7 +75,7 @@ const getEditReservationHelper = async (req, res) => {
     let detail = { reservation: undefined, data: undefined }
     detail.reservation = resvRoomId != undefined ? await getDetailById(parseInt(resvRoomId), parseInt(reservationId)) : "";
     detail.data = await DetailCreateReservationHelper();
-    return success(res, `Shown Reservation | ${detail.reservation.id}`, detail)
+    return success(res, `Edit Reservation | ${resvRoomId}`, detail)
   } catch (err) {
     return error(res, err.message)
   }
@@ -85,7 +85,7 @@ const getReportDetail = async (req, res) => {
   const { date = new Date().toISOString().split("T")[0], disOpt = "day" } = req.query
   try {
     const detail = await getReportDetailData(date, disOpt)
-    return success(res, 'Operation Success', detail)
+    return success(res, 'Get Success', detail)
   } catch (err) {
     return error(res, err.message)
   }
@@ -96,7 +96,7 @@ const getInvoiceDetail = async (req, res) => {
   const { ids } = req.query;
   try {
     const detail = await GetInvoiceDetailByArt(parseInt(reservationId), parseInt(resvRoomId), +ids)
-    return success(res, 'Operation Success', detail)
+    return success(res, `Invoice | ${detail.detail.desc}`, detail)
   } catch (err) {
     return error(res, err.message)
   }
@@ -106,7 +106,7 @@ const getPreviousCard = async (req, res) => {
   const { reservationId } = req.params;
   try {
     const idCard = await GetPreviousIdCard(parseInt(reservationId))
-    return success(res, 'Operation Success', idCard)
+    return success(res, 'Get Success', idCard)
   } catch (err) {
     return error(res, err.message)
   }
@@ -117,7 +117,7 @@ const postNewReservation = async (req, res) => {
   const body = req.body;
   try {
     const reservation = await CreateNewReservation(body);
-    return success(res, 'Reservation Created', reservation);
+    return success(res, 'New Reservation Created Successfully', reservation);
   } catch (err) {
     return error(res, err.message);
   }
@@ -139,7 +139,7 @@ const postChangeRoom = async (req, res) => {
   const body = req.body
   try {
     const changeRoom = await ChangeRoom(parseInt(resvRoomId), parseInt(reservationId), body);
-    return success(res, 'Changes Updated', changeRoom)
+    return success(res, `Changing Room ${resvRoomId} | From: ${changeRoom.changeRoomLog.roomFromId} To: ${changeRoom.changeRoomLog.roomToId} `, changeRoom)
   } catch (err) {
     return error(res, err.message)
   }
@@ -150,7 +150,7 @@ const postWaitingList = async (req, res) => {
   const { request } = req.body
   try{
     const task = await AddWaitingList(reservationId, resvRoomId, request)
-    return success(res, 'Operation Success', task)
+    return success(res, 'Request successfully received', task)
   }catch(err){
     return error(res, err.message)
   }
@@ -160,7 +160,7 @@ const postChangeProgress = async (req, res) => {
   const { reservationId, changeProgress } = req.params
   try {
     const changedProgress = await ChangeReservationProgress(parseInt(reservationId), changeProgress);
-    return success(res, 'Change Success', changedProgress)
+    return success(res, changedProgress.message, changedProgress)
   } catch (err) {
     return error(res, err.message)
   }
@@ -172,7 +172,7 @@ const postNewIdCard = async (req, res) => {
   try {
     const data = { reservationId: parseInt(reservationId), resvRoomId: parseInt(resvRoomId), ...body }
     const IdCard = await AddNewIdCard(data);
-    return success(res, `New Id Created on Reservation ${reservationId}`, IdCard)
+    return success(res, `New Id Card Created on Reservation ${reservationId}`, IdCard)
   } catch (err) {
     return error(res, err.message)
   }
@@ -185,7 +185,7 @@ const putNewReservationData = async (req, res) => {
   const body = req.body;
   try {
     const updatedReservation = await editReservation(parseInt(reservationId), parseInt(resvRoomId), body);
-    return success(res, `Reservation ${reservationId} Updated`, updatedReservation)
+    return success(res, `Reservation ${reservationId} Successfully Updated`, updatedReservation)
   } catch (err) {
     return error(res, err.message)
   }
@@ -198,7 +198,7 @@ const putNewInvoiceData = async (req, res) => {
   const body = req.body
   try{
     const updatedData = await putInvoiceData(parseInt(reservationId), parseInt(resvRoomId), { date, id: parseInt(id), uniqueId: parseInt(uniqueId) }, body)
-    return success(res, 'Update Success', updatedData)
+    return success(res, '', updatedData)
   }catch(err){
     return error(res, err.message)
   }
@@ -221,7 +221,7 @@ const deleteInvoice = async (req, res) => {
   const { ids } = req.query
   try{
     const deleted = await deleteInvoiceData(+reservationId, +resvRoomId, +ids)
-    return success(res, 'Deleted Successfully', deleted)
+    return success(res, 'Invoice Successfully Deleted', deleted)
   }catch(err){
     return error(res, err.message)
   }
