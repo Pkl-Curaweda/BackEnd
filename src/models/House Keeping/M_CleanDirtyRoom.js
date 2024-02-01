@@ -46,7 +46,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
         }
         if (sortOrder != undefined) [ident, ascDesc] = sortOrder.split(' ');
         if (sortOrder != undefined && ident === 'roomId' || sortOrder != undefined && ident === 'roomType') {
-            sortOrder = sortOrderCleanDirty(sortOrder)
+            sortOrder = sortOrderCleanDirty(ident, ascDesc)
             roomOrder = sortOrder
         }
         const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
@@ -83,7 +83,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
                 room.sort((a, b) => a.guestName.localeCompare(b.guestName));
                 break;
             case 'pic':
-                room.sort((a, b) => a.pic.user.name.localeCompare(b.pic.user.name));
+                room.sort((a, b) => a.pic.localeCompare(b.pic));
                 break;
             default:
                 break;
