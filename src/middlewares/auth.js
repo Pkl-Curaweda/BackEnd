@@ -9,8 +9,8 @@ const { error } = require("../utils/response");
  */
 const auth = (roles) => async (req, res, next) => {
     try {
-        console.log('Test ')
         const { authorization } = req.headers;
+        console.log(authorization)
         if (!authorization) return error(res, 'Forbidden authorization token is not found', 403)
         const accessToken = authorization.split(' ')[1];
         const refreshToken = req.cookies['refresh_token'];

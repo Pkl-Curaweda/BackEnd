@@ -42,6 +42,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
         const [total, reservations] = await prisma.$transaction([
             prisma.resvRoom.count({
                 where: {
+                    deleted: false,
                     ...(so && so.whereQuery),
                     reservation: {
                         ...date,
@@ -51,6 +52,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
             }),
             prisma.resvRoom.findMany({
                 where: {
+                    deleted: false,
                     ...(so && so.whereQuery),
                     reservation: {
                         ...date,

@@ -2,7 +2,7 @@ const { create } = require("qrcode")
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
-const { countPerfomance, countTaskPerformance } = require("../M_RoomMaid")
+const { countPerfomance, countTaskPerformance, countActual } = require("../M_RoomMaid")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
@@ -217,14 +217,15 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 break;
                 case "re-clean":
                     if(roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Sorry you already give task to this ${roomMaid.aliases}`)
-                    updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment }, select: { roomId: true } })
+                    updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment, endTime: null }, select: { roomId: true } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { urgentTask: updateTask.id }, select: { user: { select: { name: true } } } })
                 await createNotification({ content: `${updateMaid.user.name} please clean room no ${updateTask.roomId}` })
                 message = `Supervisor requesting Re - Clean to Room Maid ${roomMaid.aliases}`
                 break;
             case "ok":
                 const maidPerfomance = await countTaskPerformance(task.id, 4)
-                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance } })
+                const { actual, UoM } = await countActual(task.startTime, task.endTime)
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance, comment: payload.comment, actual, UoM, checkedTime: currentDate } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: null, rawPerfomance: roomMaid.rawPerfomance + maidPerfomance, finishedTask: roomMaid.finishedTask + 1 } })
                 await createNotification({ content: `Task / Request ${task.roomId} finished` })
                 message = `Task finished`

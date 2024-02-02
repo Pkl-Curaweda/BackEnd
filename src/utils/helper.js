@@ -668,13 +668,10 @@ function getTimeDifferenceInMinutes(isoTimestamp1, isoTimestamp2) {
 }
 
 function getMaidPerfomance(minuteFinish, standardMinute) {
-  const percentages = [1.4, 1.2, 1, 0.9, 0.8];
-  percentages.map((factor) => standardMinute * factor);
-  for (let i = 0; i < percentages.length; i++) {
-    if (minuteFinish >= percentages[i]) {
-      return i + 1;
-    }
-  }
+  let percentagesIndex = 0, percentages = [1.4, 1.2, 1, 0.9, 0.8];
+  const standardMinuteEntry = percentages.map((factor) => standardMinute * factor);
+  while(minuteFinish > standardMinuteEntry[percentagesIndex]) percentagesIndex++
+  return percentagesIndex + 1
 }
 
 

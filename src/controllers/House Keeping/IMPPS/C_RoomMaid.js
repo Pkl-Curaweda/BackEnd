@@ -24,6 +24,7 @@ const getAll = async (req, res) => {
 
 const post = async (req, res) => {
     let { action, taskId, id } = req.params, data
+    let { comment, performance } = req.body
     try {
         switch (action) {
             case "start-task":
@@ -33,10 +34,10 @@ const post = async (req, res) => {
                 data = await taskAction("end", +id, +taskId)
                 break;
             case "re-clean":
-                data = await taskAction('re-clean', +id, +taskId)
+                data = await taskAction('re-clean', +id, +taskId, { comment, perfomance })
                 break;
             case "ok":
-                data = await taskAction('ok', +id, +taskId)
+                data = await taskAction('ok', +id, +taskId, { comment, perfomance })
                 break;
             default:
                 throw Error('No Action Matched')
@@ -69,9 +70,17 @@ const amenitiesTask = async (req, res) => {
 const resetSchedule = async (req, res) => {
     try {
         const roomMaid = await resetRoomMaid()
-        return success(res, 'Reset All Room Maid Workload' ,roomMaid)
+        return success(res, 'Reset All Room Maid Workload', roomMaid)
     } catch (err) {
         return error(res, err.message)
+    }
+}
+
+const postCreate = async (req, res) =>{
+    try{
+        // const createdRoomMaid = await
+    }catch(err){
+
     }
 }
 

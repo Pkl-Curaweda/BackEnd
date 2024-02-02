@@ -22,7 +22,7 @@ R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", delete
 R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", deleteReservation);
 
 //?ARRIVAL GUEST LIST
-R_FrontOffice.get("/arrival", getArrivalGuestData);
+R_FrontOffice.get("/arrival", auth(['Admin']),getArrivalGuestData);
 R_FrontOffice.put("/arrival", putChangeTreatment);
 
 //?FLOOR PLAN

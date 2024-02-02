@@ -365,6 +365,8 @@ model MaidTask {
   typeId      String
   schedule    String
   finished    Boolean   @default(false)
+  actual   Int?
+  UoM String?
   performance Int?
   startTime   DateTime?
   endTime     DateTime?

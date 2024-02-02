@@ -103,7 +103,7 @@ router.delete('/lostfound/:id/:act', lostFound.remove)
 
 //Start Status
 router.get('/status', status.get)
-router.post("/status/:id/:stId", postStat)
+router.post("/status/:id/:status", auth(['Admin']) , postStat)
 //End Status
 
 //Start Room Occupancy Forecast

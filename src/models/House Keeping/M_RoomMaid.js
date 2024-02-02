@@ -1,6 +1,7 @@
 const { randomInt } = require("crypto")
 const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, splitDateTime, generatePercentageValues, getTimeDifferenceInMinutes, getMaidPerfomance } = require("../../utils/helper")
+const { getTime } = require("date-fns")
 
 const getAllRoomMaid = async () => {
     try {
@@ -73,8 +74,10 @@ const getRoomMaidTaskById = async (id, q) => {
                 schedule: true,
                 request: true,
                 comment: true,
+                UoM: true,
+                actual: true, 
                 status: true,
-                type: { select: { standardTime: true } }
+                type: { select: { standardTime: true, UoM: true } }
             }, orderBy: { created_at: 'asc' }, take: +perPage, skip: (page - 1) * perPage
         })
         const maidPerfomance = await convertPerfomance(roomMaid.id)
@@ -86,7 +89,8 @@ const getRoomMaidTaskById = async (id, q) => {
                 roomType: mTask.room.roomType,
                 schedule: mTask.schedule,
                 rowColor: mTask.id === roomMaid.currentTask ? "#fffc06" : "#ffffff",
-                actual: mTask.type.standardTime,
+                standard: `${mTask.type.standardTime} ${mTask.type.UoM}`,
+                actual: mTask.actual != null? `${mTask.actual} ${mTask.UoM}`: '',
                 remarks: mTask.request ? mTask.request : "-",
                 status: mTask.status ? mTask.status : "-",
                 comments: mTask.comment ? mTask.comment : "-"
@@ -191,6 +195,22 @@ const getRoomMaidReport = async (q) => {
     }
 }
 
+const countActual = async (startTime,endTime) => {
+    let actual = 0, UoM = "Minute"
+    try{
+        actual = getTimeDifferenceInMinutes(startTime, endTime)
+        if(actual > 60){
+            UoM = "Hour"
+            actual = rawMinute / 60
+        }
+        return { actual, UoM }
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
 const countTaskPerformance = async (taskId, spvPerformance) => {
     try {
         const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, select: { endTime: true, startTime: true, type: { select: { standardTime: true } } } })
@@ -235,4 +255,8 @@ const resetRoomMaid = async () => {
     }
 }
 
-module.exports = { resetRoomMaid, getAllRoomMaid, convertPerfomance, assignRoomMaid, countTaskPerformance, getRoomMaidReport, getRoomMaidTaskById }
+const createRoomMaid = async (b) => {
+
+}
+
+module.exports = { resetRoomMaid, getAllRoomMaid, convertPerfomance, assignRoomMaid, countTaskPerformance, getRoomMaidReport, getRoomMaidTaskById, countActual, createRoomMaid }

@@ -102,7 +102,7 @@ const getRoomOccupancyData = async (q) => {
             }),
             prisma.oooOmRoom.count({
                 where: {
-                    xType: "000",
+                    xType: "OOO",
                     created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
                 }
             }),
