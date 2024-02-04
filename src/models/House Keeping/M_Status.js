@@ -1,5 +1,6 @@
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
-const { prisma } = require("../../../prisma/seeder/config")
+const { prisma } = require("../../../prisma/seeder/config");
+const { getAllToday } = require("./IMPPS/M_MaidTask");
 
 const sortingStatusPage = (q) => {
     let orderBy;
@@ -25,11 +26,10 @@ const sortingStatusPage = (q) => {
 }
 
 const getStatusData = async (q) => {
-    let { roomPage = 1, roomPerPage = 10, taskPage = 1, taskPerPage = 1, roomSortOrder } = q
+    let { roomPage = 1, roomPerPage = 10, roomSortOrder } = q
     try {
         roomSortOrder = sortingStatusPage(roomSortOrder)
-        const [listStatus, roomTotal, roomStatus, latestChange, taskTotal, taskData] = await prisma.$transaction([
-            prisma.roomStatus.findMany({ select: { id: true, longDescription: true } }),
+        const [roomTotal, roomStatus, latestChange] = await prisma.$transaction([
             prisma.room.count(),
             prisma.room.findMany({
                 select: {
@@ -45,26 +45,16 @@ const getStatusData = async (q) => {
                 orderBy: { ...roomSortOrder }
             }),
             prisma.room.findFirst({ select: { id: true, roomStatus: { select: { longDescription: true } } }, orderBy: { updatedAt: 'desc' } }),
-            prisma.maidTask.count(),
-            prisma.maidTask.findMany({ where: { NOT: [{ typeId: 'GREQ' }] }, select: { roomId: true, request: true, roomMaid: { select: { user: { select: { name: true } } } }, mainStatus: true }, take: +taskPerPage, skip: (taskPage - 1) * taskPerPage })
         ])
         const roomLastPage = Math.ceil(roomTotal / roomPerPage);
-        const taskLastPage = Math.ceil(taskTotal / taskPerPage)
         return {
-            roomStatus, listStatus, roomMeta: {
+            roomStatus, latestChange, roomMeta: {
                 total: roomTotal,
                 currPage: roomPage,
                 lastPage: roomLastPage,
                 perPage: roomPerPage,
                 prev: roomPage > 1 ? roomPage - 1 : null,
                 next: roomPage < roomLastPage ? roomPage + 1 : null
-            }, latestChange, taskData, taskMeta: {
-                total: taskTotal,
-                currPage: taskPage,
-                lastPage: taskLastPage,
-                perPage: taskPerPage,
-                prev: taskPage > 1 ? taskPage - 1 : null,
-                next: taskPage < taskLastPage ? taskPage + 1 : null
             }
         }
     } catch (err) {
@@ -74,4 +64,43 @@ const getStatusData = async (q) => {
     }
 }
 
-module.exports = { getStatusData }
+const refreshTask = async (q) => {
+    const { page = 1, perPage = 5 } = q
+    const currDate = new Date().toISOString().split('T')[0]
+    try {
+        const where = {
+            AND: [
+                { created_at: { gte: `${currDate}T00:00:00.000Z` } },
+                { created_at: { lte: `${currDate}T23:59:59.999Z` } }
+            ]
+        }
+        const [total, listTask] = await prisma.$transaction([
+            prisma.maidTask.count({ where: { ...where } }),
+            prisma.maidTask.findMany({ where: { ...where },
+                select: {
+                    roomId: true,
+                    request: true,
+                    roomMaid: { select: { aliases: true } },
+                    mainStatus: true
+                }, take: +perPage, skip: (+page - 1) * perPage
+            })
+        ])
+        const lastPage = Math.ceil(total / perPage);
+        return {
+            listTask, meta: {
+                total,
+                currPage: +page,
+                lastPage,
+                perPage,
+                prev: page > 1 ? page - 1 : null,
+                next: page < lastPage ? +page + 1 : null
+            }
+        }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+module.exports = { getStatusData, refreshTask }

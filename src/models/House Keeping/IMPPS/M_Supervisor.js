@@ -5,7 +5,7 @@ const { error } = require("../../../utils/response")
 const task = require('./M_MaidTask')
 const getSupervisorData = async () => {
     try{
-        const tasks = await task.getAllToday({ finished: false }, { 
+        const tasks = await task.getAllToday({ finished: false, NOT: [ { rowColor:"FFFFFF" } ] }, { 
             room: {
                 select: { id: true, roomType: true }
             },
@@ -16,10 +16,11 @@ const getSupervisorData = async () => {
             roomMaidId: true,
             schedule: true,
             request: true,
+            rowColor: true,
             comment: true,
             status: true,
             type: { select: { standardTime: true } }
-         }, { created_at: 'asc' }, 10, 1)
+         }, { rowColor: 'desc' }, 10, 1)
          
          const listTask = tasks.map((task) => {
             return {
@@ -28,7 +29,7 @@ const getSupervisorData = async () => {
                 roomNo: task.room.id,
                 roomType: task.room.roomType,
                 schedule: task.schedule,
-                rowColor: task.id === task.roomMaid.currentTask ? "#fffc06" : "#ffffff",
+                rowColor: task.rowColor,
                 actual: task.type.standardTime,
                 remarks: task.request ? task.request : "-",
                 pic: task.roomMaid.aliases,

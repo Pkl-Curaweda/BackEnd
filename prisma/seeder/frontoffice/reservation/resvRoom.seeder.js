@@ -1,7 +1,8 @@
 const { randomInt } = require("crypto");
 const { prisma } = require("../../config");
 const { roomChangeSeed } = require("../roomChange.seeder");
-const { invoiceSeeder } = require("../Article/Invoice");
+const { invoiceSeeder } = require("../Article/invoice");
+const { ResvPaymentSeed } = require("./resvPayment.seeder");
 
 const resvRooms = {
 	roomId: 101,
@@ -25,6 +26,7 @@ async function ResvRoomSeed(reservationId) {
 	});
 	await prisma.room.update({ where:{ id: resvRoom.roomId }, data: { occupied_status: true } })
 	await roomChangeSeed(resvRoom.id)
+	await ResvPaymentSeed(resvRoom.id)
 	await invoiceSeeder(resvRoom.id)
 }
 

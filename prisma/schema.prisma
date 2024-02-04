@@ -61,6 +61,13 @@ enum xTypeRoom {
   HU
 }
 
+enum maidTaskColor {
+  F28585 //#F28585
+  FFFC9B //#FFFC9B
+  FFFFFF //#FFFFFF
+  B7E5B4 //#B7E5B4
+}
+
 // Front Office Area ==========================================================
 
 model Role {
@@ -152,7 +159,6 @@ model Reservation {
   resvRooms          ResvRoom[]
   cleanRooms         CleanRoom[]
   dirtyRooms         DirtyRoom[]
-  ResvPayment        ResvPayment[]
   idCard             idCard[]
   OooOmRoom          OooOmRoom[]
 }
@@ -192,6 +198,7 @@ model ResvRoom {
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
   Invoice          Invoice[]
+  ResvPayment      ResvPayment[]
 }
 
 model Reserver {
@@ -229,11 +236,13 @@ model Invoice {
   articleType   ArticleType? @relation(fields: [articleTypeId], references: [id])
   articleTypeId Int?
   qty           Int
+  room          Room         @relation(fields: [roomId], references: [id])
+  roomId        Int
   rate          Float
   dateUsed      DateTime?
   dateReturn    DateTime?
-  order         OrderDetail? @relation(fields: [orderId], references: [id])
-  orderId       Int?
+  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id])
+  orderDetailId Int?
   paid          Boolean      @default(false)
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -248,15 +257,15 @@ model ArticleType {
 }
 
 model ResvPayment {
-  id            Int         @id @default(autoincrement())
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
-  reservationId Int
+  id            Int          @id @default(autoincrement())
+  resvRoom      ResvRoom     @relation(fields: [resvRoomId], references: [id])
+  resvRoomId    Int
   paymentMethod String
   orders        Json
   total         Float
-  tax           Float       @default(0)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  tax           Float        @default(0)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 }
 
 model Notification {
@@ -308,6 +317,7 @@ model Room {
   lostFounds      LostFound[]
   MaidTask        MaidTask[]
   OooOmRoom       OooOmRoom[]
+  Invoice         Invoice[]
 }
 
 model RoomChange {
@@ -334,7 +344,7 @@ model RoomMaid {
   currentTask   Int?
   rawPerfomance Int        @default(0)
   finishedTask  Int        @default(0)
-  workload      Int
+  workload      Int        @default(0)
   department    Department @relation(fields: [departmentId], references: [id])
   departmentId  Int
   MaidTask      MaidTask[]
@@ -355,27 +365,28 @@ model Shift {
 }
 
 model MaidTask {
-  id          Int       @id @default(autoincrement())
-  room        Room      @relation(fields: [roomId], references: [id])
+  id          Int           @id @default(autoincrement())
+  room        Room          @relation(fields: [roomId], references: [id])
   roomId      Int
-  request     String    @db.Text
-  roomMaid    RoomMaid  @relation(fields: [roomMaidId], references: [id])
+  request     String        @db.Text
+  roomMaid    RoomMaid      @relation(fields: [roomMaidId], references: [id])
   roomMaidId  Int
-  type        TaskType  @relation(fields: [typeId], references: [id])
+  type        TaskType      @relation(fields: [typeId], references: [id])
   typeId      String
   schedule    String
-  finished    Boolean   @default(false)
-  actual   Int?
-  UoM String?
+  rowColor    maidTaskColor @default(FFFFFF)
+  finished    Boolean       @default(false)
+  actual      Int?
+  UoM         String?
   performance Int?
   startTime   DateTime?
   endTime     DateTime?
   checkedTime DateTime?
-  comment     String?   @db.Text
+  comment     String?       @db.Text
   status      String?
-  mainStatus  String    @default("WAITING")
-  updated_at  DateTime  @updatedAt
-  created_at  DateTime  @default(now())
+  mainStatus  String        @default("WAITING")
+  updated_at  DateTime      @updatedAt
+  created_at  DateTime      @default(now())
 }
 
 model TaskType {
@@ -419,22 +430,22 @@ model DirtyRoom {
 }
 
 model OooOmRoom {
-  id            Int         @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   xType         xTypeRoom
-  room          Room        @relation(fields: [roomId], references: [id])
+  room          Room         @relation(fields: [roomId], references: [id])
   roomId        Int
-  user          User        @relation(fields: [userId], references: [id])
+  user          User         @relation(fields: [userId], references: [id])
   userId        Int
   reservation   Reservation? @relation(fields: [reservationId], references: [id])
   reservationId Int?
-  reason        String      @db.Text
+  reason        String       @db.Text
   from          DateTime
   until         DateTime
-  description   String      @db.Text
+  description   String       @db.Text
   departmentId  Int?
   department    Department?  @relation(fields: [departmentId], references: [id])
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
 }
 
 model Stock {

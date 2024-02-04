@@ -1,12 +1,13 @@
 const { assignCleaningTask, assignTask, genearateListOfTask, taskAction } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
-const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
+const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid, createRoomMaid, isRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
 const { ThrowError } = require("../../../utils/helper")
 const { error, success } = require("../../../utils/response")
 
-const get = async (req, res) => {
-    const { id } = req.params
+const   get = async (req, res) => {
+    const user = req.user
     try {
-        const { performance, listTask } = await getRoomMaidTaskById(+id, req.query)
+        const roomMaid = await isRoomMaid(user.id)
+        const { performance, listTask } = await getRoomMaidTaskById(roomMaid.id, req.query)
         return success(res, `Get Success`, { performance, listTask })
     } catch (err) {
         return error(res, err.message)
@@ -23,8 +24,10 @@ const getAll = async (req, res) => {
 }
 
 const post = async (req, res) => {
-    let { action, taskId, id } = req.params, data
+    let { action, taskId} = req.params, data
+    const { id } = await isRoomMaid(req.user.id)
     let { comment, performance } = req.body
+    console.log(comment, performance)
     try {
         switch (action) {
             case "start-task":
@@ -34,10 +37,10 @@ const post = async (req, res) => {
                 data = await taskAction("end", +id, +taskId)
                 break;
             case "re-clean":
-                data = await taskAction('re-clean', +id, +taskId, { comment, perfomance })
+                data = await taskAction('re-clean', +id, +taskId, { comment })
                 break;
             case "ok":
-                data = await taskAction('ok', +id, +taskId, { comment, perfomance })
+                data = await taskAction('ok', +id, +taskId, { comment, performance})
                 break;
             default:
                 throw Error('No Action Matched')
@@ -76,12 +79,13 @@ const resetSchedule = async (req, res) => {
     }
 }
 
-const postCreate = async (req, res) =>{
+const postCreateRoomMaid = async (req, res) =>{
     try{
-        // const createdRoomMaid = await
+        const createdRoomMaid = await createRoomMaid(req.body)
+        return success(res, 'Room Maid Created Successfully', createdRoomMaid)
     }catch(err){
-
+        return error(res, err.message)
     }
 }
 
-module.exports = { get, dailyCleaning, amenitiesTask, getAll, resetSchedule, post }
+module.exports = { get, dailyCleaning, amenitiesTask, getAll, resetSchedule, post,postCreateRoomMaid }

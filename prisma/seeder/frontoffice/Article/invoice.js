@@ -5,21 +5,25 @@ const Invoices = [
     {
         articleTypeId: 110 ,
         qty: randomInt(1, 3),
+        roomId: 101,
         rate: 50000
     },
     {
         articleTypeId: 109,
         qty: randomInt(1, 3),
+        roomId: 101,
         rate: 15000
     },
     {
         articleTypeId: 108 ,
         qty: randomInt(1, 2),
+        roomId: 101,
         rate: 15000
     },
     {
         articleTypeId: 998,
         qty: 1,
+        roomId: 101,
         rate: 450000
     }
 ]

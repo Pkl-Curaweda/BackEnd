@@ -28,6 +28,5 @@ async function ReservationSeed() {
 		data: reservation,
 	});
 	await ResvRoomSeed(resv.id)
-	await ResvPaymentSeed(resv.id)
 }
 module.exports = { ReservationSeed };

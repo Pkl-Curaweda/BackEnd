@@ -15,7 +15,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
               rate: true,
             },
           },
-          roomId: true,
           voucherNo: true,
           roomMaids: { select: { user: { select: { name: true } } } },
           reservation: {
@@ -52,20 +51,22 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
               gte: `${searchDate}T00:00:00.000Z`,
               lte: `${searchDate}T23:59:59.999Z`,
             },
-            paid: false
           },
-          select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true, order: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } }
+          select: { id: true, paid: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
+          orderBy: { paid: 'asc'  }
         })
       ])
 
       for (let i of inv) {
         invoices.push({
-          art: i.articleType.id ? i.articleType.id : "In Room",
+          art: i.articleType != null ? i.articleType.id : "In Room",
           uniqueId: i.id,
           qty: i.qty,
-          desc: i.articleType.description ? i.articleType.description : i.order.service.name,
+          rowColor: i.paid != false ? "#808080" : "#ffffff",
+          desc: i.articleType != null ? i.articleType.description : i.orderDetail.service.name,
           rate: i.rate,
           amount: (i.rate * i.qty),
+          roomNo: i.roomId,
           billDate: searchDate,
         })
       }
@@ -83,7 +84,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
     return {
       invoices,
       added: {
-        roomNo: resvRoom.roomId,
         roomBoys: resvRoom.roomMaids.user.name,
         voucherNo: resvRoom.voucherNo
       },
@@ -113,37 +113,45 @@ const searchInvoice = (m, s) => {
 }
 
 const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
+  let invoiceList = []
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { id: true, reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
     const subtotal = await generateSubtotal(o)
     const order = await prisma.order.create({
       data: {
         guestId: resvRoom.reservation.reserver.guestId,
         roomId: resvRoom.roomId,
         subtotal,
-        ppn: subtotal * 0.1,
-        fees: generateTotal(subtotal),
-        orderDetails: {
-          createMany: {
-            data: await Promise.all(
-              o.map(async (item) => ({
-                serviceId: parseInt(item.serviceId, 10),
-                price: await generateItemPrice(item.serviceId, item.qty),
-                qty: parseInt(item.qty, 10)
-              }))
-            )
-          }
-        }
-      },
-      include: {
-        orderDetails: {
-          include: {
-            service: true
-          }
-        }
+        ppn: subtotal * 0.1, //TODO: PPN NEED TO CHANGED,
+        fees: subtotal * 0.1, //TODO: FEES NEED TO CHANGED,
+        total: generateTotal(subtotal),
       }
     })
-    return order
+
+    for (let orderDet of o) {
+      const orderDetail = await prisma.orderDetail.create({
+        data: {
+          orderId: order.id,
+          serviceId: orderDet.serviceId,
+          price: await generateItemPrice(orderDet.serviceId, orderDet.qty),
+          qty: parseInt(orderDet.qty, 10),
+        }, include: { service: true }
+      })
+      const invoice = await prisma.invoice.create({ data: {
+        resvRoomId: resvRoom.id,
+        orderDetailId: orderDetail.id,
+        qty: orderDetail.qty,
+        roomId: resvRoom.roomId,
+        rate: orderDetail.price,
+      } })
+      invoiceList.push({
+        art: "In Room",
+        desc: orderDetail.service.name,
+        orderDetailId: invoice.orderDetailId,
+        qty: orderDetail.qty,
+      })
+    }
+    return invoiceList
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -154,27 +162,54 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
 const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } } })
-    console.log(b)
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true } })
+    await checkInvoiceRoom(resvRoomId).then((condition) => {
+      console.log(condition)
+      if (condition === false) b.push({ articleId: 998, qty: 1 })
+    })
     for (let body of b) {
       if (!(body.qty <= 0)) {
-        const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+        let dateUsed, dateReturn, rate = resvRoom.arrangment.rate
+        if (body.articleId != 998) {
+          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+          dateUsed = resvRoom.reservation.arrivalDate,
+            dateReturn = resvRoom.reservation.departureDate,
+            rate = art.price
+        }
         const resvArt = await prisma.invoice.create({
           data: {
             resvRoomId,
+            roomId: resvRoom.roomId,
             qty: body.qty,
             articleTypeId: body.articleId,
-            dateUsed: resvRoom.reservation.arrivalDate,
-            dateReturn: resvRoom.reservation.departureDate,
-            rate: art.price
+            ...(dateUsed && { dateUsed }),
+            ...(dateReturn && { dateReturn }),
+            rate
           }
         })
-        console.log(addedArticle)
         addedArticle.push(resvArt)
-        console.log(addedArticle)
       } else continue
     }
     return addedArticle
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
+const checkInvoiceRoom = async (resvRoomId) => {
+  try {
+    const currentDate = new Date().toISOString().split('T')[0]
+    const check = await prisma.invoice.findFirst({
+      where: {
+        resvRoomId, articleTypeId: 998, AND: [
+          { created_at: { gte: `${currentDate}T00:00:00.000Z` } },
+          { created_at: { lte: `${currentDate}T23:59:59.999Z` } }
+        ]
+      }
+    })
+    return check != null
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -190,13 +225,13 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, invoiceId) => {
     addressComment = { address: addressComment.idCard.address || "", comment: addressComment.reserver.billComment || "" }
     const i = await prisma.invoice.findFirstOrThrow({
       where: { id: invoiceId },
-      select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true, order: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } }
+      select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } }
     })
 
     detail = {
       art: i.articleType.id ? i.articleType.id : "In Room",
       qty: i.qty,
-      desc: i.articleType.description ? i.articleType.description : i.order.service.name,
+      desc: i.articleType.description ? i.articleType.description : i.orderDetail.service.name,
       rate: i.rate,
       amount: (i.rate * i.qty),
     }

@@ -12,7 +12,6 @@ const getAllRoomMaid = async () => {
                 workload: true,
                 urgentTask: true,
                 currentTask: true,
-                performance: true,
                 user: { select: { name: true } }
             }
         })
@@ -73,30 +72,31 @@ const getRoomMaidTaskById = async (id, q) => {
                 id: true,
                 schedule: true,
                 request: true,
+                rowColor: true,
                 comment: true,
                 UoM: true,
-                actual: true, 
+                actual: true,
                 status: true,
                 type: { select: { standardTime: true, UoM: true } }
-            }, orderBy: { created_at: 'asc' }, take: +perPage, skip: (page - 1) * perPage
+            }, orderBy: { rowColor: 'asc' }, take: +perPage, skip: (page - 1) * perPage
         })
+
         const maidPerfomance = await convertPerfomance(roomMaid.id)
-        console.log(maidPerfomance)
         const listTask = maidTask.map(mTask => {
             return {
                 taskId: mTask.id,
                 roomNo: mTask.room.id,
                 roomType: mTask.room.roomType,
                 schedule: mTask.schedule,
-                rowColor: mTask.id === roomMaid.currentTask ? "#fffc06" : "#ffffff",
+                rowColor: `#${mTask.rowColor}`,
                 standard: `${mTask.type.standardTime} ${mTask.type.UoM}`,
-                actual: mTask.actual != null? `${mTask.actual} ${mTask.UoM}`: '',
+                actual: mTask.actual != null ? `${mTask.actual} ${mTask.UoM}` : '',
                 remarks: mTask.request ? mTask.request : "-",
                 status: mTask.status ? mTask.status : "-",
                 comments: mTask.comment ? mTask.comment : "-"
             };
         })
-        return { performance: maidPerfomance , listTask }
+        return { performance: maidPerfomance, listTask }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -195,18 +195,28 @@ const getRoomMaidReport = async (q) => {
     }
 }
 
-const countActual = async (startTime,endTime) => {
+const isRoomMaid = async (userId) => {
+    try {
+        return await prisma.roomMaid.findFirstOrThrow({ where: { userId } })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const countActual = async (startTime, endTime) => {
     let actual = 0, UoM = "Minute"
-    try{
+    try {
         actual = getTimeDifferenceInMinutes(startTime, endTime)
-        if(actual > 60){
+        if (actual > 60) {
             UoM = "Hour"
-            actual = rawMinute / 60
+            actual = parseInt(actual / 60)
         }
         return { actual, UoM }
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -216,7 +226,8 @@ const countTaskPerformance = async (taskId, spvPerformance) => {
         const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, select: { endTime: true, startTime: true, type: { select: { standardTime: true } } } })
         const minutes = getTimeDifferenceInMinutes(task.startTime, task.endTime)
         const maidPerfomance = getMaidPerfomance(minutes, task.type.standardTime)
-        return (spvPerformance + maidPerfomance) / 2
+        console.log(spvPerformance, maidPerfomance)
+        return parseInt((spvPerformance + maidPerfomance) / 2)
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -256,7 +267,14 @@ const resetRoomMaid = async () => {
 }
 
 const createRoomMaid = async (b) => {
-
+    try {
+        await prisma.user.findFirstOrThrow({ where: { id: b.userId } })
+        return await prisma.roomMaid.create({ data: { ...b } })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
 }
 
-module.exports = { resetRoomMaid, getAllRoomMaid, convertPerfomance, assignRoomMaid, countTaskPerformance, getRoomMaidReport, getRoomMaidTaskById, countActual, createRoomMaid }
+module.exports = { resetRoomMaid, getAllRoomMaid, convertPerfomance, assignRoomMaid, countTaskPerformance, getRoomMaidReport, getRoomMaidTaskById, countActual, isRoomMaid, createRoomMaid }

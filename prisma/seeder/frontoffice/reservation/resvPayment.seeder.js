@@ -1,7 +1,7 @@
 const { prisma } = require("../../config");
 
 const resvPayments = {
-    reservationId: 1,
+    resvRoomId: 1,
     paymentMethod: "BANK-BRI",
     orders: {
         details: [
@@ -20,8 +20,8 @@ const resvPayments = {
     updated_at: new Date(),
 };
 
-async function ResvPaymentSeed(reservationId) {
-    resvPayments.reservationId = reservationId
+async function ResvPaymentSeed(resvRoomId) {
+    resvPayments.resvRoomId = resvRoomId
     await prisma.resvPayment.create({
         data: resvPayments
     });

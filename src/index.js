@@ -14,6 +14,7 @@ const dashboard = require('./models/Front Office/M_Dashboard');
 const { success, error } = require("./utils/response");
 const { getAllNotification } = require("./controllers/Front Office/C_Notification");
 const R_IMPPS = require("./routes/R_IMPPS");
+const { scheduleInvoiceReservation } = require("./schedule/daily-schedule");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -33,6 +34,8 @@ app.use(bodyParser.urlencoded({
   extended: true,
 }),
 );
+
+scheduleInvoiceReservation()
 
 //??Start Endpoints
 // app.get("*", checkUser)

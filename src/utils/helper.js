@@ -123,65 +123,46 @@ const GenerateUsernameAndPassword = async (guestName) => {
   }
 }
 
-const countTax = (model) => {
+const countTaxAndTotalInvoice = (bills) => {
+  let total = 0, tax
   try {
-    let ra = model.reduce((total, pay) => total + pay.amount, 0);
-    ra = (ra * 21) / 100
-    return ra
+    bills.forEach(bill => total += bill.amount)
+    tax = (total * 21) / 100 //TODO: NEED TO BE CHANGED
+    return { tax, total }
   } catch (err) {
     ThrowError(err)
   }
 }
 
 const generateBalanceAndTotal = async (option = { balance: false, total: false }, reservationId, id) => {
+  let totalInvoice = 0, totalPaid = 0;
   try {
-    let balance = 0, total = 0;
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({
       where: { id, reservationId },
       select: {
+       Invoice: {
+        select: {
+          rate: true,
+          paid: true,
+        }
+       },
         reservation: {
           select: {
             arrivalDate: true, departureDate: true,
             reserver: { select: { guestId: true, } },
-            ResvPayment: {
-              select: {
-                total: true
-              }
-            }
           }
         }, arrangment: { select: { rate: true } }
       }
     })
 
-    if (option.balance && option.balance != false) {
-      const resvPayments = resvRoom.reservation.ResvPayment
-      resvPayments.forEach(payment => balance = balance + payment.total)
+    for(let inv of resvRoom.Invoice){
+      totalInvoice += inv.rate
+      if (inv.paid != false) totalPaid += inv.rate
     }
 
-    if (option.total && option.total != false) {
-      const { arrivalDate, departureDate } = resvRoom.reservation
-      const dates = generateDateBetweenStartAndEnd(arrivalDate.toISOString().split("T")[0], departureDate.toISOString().split('T')[0])
-      for (date of dates) {
-        const orders = await prisma.orderDetail.findMany({
-          where: {
-            order: { guestId: resvRoom.reservation.reserver.guestId },
-            created_at: {
-              gte: `${date}T00:00:00.000Z`,
-              lte: `${date}T23:59:59.999Z`
-            }
-          },
-          select: {
-            qty: true,
-            service: { select: { price: true } }
-          }
-        })
-        orders.forEach(order => total = total + (order.qty * order.service.price))
+    const [balance, total] = [ totalPaid - totalInvoice, totalInvoice -  totalPaid ]
 
-        total = total + resvRoom.arrangment.rate
-      }
-    }
-
-    return { balance, total }
+    return { balance, total, totalInvoice, totalPaid }
 
   } catch (err) {
     ThrowError(err)
@@ -670,8 +651,8 @@ function getTimeDifferenceInMinutes(isoTimestamp1, isoTimestamp2) {
 function getMaidPerfomance(minuteFinish, standardMinute) {
   let percentagesIndex = 0, percentages = [1.4, 1.2, 1, 0.9, 0.8];
   const standardMinuteEntry = percentages.map((factor) => standardMinute * factor);
-  while(minuteFinish > standardMinuteEntry[percentagesIndex]) percentagesIndex++
-  return percentagesIndex + 1
+  while (minuteFinish < standardMinuteEntry[percentagesIndex]) percentagesIndex++
+  return percentagesIndex
 }
 
 
@@ -718,6 +699,6 @@ module.exports = {
   formatToSchedule,
   successResponse,
   generateToken,
-  countTax,
+  countTaxAndTotalInvoice,
   paginate,
 };

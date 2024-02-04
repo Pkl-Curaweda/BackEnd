@@ -31,7 +31,7 @@ const postNewPayment = async (req, res) => {
   const body = req.body;
   try {
     const paymentSummary = await createResvPayment(reservationId, resvRoomId, body)
-    return success(res, 'Payment Created Successfully', paymentSummary)
+    return success(res, `Payment Created Successfully, with spare changes of ${paymentSummary.changes}`, paymentSummary.resvPay)
   } catch (err) {
     return error(res, err.message)
   }
@@ -41,7 +41,7 @@ const postNewInvoice = async (req, res) => {
   const { reservationId = 1, resvRoomId = 1, identifier } = req.params;
   const body = req.body;
   try {
-    const createdInvoice = identifier != "order" ? await addNewInvoiceFromArticle(body, parseInt(reservationId), parseInt(resvRoomId)) : await addNewInvoiceFromOrder(body, reservationId, resvRoomId)
+    const createdInvoice = identifier != "order" ? await addNewInvoiceFromArticle(body, parseInt(reservationId), parseInt(resvRoomId)) : await addNewInvoiceFromOrder(body.items, +reservationId, +resvRoomId)
     return success(res, `New Invoice Created`, createdInvoice)
   } catch (err) {
     return error(res, err.message)
