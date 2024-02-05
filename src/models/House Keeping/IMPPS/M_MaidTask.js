@@ -197,8 +197,9 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
 const taskAction = async (action, maidId, taskId, payload = { comment: '', performance: '' }) => {
     let updateTask, updateMaid, message = ''
     try {
+        const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, include: { roomMaid: true } })
+        if(maidId === undefined) maidId = task.roomMaid.id
         const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: maidId }, include: { user: true } })
-        const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId } })
         if(task.roomMaidId != maidId) throw Error(`Task not assigned to ${roomMaid.aliases}`)
         const currentDate = new Date().toISOString()
         if (task.finished != false) throw Error('Task already finished')
@@ -220,6 +221,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 messageSend = `Room Maid ${roomMaid.aliases} | Finishing Task`
                 break;
             case "re-clean":
+                if(roomMaid.urgentTask === task.id) throw Error(`You already give this task to ${roomMaid.aliases}`)
                 if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Slown down please, you already give task to ${roomMaid.user.name}`)
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment, rowColor: "F28585", endTime: null, checkedTime: currentDate }, select: { roomId: true } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { urgentTask: taskId }, select: { user: { select: { name: true } } } })

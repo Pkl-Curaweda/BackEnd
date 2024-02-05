@@ -47,4 +47,14 @@ const getSupervisorData = async () => {
 }
 
 
-module.exports = { getSupervisorData }
+const isSupervisor = async (supervisorId) => {
+    try{
+        return await prisma.user.findFirstOrThrow({ where:{ role: {  name: "Supervisor"}, id: +supervisorId } })
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+module.exports = { getSupervisorData, isSupervisor }

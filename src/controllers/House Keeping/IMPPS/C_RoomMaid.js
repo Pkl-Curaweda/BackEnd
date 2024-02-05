@@ -1,4 +1,5 @@
 const { assignCleaningTask, assignTask, genearateListOfTask, taskAction, updateTask } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
+const { isSupervisor } = require("../../../models/House Keeping/IMPPS/M_Supervisor")
 const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid, createRoomMaid, isRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
 const { ThrowError } = require("../../../utils/helper")
 const { error, success } = require("../../../utils/response")
@@ -24,10 +25,11 @@ const getAll = async (req, res) => {
 }
 
 const post = async (req, res) => {
-    let { action, taskId } = req.params, data
-    const { id } = await isRoomMaid(req.user.id)
+    let { action, taskId } = req.params, data, id
+    if (action != "re-clean" && action != "ok") {
+        await isRoomMaid(req.user.id).then(maid => { id = maid.id })
+    } else await isSupervisor(req.user.id)
     let { comment, performance } = req.body
-    console.log(comment, performance)
     try {
         switch (action) {
             case "start-task":
@@ -37,10 +39,10 @@ const post = async (req, res) => {
                 data = await taskAction("end", +id, +taskId)
                 break;
             case "re-clean":
-                data = await taskAction('re-clean', +id, +taskId, { comment })
+                data = await taskAction('re-clean', undefined, +taskId, { comment })
                 break;
             case "ok":
-                data = await taskAction('ok', +id, +taskId, { comment, performance })
+                data = await taskAction('ok', undefined, +taskId, { comment, performance })
                 break;
             default:
                 throw Error('No Action Matched')

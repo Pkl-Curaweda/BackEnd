@@ -87,6 +87,7 @@ model Guest {
   Tokens   GuestToken[]
   orders   Order[]
   Reserver Reserver[]
+  User     User[]
 }
 
 // This table is for admin & mitra (hotel)
@@ -104,6 +105,10 @@ model User {
   password    String
   role        Role         @relation(fields: [roleId], references: [id])
   roleId      Int
+  guest       Guest?       @relation(fields: [guestId], references: [id])
+  guestId     Int?
+  room        Room?        @relation(fields: [roomId], references: [id])
+  roomId      Int?
   service     Service[]
   productReqs ProductReq[]
   cleanRooms  CleanRoom[]
@@ -257,15 +262,15 @@ model ArticleType {
 }
 
 model ResvPayment {
-  id            Int          @id @default(autoincrement())
-  resvRoom      ResvRoom     @relation(fields: [resvRoomId], references: [id])
+  id            Int      @id @default(autoincrement())
+  resvRoom      ResvRoom @relation(fields: [resvRoomId], references: [id])
   resvRoomId    Int
   paymentMethod String
   orders        Json
   total         Float
-  tax           Float        @default(0)
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  tax           Float    @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
 }
 
 model Notification {
@@ -318,6 +323,7 @@ model Room {
   MaidTask        MaidTask[]
   OooOmRoom       OooOmRoom[]
   Invoice         Invoice[]
+  User            User[]
 }
 
 model RoomChange {
