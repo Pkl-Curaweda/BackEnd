@@ -21,6 +21,9 @@ const roles = [
   },
   {
     name: "Supervisor"
+  },
+  {
+    name: "Room"
   }
 ];
 

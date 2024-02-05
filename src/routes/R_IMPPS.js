@@ -7,11 +7,12 @@ const R_IMPPS = Router()
 
 //ESSENTIAL ROOM MAID
 R_IMPPS.get('/roomboy/get-all', roomMaid.getAll)
-R_IMPPS.post('/roomboy',roomMaid.postCreateRoomMaid)
+R_IMPPS.post('/roomboy', roomMaid.postCreateRoomMaid)
 R_IMPPS.get('/roomboy/reset', roomMaid.resetSchedule)
 
 //ROOM MAID
-R_IMPPS.get('/roomboy',auth(['Room Boy'])  , roomMaid.get)
+R_IMPPS.get('/roomboy', auth(['Room Boy']), roomMaid.get)
+R_IMPPS.put('/roomboy/:taskId', auth(['Room Boy']), roomMaid.submitComment)
 // R_IMPPS.get('/roomboy/:id', roomMaid.get)
 R_IMPPS.post('/roomboy/:taskId/:action/:roomMaidId?', auth(["Room Boy", "Supervisor"]), roomMaid.post)
 

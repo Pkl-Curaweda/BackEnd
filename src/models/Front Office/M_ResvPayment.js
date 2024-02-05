@@ -70,8 +70,9 @@ const getBillingSummary = async (id, reservationId) => {
 const paidInvoice = async (invoiceId) => {
     try {
         const alreadyPaid = await prisma.invoice.findFirstOrThrow({ where: { id: invoiceId }, select: { paid: true } })
-        if(alreadyPaid.paid != true) { return await prisma.invoice.update({ where: { id: invoiceId }, data: { paid: true } })
-        }else return false
+        if (alreadyPaid.paid != true) {
+            return await prisma.invoice.update({ where: { id: invoiceId }, data: { paid: true } })
+        } else return false
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -92,7 +93,7 @@ const createResvPayment = async (reservationId, resvRoomId, data) => {
             //?if not then finish the for loop and only pay invoice that can be paid
             if (paidAmount < 0) break
             const invoice = await paidInvoice(dt.uniqueId)
-            if(invoice != false) paidArticle.push(invoice)
+            if (invoice != false) paidArticle.push(invoice)
         }
         if (paidArticle.length < 1) throw Error('You didnt pay for anything sorry')
         const resvPay = await prisma.resvPayment.create({

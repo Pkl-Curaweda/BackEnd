@@ -3,6 +3,7 @@ const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
 const { countTaskPerformance, countActual } = require("../M_RoomMaid")
+const { warnEnvConflicts } = require("@prisma/client/runtime/library")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
@@ -246,4 +247,15 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction }
+
+const updateTask = async (taskId, data) => {
+    try{
+        const exist = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId } })
+        return await prisma.maidTask.update({ where: { id: exist.id }, data })
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask }

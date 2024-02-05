@@ -1,10 +1,39 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice, splitDateTime } = require("../../utils/helper");
 
+const sortInvoice = (ident = "paid", ascDesc = "asc") => {
+  try {
+    console.log(ident)
+    switch (ident) {
+      case "art":
+        orderBy = { articleTypeId: ascDesc }
+        break;
+      case "date":
+        orderBy = { created_at: ascDesc }
+        break;
+      case "room":
+        orderBy =  { roomId: ascDesc }
+        break;
+      case "desc" || "amount":
+        return false
+      case "rev":
+        return false
+      default:
+        //? QTY,RATE 
+        orderBy = { [ident]: ascDesc }
+        break;
+    }
+    console.log(orderBy)
+    return { orderBy }
+  } catch (err) {
+    ThrowError(err.message)
+  }
+}
+
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
-    let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates;
+    let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc;
     const [resvRoom, artList] = await prisma.$transaction([
       prisma.resvRoom.findFirstOrThrow({
         where: { id: resvRoomId, reservationId },
@@ -40,6 +69,11 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       departureDate = currDate.toISOString().split('T')[0]
       dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
     }
+    let orderBy
+    if (sortIdentifier != undefined) {
+      [ident, ascDesc] = sortIdentifier.split('-')
+      orderBy = sortInvoice(ident, ascDesc);
+    }
 
     for (let i = dates.length - 1; i >= 0; i--) {
       const searchedDate = new Date(dates[i]);
@@ -53,10 +87,9 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
             },
           },
           select: { id: true, paid: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
-          orderBy: { paid: 'asc'  }
+          ...(orderBy != false && { ...orderBy } || { orderBy: { paid: 'desc' } })
         })
       ])
-
       for (let i of inv) {
         invoices.push({
           art: i.articleType != null ? i.articleType.id : "In Room",
@@ -72,13 +105,30 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       }
     }
 
+    if (orderBy === false) {
+      if (ident === "rev") ident = "amount"
+      console.log(ident)
+      switch (ascDesc) {
+        case "desc":
+          invoices = invoices.sort((a, b) => {
+            b[ident]?.localeCompare(a[ident])
+
+          });
+          break;
+        default:
+          invoices= invoices.sort((a, b) =>
+            a[ident]?.localeCompare(b[ident])
+          );
+          break;
+      }
+    }
+
     const total = invoices.length
     const lastPage = Math.ceil(invoices.length / perPage);
 
     startIndex = Math.max(0, (page - 1) * perPage);
     endIndex = Math.min(invoices.length - 1, startIndex + perPage - 1);
     if (search != undefined) invoices = searchInvoice(invoices, search)
-    if (sortIdentifier != undefined) invoices = sortInvoiceData(invoices, sortIdentifier);
     invoices = invoices.slice(startIndex, endIndex + 1);
 
     return {
@@ -137,13 +187,15 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
           qty: parseInt(orderDet.qty, 10),
         }, include: { service: true }
       })
-      const invoice = await prisma.invoice.create({ data: {
-        resvRoomId: resvRoom.id,
-        orderDetailId: orderDetail.id,
-        qty: orderDetail.qty,
-        roomId: resvRoom.roomId,
-        rate: orderDetail.price,
-      } })
+      const invoice = await prisma.invoice.create({
+        data: {
+          resvRoomId: resvRoom.id,
+          orderDetailId: orderDetail.id,
+          qty: orderDetail.qty,
+          roomId: resvRoom.roomId,
+          rate: orderDetail.price,
+        }
+      })
       invoiceList.push({
         art: "In Room",
         desc: orderDetail.service.name,
@@ -242,37 +294,6 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, invoiceId) => {
   } finally {
     await PrismaDisconnect();
   }
-};
-
-const sortInvoiceData = (invoice, sortIdentifier) => {
-  let propertiesKey;
-  propertiesKey = sortIdentifier.split("-")[0];
-  if (propertiesKey === "rev") propertiesKey = "amount";
-  const sortBy = sortIdentifier.split("-")[1];
-  if (propertiesKey === "desc" || propertiesKey === "date") {
-    switch (sortBy) {
-      case "desc":
-        invoice = invoice.sort((a, b) =>
-          b[propertiesKey]?.localeCompare(a[propertiesKey])
-        );
-        break;
-      default:
-        invoice = invoice.sort((a, b) =>
-          a[propertiesKey]?.localeCompare(b[propertiesKey])
-        );
-        break;
-    }
-  } else {
-    switch (sortBy) {
-      case "desc":
-        invoice = invoice.sort((a, b) => b[propertiesKey] - a[propertiesKey]);
-        break;
-      default:
-        invoice = invoice.sort((a, b) => a[propertiesKey] - b[propertiesKey]);
-        break;
-    }
-  }
-  return invoice;
 };
 
 const putInvoiceData = async (reservationId, resvRoomId, args, data) => {
