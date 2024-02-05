@@ -4,7 +4,7 @@ const { error, success } = require("../../../utils/response")
 
 const get = async (req, res) =>  {
     try{
-        const data = await getSupervisorData()
+        const data = await getSupervisorData(req.query)
         return success(res, 'Get Success', data)
     }catch(err){
         return error(res, err.message)

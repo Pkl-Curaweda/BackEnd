@@ -8,8 +8,8 @@ const get = async (req, res) => {
     const user = req.user
     try {
         const roomMaid = await isRoomMaid(user.id)
-        const { performance, listTask } = await getRoomMaidTaskById(roomMaid.id, req.query)
-        return success(res, `Get Success`, { performance, listTask })
+        const { maidName, performance, listTask } = await getRoomMaidTaskById(roomMaid.id, req.query)
+        return success(res, `Get Success`, { maidName, performance, listTask })
     } catch (err) {
         return error(res, err.message)
     }
@@ -29,7 +29,7 @@ const post = async (req, res) => {
     if (action != "re-clean" && action != "ok") {
         await isRoomMaid(req.user.id).then(maid => { id = maid.id })
     } else await isSupervisor(req.user.id)
-    let { comment, performance } = req.body
+    let { comment = '', performance = 5 } = req.body
     try {
         switch (action) {
             case "start-task":

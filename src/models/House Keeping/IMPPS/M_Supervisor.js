@@ -1,11 +1,12 @@
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect } = require("../../../utils/helper")
 const { error } = require("../../../utils/response")
-
 const task = require('./M_MaidTask')
-const getSupervisorData = async () => {
-    try{
-        const tasks = await task.getAllToday({ finished: false, NOT: [ { rowColor:"FFFFFF" } ] }, { 
+
+const getSupervisorData = async (q) => {
+    const { history = false } = q
+    try {
+        const tasks = await task.getAllToday({ ...(history === false && { finished: false }), NOT: [{ rowColor: "FFFFFF" }] }, {
             room: {
                 select: { id: true, roomType: true }
             },
@@ -17,12 +18,13 @@ const getSupervisorData = async () => {
             schedule: true,
             request: true,
             rowColor: true,
+            actual: true,
             comment: true,
             status: true,
             type: { select: { standardTime: true } }
-         }, { rowColor: 'desc' }, 10, 1)
-         
-         const listTask = tasks.map((task) => {
+        }, { rowColor: 'desc' }, 10, 1)
+
+        const listTask = tasks.map((task) => {
             return {
                 taskId: task.id,
                 roomMaidId: task.roomMaidId,
@@ -30,29 +32,30 @@ const getSupervisorData = async () => {
                 roomType: task.room.roomType,
                 schedule: task.schedule,
                 rowColor: task.rowColor,
-                actual: task.type.standardTime,
+                standard: task.type.standardTime,
+                actual: task.actual,
                 remarks: task.request ? task.request : "-",
                 pic: task.roomMaid.aliases,
                 status: task.status ? task.status : "-",
                 comments: task.comment ? task.comment : "-"
             };
-         })
-         const listStatus = await prisma.roomStatus.findMany({ select: { longDescription: true, shortDescription: true } })
-         return {listTask, listStatus}
-    }catch(err){
+        })
+        const listStatus = await prisma.roomStatus.findMany({ select: { longDescription: true, shortDescription: true } })
+        return { listTask, listStatus }
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
 
 
 const isSupervisor = async (supervisorId) => {
-    try{
-        return await prisma.user.findFirstOrThrow({ where:{ role: {  name: "Supervisor"}, id: +supervisorId } })
-    }catch(err){
+    try {
+        return await prisma.user.findFirstOrThrow({ where: { role: { name: "Supervisor" }, id: +supervisorId } })
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }

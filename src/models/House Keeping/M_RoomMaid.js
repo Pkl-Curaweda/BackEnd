@@ -54,17 +54,17 @@ const assignRoomMaid = async (resvRoomId) => {
 
 
 const getRoomMaidTaskById = async (id, q) => {
-    const { page = 1, perPage = 5 } = q
+    const { page = 1, perPage = 5, history = false } = q
     try {
         const currDate = new Date().toISOString().split('T')[0]
-        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true } })
+        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true, user: { select: { name: true } } } })
         const maidTask = await prisma.maidTask.findMany({
             where: {
                 roomMaidId: id, AND: [
                     { created_at: { gte: `${currDate}T00:00:00.000Z` } },
                     { created_at: { lte: `${currDate}T23:59:59.999Z` } }
                 ],
-                finished: false
+                ...(history === false && { finished: false })
             }, select: {
                 room: {
                     select: { id: true, roomType: true }
@@ -96,7 +96,7 @@ const getRoomMaidTaskById = async (id, q) => {
                 comments: mTask.comment ? mTask.comment : "-"
             };
         })
-        return { performance: maidPerfomance, listTask }
+        return { maidName: roomMaid.user.name ,performance: maidPerfomance, listTask }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -209,6 +209,7 @@ const countActual = async (startTime, endTime) => {
     let actual = 0, UoM = "Minute"
     try {
         actual = getTimeDifferenceInMinutes(startTime, endTime)
+        console.log(actual)
         if (actual > 60) {
             UoM = "Hour"
             actual = parseInt(actual / 60)
@@ -252,10 +253,7 @@ const resetRoomMaid = async () => {
         for (let rm of roomMaids) {
             await prisma.roomMaid.update({
                 where: { id: rm.id },
-                data: {
-                    workload: 0,
-                    currentSchedule: rm.shift.startTime
-                }
+                data: { workload: 0 }
             })
         }
         return "Success"

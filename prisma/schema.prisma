@@ -65,6 +65,7 @@ enum maidTaskColor {
   F28585 //#F28585
   FFFC9B //#FFFC9B
   FFFFFF //#FFFFFF
+  BBE2EC //#BBE2EC
   B7E5B4 //#B7E5B4
 }
 
