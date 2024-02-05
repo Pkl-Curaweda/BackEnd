@@ -4,6 +4,8 @@ const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
 
 const users = [
+
+  //! ADMIN
   {
     name: "Admin",
     gender: "MALE",
@@ -18,6 +20,8 @@ const users = [
     created_at: new Date(),
     updated_at: new Date(),
   },
+
+  //! ROOM BOY
   {
     name: faker.person.firstName(),
     gender: "MALE",
@@ -60,6 +64,8 @@ const users = [
     created_at: new Date(),
     updated_at: new Date(),
   },
+
+  //! SUPERVISOR
   {
     name: faker.person.firstName(),
     gender: "MALE",
@@ -73,107 +79,7 @@ const users = [
     roleId: 5,
     created_at: new Date(),
     updated_at: new Date(),
-  },
-  
-  //? ROOM 
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room102',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 102",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
-  {
-    name: faker.person.firstName(),
-    gender: "MALE",
-    phone: "",
-    picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-    email: 'room101',
-    nik: 0,
-    birthday: new Date(faker.date.birthdate()),
-    username: "Kamar 101",
-    password: "password",
-    roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
-  },
+  }
 ];
 
 async function userSeed() {

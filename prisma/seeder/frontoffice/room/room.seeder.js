@@ -1,5 +1,8 @@
 const { prisma } = require("../../config");
-const { faker } = require('@faker-js/faker');
+const bcrypt = require("bcrypt");
+const { faker } = require("@faker-js/faker");
+const { randomInt } = require("crypto");
+
 
 const rooms = [
   {
@@ -20,7 +23,7 @@ const rooms = [
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
-    description: faker.person.bio(),    
+    description: faker.person.bio(),
     bedSetup: "KING",
     rate: "DLX-RO"
   },
@@ -31,7 +34,7 @@ const rooms = [
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
-    description: faker.person.bio(),    
+    description: faker.person.bio(),
     bedSetup: "KING",
     rate: "DLX-RO"
   },
@@ -115,11 +118,26 @@ const rooms = [
 ];
 
 async function roomSeed() {
-  for(let room of rooms){
+  for (let room of rooms) {
     await prisma.room.upsert({
       where: { id: room.id },
       update: { ...room },
-      create: { ...room }
+      create: {
+        ...room, User: {
+          create: {
+            name: faker.person.firstName(),
+            gender: "MALE",
+            phone: "",
+            picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
+            email: `room${room.id}`,
+            nik: "",
+            birthday: new Date(faker.date.birthdate()),
+            username: `Kamar ${room.id}`,
+            password: "password",
+            roleId: 6,
+          }
+        }
+      }
     })
   }
 }
