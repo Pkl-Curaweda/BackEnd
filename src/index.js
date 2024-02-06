@@ -35,7 +35,7 @@ app.use(bodyParser.urlencoded({
 }),
 );
 
-scheduleInvoiceReservation()
+// scheduleInvoiceReservation()
 
 //??Start Endpoints
 // app.get("*", checkUser)

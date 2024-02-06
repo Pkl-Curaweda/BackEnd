@@ -11,7 +11,7 @@ const users = [
     gender: "MALE",
     phone: "08123456789",
     picture: "https://i.pravatar.cc/300",
-    email: faker.internet.email(),
+    email: "admin1@gmail.com",
     nik: "1234567890123456",
     birthday: new Date("1990-01-01"),
     username: faker.internet.userName(),

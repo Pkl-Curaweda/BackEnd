@@ -44,7 +44,8 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 prisma.shift.findFirst({ where: { id: 1 }, select: { startTime: true } }),
                 prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })
             ])
-            if(latestTask === null) await resetRoomMaid()
+            //if latestTask wasn't find while findFirst, then it mean this was the first task of a new day
+            if (latestTask === null) await resetRoomMaid() //function reset all workload of maid
             if (currentSchedule === undefined) {
                 if (action === "DLYCLEAN") {
                     currentSchedule = latestTask != null ? latestTask.schedule.split('-')[1] : shift.startTime
@@ -60,7 +61,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setMinutes(minutes);
             }
 
-            const workingShift = await getWorkingShifts(currentDate)
+            const workingShift = await getWorkingShifts(currentDate) //function return array of working shift from the given time
             do {
                 while (lowestRoomMaidId < 1) {
                     if (workingShift.length > 0) {
@@ -78,7 +79,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                     } else throw Error('No one is working on this shift')
                 }
                 maidWorkload = lowestWorkload + workload
-            } while (workload > 480)
+            } while (maidWorkload < 480)
             const previousSchedule = currentSchedule
             currentSchedule = formatToSchedule(currentSchedule, workload)
             const [createdTask, assigned] = await prisma.$transaction([
@@ -145,15 +146,15 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
     let updateTask, updateMaid, message = ''
     try {
         const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, include: { roomMaid: true } })
-        if(maidId === undefined) maidId = task.roomMaid.id
+        if (maidId === undefined) maidId = task.roomMaid.id
         const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: maidId }, include: { user: true } })
-        if(task.roomMaidId != maidId) throw Error(`Task not assigned to ${roomMaid.aliases}`)
+        if (task.roomMaidId != maidId) throw Error(`Task not assigned to ${roomMaid.aliases}`)
         const currentDate = new Date().toISOString()
         if (task.finished != false) throw Error('Task already finished')
         switch (action) {
             case "start":
-                if(task.endTime != null) throw Error('This task needed to be checked first')
-                if(roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
+                if (task.endTime != null) throw Error('This task needed to be checked first')
+                if (roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
                 if (roomMaid.currentTask != null) throw Error("You need to finish your current task first")
                 if (roomMaid.urgentTask != null) throw Error("You need to finish your urgent task first")
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", rowColor: "FFFC9B", mainStatus: "ON PROGRESS" } })
@@ -168,7 +169,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 messageSend = `Room Maid ${roomMaid.aliases} | Finishing Task`
                 break;
             case "re-clean":
-                if(roomMaid.urgentTask === task.id) throw Error(`You already give this task to ${roomMaid.aliases}`)
+                if (roomMaid.urgentTask === task.id) throw Error(`You already give this task to ${roomMaid.aliases}`)
                 if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Slown down please, you already give task to ${roomMaid.user.name}`)
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment, rowColor: "F28585", endTime: null, checkedTime: currentDate }, select: { roomId: true } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { urgentTask: taskId }, select: { user: { select: { name: true } } } })
@@ -176,11 +177,11 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 message = `Supervisor requesting Re - Clean to Room Maid ${roomMaid.aliases}`
                 break;
             case "ok":
-                if(task.endTime === null) throw Error('Maid still working on this, please wait')
+                if (task.endTime === null) throw Error('Maid still working on this, please wait')
                 const maidPerfomance = await countTaskPerformance(task.id, payload.performance)
                 const rawPerfomance = maidPerfomance + roomMaid.rawPerfomance
                 const { actual, UoM } = await countActual(task.startTime, task.endTime)
-                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance, comment: payload.comment, actual, UoM, checkedTime: currentDate } })
+                updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Checked (OK)", mainStatus: "DONE", finished: true, performance: maidPerfomance, comment: payload.comment, actual, UoM, rowColor: "BBE2EC", checkedTime: currentDate } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { rawPerfomance, finishedTask: roomMaid.finishedTask + 1 } })
                 await createNotification({ content: `Task / Request ${task.roomId} finished` })
                 message = `Task finished`
@@ -197,12 +198,12 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
 }
 
 const updateTask = async (taskId, data) => {
-    try{
+    try {
         const exist = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId } })
         return await prisma.maidTask.update({ where: { id: exist.id }, data })
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }

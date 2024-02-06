@@ -62,11 +62,11 @@ enum xTypeRoom {
 }
 
 enum maidTaskColor {
-  F28585 //#F28585
-  FFFC9B //#FFFC9B
-  FFFFFF //#FFFFFF
-  BBE2EC //#BBE2EC
-  B7E5B4 //#B7E5B4
+  F28585 //#F28585 //Urgent task
+  FFFC9B //#FFFC9B //Current working task
+  FFFFFF //#FFFFFF //Existed task
+  BBE2EC //#BBE2EC //OK / Finished task
+  B7E5B4 //#B7E5B4 Need to be checked by supervisor
 }
 
 // Front Office Area ==========================================================

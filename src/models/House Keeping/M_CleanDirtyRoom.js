@@ -88,7 +88,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
             default:
                 break;
         }
-        return { room, main }
+        return { arr, dep ,room, main }
     } catch (err) {
         ThrowError(err)
     } finally {
