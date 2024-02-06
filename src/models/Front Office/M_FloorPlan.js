@@ -15,7 +15,7 @@ const getAllStatus = async () => {
               textColor: true
             }
           }
-        }
+        }, orderBy: { id: 'asc' }
       }),
       prisma.resvRoom.findMany({
         where: {
