@@ -1,3 +1,5 @@
+const { base } = require("@faker-js/faker")
+const math = require('mathjs');
 const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 const { createOooRoom } = require("../House Keeping/M_OOORoom")
@@ -36,4 +38,17 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
     } finally { await PrismaDisconnect() }
 }
 
-module.exports = { isVoucherValid, setVoucher }
+const countAfterVoucher = (baseline, voucherArtihmathic) => {
+    try{
+        console.log('NIHHSAHDI ADJADBASBDJBASD')
+        const result = math.evaluate(voucherArtihmathic);
+        console.log(baseline, result)
+        console.log(result)
+        // console.log(baseline result)
+        return baseline * result;
+    }catch(err){
+        ThrowError(err)
+    }
+}
+
+module.exports = { isVoucherValid, setVoucher,countAfterVoucher }

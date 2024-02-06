@@ -93,6 +93,7 @@ function countNight(arrivalDate, departureDate) {
 
 }
 
+
 const GenerateUsernameAndPassword = async (guestName) => {
   try {
     let username, usernameExist;

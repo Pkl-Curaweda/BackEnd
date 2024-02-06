@@ -62,6 +62,7 @@ const upload = multer({
         cb(null, true)
     }
 })
+
 //End Multer
 
 router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
