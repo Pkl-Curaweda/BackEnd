@@ -27,7 +27,8 @@ const ChangeRoom = async (id, reservationId, body) => {
         where: { id },
         data: { roomId: body.roomId, arrangmentCodeId: body.arrangmentCodeId },
       }),
-      prisma.room.update({
+      
+      ({
         where: { id: body.roomId },
         data: {
           occupied_status: true,
@@ -101,6 +102,7 @@ const getAllRoomChange = async (q) => {
     }
     const lastPage = Math.ceil(total / perPage);
     return {
+      from, to,
       roomChangeData, meta: {
         total,
         currPage: page,

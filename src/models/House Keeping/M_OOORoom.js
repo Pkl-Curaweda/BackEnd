@@ -115,6 +115,7 @@ async function all(option) {
     }
     const lastPage = Math.ceil(total / perPage)
     return {
+      arr, dep,
       ident: type != "OOO" ? "OM" : "O-O-O",
       OOORoom, meta: {
         total,

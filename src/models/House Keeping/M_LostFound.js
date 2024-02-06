@@ -145,6 +145,7 @@ async function all(option) {
     }
     const lastPage = Math.ceil(total / perPage);
     return {
+      date,
       graph, lostFounds: list, meta: {
         total,
         currPage: page,

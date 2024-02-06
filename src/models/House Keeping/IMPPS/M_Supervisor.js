@@ -22,7 +22,7 @@ const getSupervisorData = async (q) => {
             comment: true,
             status: true,
             type: { select: { standardTime: true } }
-        }, { rowColor: 'desc' }, 10, 1)
+        }, { rowColor: 'desc' }, 30, 1)
 
         const listTask = tasks.map((task) => {
             return {

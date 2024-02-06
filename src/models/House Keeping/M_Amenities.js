@@ -54,6 +54,7 @@ const getAllAmenitiesData = async (art, q) => {
 
         const lastPage = Math.ceil(total / perPage);
         return {
+            from, to,
             extra: usedLog, meta: {
                 total,
                 currPage: +page,
