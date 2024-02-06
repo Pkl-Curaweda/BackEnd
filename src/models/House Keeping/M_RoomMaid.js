@@ -54,7 +54,7 @@ const assignRoomMaid = async (resvRoomId) => {
 
 
 const getRoomMaidTaskById = async (id, q) => {
-    const { page = 1, perPage = 5, history = false } = q
+    const { page = 1, perPage = 5, history = "false" } = q
     try {
         const currDate = new Date().toISOString().split('T')[0]
         const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true, user: { select: { name: true } } } })
@@ -64,7 +64,7 @@ const getRoomMaidTaskById = async (id, q) => {
                     { created_at: { gte: `${currDate}T00:00:00.000Z` } },
                     { created_at: { lte: `${currDate}T23:59:59.999Z` } }
                 ],
-                ...(history === false && { finished: false })
+                ...(history === "false" && { finished: false })
             }, select: {
                 room: {
                     select: { id: true, roomType: true }

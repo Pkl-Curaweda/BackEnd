@@ -4,9 +4,9 @@ const { error } = require("../../../utils/response")
 const task = require('./M_MaidTask')
 
 const getSupervisorData = async (q) => {
-    const { history = false } = q
+    const { history = "false" } = q
     try {
-        const tasks = await task.getAllToday({ ...(history === false && { finished: false }), NOT: [{ rowColor: "FFFFFF" }] }, {
+        const tasks = await task.getAllToday({ ...(history === "false" && { finished: false }), NOT: [{ rowColor: "FFFFFF" }] }, {
             room: {
                 select: { id: true, roomType: true }
             },
