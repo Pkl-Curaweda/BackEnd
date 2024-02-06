@@ -87,7 +87,7 @@ async function userSeed() {
     const salt = await bcrypt.genSalt();
     user.password = await bcrypt.hash(user.password, salt);
     await prisma.user.upsert({
-      where: { username: user.username },
+      where: { email: user.email },
       create: user,
       update: user,
     });

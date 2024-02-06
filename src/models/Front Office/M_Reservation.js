@@ -7,6 +7,7 @@ const { getAllAvailableRoom, changeRoomStatusByDescription } = require("../House
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
+const { isVoucherValid, setVoucher } = require("./M_Voucher");
 
 const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -290,13 +291,14 @@ const getDetailById = async (id, reservationId) => {
 };
 
 //? DATA MODIFY / ADD MODIFY
-const CreateNewReservation = async (data) => {
+const CreateNewReservation = async (data, user) => {
   try {
     let arrivalDate, departureDate, manyNight;
     arrivalDate = new Date(data.arrivalDate).toISOString();
     departureDate = new Date(data.departureDate).toISOString();
     manyNight = countNight(arrivalDate, departureDate);
     await isRoomAvailable({ arr: arrivalDate, dep: departureDate }, data.room.roomId)
+
     const guestName = data.nameContact.split('/')[0];
     const guestContact = data.nameContact.split('/')[1];
     const createdGuest = await CreateNewGuest(guestName, guestContact);
@@ -322,7 +324,7 @@ const CreateNewReservation = async (data) => {
         reservationRemarks: data.reservationRemarks
       }
     })
-    const createdResvRoom = await createNewResvRoom(createdReservation.id, data.room);
+    const createdResvRoom = await createNewResvRoom(createdReservation.id, data.room, user);
     return { createdGuest, createdReserver, createdReservation, createdResvRoom }
   } catch (err) {
     ThrowError(err);
@@ -387,9 +389,9 @@ const checkCurrentStatus = async (id) => {
 }
 
 //? EDIT DATA
-const editReservation = async (reservationId, resvRoomId, data) => {
+const editReservation = async (reservationId, resvRoomId, data, user) => {
   try {
-    let { nameContact, arrangmentCode, resourceName, manyAdult, manyChild, manyBaby, arrivalDate, departureDate, reservationRemarks, resvStatusId } = data, name, contact, manyNight;
+    let { nameContact, arrangmentCode, resourceName, manyAdult, manyChild, manyBaby, arrivalDate, departureDate, reservationRemarks, resvStatusId, voucher } = data, name, contact, manyNight;
     name = nameContact.split('/')[0];
     contact = nameContact.split('/')[1];
     manyNight = countNight(arrivalDate, departureDate)
@@ -423,10 +425,13 @@ const editReservation = async (reservationId, resvRoomId, data) => {
         reservationRemarks
       }
     });
-    await prisma.resvRoom.update({
+    const resvRoom = await prisma.resvRoom.update({
       where: { id: resvRoomId }, data: { arrangmentCodeId: arrangmentCode }
     })
-    return update;
+    if (voucher != '') await isVoucherValid(voucher).then(async (voucher) => {
+      await setVoucher(voucher.id, resvRoom.id, user.id)
+    })
+    return { update, voucher: `Using voucher: ${voucher}` };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -435,13 +440,13 @@ const editReservation = async (reservationId, resvRoomId, data) => {
 };
 
 const AddWaitingList = async (reservationId, resvRoomId, request) => {
-  try{
+  try {
     const exist = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId, reservationId: +reservationId }, select: { roomId: true } })
     const task = await genearateListOfTask("GUEREQ", exist.roomId, request)
     return task
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }

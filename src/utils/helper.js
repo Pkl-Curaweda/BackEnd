@@ -93,19 +93,6 @@ function countNight(arrivalDate, departureDate) {
 
 }
 
-const generateVoucherNo = async () => {
-  let uniqueVoucherNo, existingResvRoom;
-  do {
-    uniqueVoucherNo = crypto.randomInt(1000)
-    existingResvRoom = await prisma.resvRoom.findFirst({
-      where: {
-        voucherNo: uniqueVoucherNo
-      }
-    });
-  } while (existingResvRoom);
-  return uniqueVoucherNo;
-};
-
 const GenerateUsernameAndPassword = async (guestName) => {
   try {
     let username, usernameExist;
@@ -677,7 +664,6 @@ module.exports = {
   countNight,
   ThrowError,
   paginateFO,
-  generateVoucherNo,
   GenerateUsernameAndPassword,
   generateBalanceAndTotal,
   generateSignature,

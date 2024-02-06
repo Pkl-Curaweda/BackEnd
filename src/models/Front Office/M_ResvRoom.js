@@ -1,6 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateVoucherNo, getWorkingShifts, isRoomAvailable, isArrangementMatch } = require("../../utils/helper");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
+const { isVoucherValid, setVoucher } = require("./M_Voucher");
 
 const getAllRoomIdReservedByReserverId = async (reserverId) => {
   let reservedRoom = [];
@@ -22,12 +23,11 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
   }
 };
 
-const createNewResvRoom = async (id, data) => {
+const createNewResvRoom = async (id, data, user) => {
   try {
     const reservation = await prisma.reservation.findFirst({ where: { id } })
     await isRoomAvailable({ arr: reservation.arrivalDate.toISOString(), dep: reservation.departureDate.toISOString() }, data.roomId)
     await isArrangementMatch(data.roomId, data.arrangmentCode)
-    const voucherNo = await generateVoucherNo()
     const roomMaid = await getWorkingShifts(new Date())
     const resvRoom = await prisma.resvRoom.create({
       data: {
@@ -47,12 +47,12 @@ const createNewResvRoom = async (id, data) => {
             id: data.arrangmentCode
           }
         },
-        voucherNo,
         roomMaids: {
           connect: { id: roomMaid[0].RoomMaid[0].id }
         }
       }
     })
+    await setVoucher(data.voucher, resvRoom.id, user.id)
     return resvRoom;
   } catch (err) {
     ThrowError(err)

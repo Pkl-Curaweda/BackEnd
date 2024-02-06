@@ -12,12 +12,14 @@ const { articleTypeSeed } = require("./frontoffice/Article/articleType.seeder");
 const { ShiftSeed } = require("./housekeeping/shift.seeder");
 const { NotificationSeed } = require("./global/notification.seeder");
 const { ThrowError, PrismaDisconnect } = require("../../src/utils/helper");
+const { VoucherSeed } = require("./frontoffice/reservation/voucher.seeder");
 
 
 async function main() {
   /* user seeed */
   await roleSeed(); // important to seed role first before user
   await userSeed();
+  await VoucherSeed()
   await departmentSeed()
   await ShiftSeed();
   await articleTypeSeed()

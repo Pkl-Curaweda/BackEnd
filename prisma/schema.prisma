@@ -59,6 +59,7 @@ enum xTypeRoom {
   OOO
   OM
   HU
+  COMP
 }
 
 enum maidTaskColor {
@@ -197,13 +198,21 @@ model ResvRoom {
   roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
   roomMaidId       Int
   billComment      String?        @db.Text
-  voucherNo        Int            @unique
+  voucher          Voucher?       @relation(fields: [voucherId], references: [id])
+  voucherId        String?
   deleted          Boolean        @default(false)
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
   Invoice          Invoice[]
   ResvPayment      ResvPayment[]
+}
+
+model Voucher {
+  id         String     @id
+  abilites   String     @db.Text
+  arithmatic String     @db.Text
+  ResvRoom   ResvRoom[]
 }
 
 model Reserver {

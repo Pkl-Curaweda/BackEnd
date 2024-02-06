@@ -149,8 +149,9 @@ async function createOooRoom(xType, oooRoom) {
       }
     })
   } catch (e) {
-    console.log(e);
-    throw new Error
+   ThrowError(e)
+  }finally{
+    await PrismaDisconnect()
   }
 }
 

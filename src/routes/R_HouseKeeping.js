@@ -87,7 +87,7 @@ router.delete('/users/:id', user.remove)
 //End User
 
 //Start Lost Found
-router.get('/lostfound/', getLostFoundValidation, lostFound.findAll)
+router.get('/lostfound/', lostFound.findAll)
 router.post('/lostfound/', auth(['Room Boy']), 
 upload.single('image'), 
 (req, res, next) => {

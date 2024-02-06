@@ -116,7 +116,7 @@ const getPreviousCard = async (req, res) => {
 const postNewReservation = async (req, res) => {
   const body = req.body;
   try {
-    const reservation = await CreateNewReservation(body);
+    const reservation = await CreateNewReservation(body, req.user);
     return success(res, 'New Reservation Created Successfully', reservation);
   } catch (err) {
     return error(res, err.message);
@@ -127,7 +127,7 @@ const postNewReservationRoom = async (req, res) => {
   const { reservationId } = req.params
   const body = req.body;
   try {
-    const resvRoom = await createNewResvRoom(parseInt(reservationId), body)
+    const resvRoom = await createNewResvRoom(parseInt(reservationId), body, req.user)
     return success(res, `New Room  on Reservation ${reservationId}`, resvRoom);
   } catch (err) {
     return error(res, err.message);
@@ -184,7 +184,7 @@ const putNewReservationData = async (req, res) => {
   const { reservationId, resvRoomId } = req.params
   const body = req.body;
   try {
-    const updatedReservation = await editReservation(parseInt(reservationId), parseInt(resvRoomId), body);
+    const updatedReservation = await editReservation(parseInt(reservationId), parseInt(resvRoomId), body, req.user);
     return success(res, `Reservation ${reservationId} Successfully Updated`, updatedReservation)
   } catch (err) {
     return error(res, err.message)

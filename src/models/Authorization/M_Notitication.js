@@ -8,7 +8,7 @@ const get = async () => {
             content: notif.content,
             time: splitDateTime(notif.created_at).date
         }))
-        return notifications
+        return listNotification
     }catch(err){
         ThrowError(err)
     }finally{

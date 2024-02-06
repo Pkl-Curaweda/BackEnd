@@ -8,7 +8,6 @@ const resvRooms = {
 	roomId: 101,
 	reservationId: 1,
 	roomMaidId: 2,
-	voucherNo: 21321,
 	arrangmentCodeId: "DLX-RB",
 	created_at: new Date(),
 	updated_at: new Date(),
@@ -16,8 +15,7 @@ const resvRooms = {
 
 async function ResvRoomSeed(reservationId) {
 	resvRooms.reservationId = reservationId
-	resvRooms.roomId = randomInt(101, 110),
-	resvRooms.voucherNo = randomInt(100)
+	resvRooms.roomId = randomInt(101, 110);
 	const rType = ['DLX', 'DLX', 'DLX', 'DLX', 'FML', 'FML', 'FML', 'STD', 'STD', 'STD']
 	const rbRo = ['RB', 'RO']
 	resvRooms.arrangmentCodeId = `${rType[resvRooms.roomId - 100]}-${rbRo[randomInt(0,  2)]}` 

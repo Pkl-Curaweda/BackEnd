@@ -77,18 +77,15 @@ const sortingLostFound = (s) => {
 async function all(option) {
   let graph = { found: 0, lost: 0 }, orderBy
   try {
-    let { page = 1, perPage = 5, search = '', date, sortOrder = '' } = option
-    if (date === undefined) {
-      date = new Date()
-      date = date.toISOString().split('T')[0]
-    }
+    let { page = 1, perPage = 5, search = '', searchDate, sortOrder = '' } = option
+    if (searchDate === undefined) searchDate = new Date().toISOString().split('T')[0]
     const where = {
       description: {
         contains: search,
       },
       AND: [
-        { created_at: { gte: `${date}T00:00:00.000Z` } },
-        { created_at: { lte: `${date}T23:59:59.999Z` } },
+        { created_at: { gte: `${searchDate}T00:00:00.000Z` } },
+        { created_at: { lte: `${searchDate}T23:59:59.999Z` } },
       ],
       deleted: false,
     }
@@ -134,10 +131,10 @@ async function all(option) {
       list.push({
         date, time,
         roomNo: lf.roomId,
-        pic: lf.pic ? lf.pic.name : '-' ,
+        pic: lf.pic ? lf.pic.name : '-',
         desc: lf.description,
         reportedBy: lf.user ? lf.user.name : '-',
-        phoneNumber: lf.user? lf.user.phone : '-',
+        phoneNumber: lf.user ? lf.user.phone : '-',
         reportedDate: lf.finished_at != null ? splitDateTime(lf.finished_at).date : '-',
         location: lf.location || '-',
         image: lf.image
@@ -145,7 +142,7 @@ async function all(option) {
     }
     const lastPage = Math.ceil(total / perPage);
     return {
-      date,
+      searchDate,
       graph, lostFounds: list, meta: {
         total,
         currPage: page,
@@ -200,15 +197,15 @@ async function create(lostFound, image, sender) {
 }
 
 const finishLostFound = async (lostFoundId, sender) => {
-  try{
+  try {
     const [exist, lostFound] = await prisma.$transaction([
       prisma.lostFound.findFirstOrThrow({ where: { id: +lostFoundId } }),
-      prisma.lostFound.update({ where: { id: +lostFoundId }, data: { finished_at: new Date(),  userId: sender.id, phoneNumber: sender.phone } })
+      prisma.lostFound.update({ where: { id: +lostFoundId }, data: { finished_at: new Date(), userId: sender.id, phoneNumber: sender.phone } })
     ])
     return lostFound
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }

@@ -16,13 +16,13 @@ R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", get
 R_FrontOffice.get("/detail/report/", getReportDetail);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId", getInvoiceDetail);
 R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", putNewInvoiceData)
-R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", postHelperDetail);
-R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", putNewReservationData);
+R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", auth(['Admin']), postHelperDetail);
+R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", auth(['Admin']), putNewReservationData);
 R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", deleteInvoice);
 R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", deleteReservation);
 
 //?ARRIVAL GUEST LIST
-R_FrontOffice.get("/arrival", auth(['Admin']),getArrivalGuestData);
+R_FrontOffice.get("/arrival", auth(['Admin']), getArrivalGuestData);
 R_FrontOffice.put("/arrival", putChangeTreatment);
 
 //?FLOOR PLAN
