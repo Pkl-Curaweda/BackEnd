@@ -100,7 +100,7 @@ const displayByIdentifier = (disOpt) => {
 
 const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage, history) => {
   try {
-    let orderBy, name, whereQuery, arrivalDate, departureDate;
+    let orderBy, name, whereQuery, arrivalDate, departureDate, whereDate;
     name = nameQuery || "";
     if (displayOption != "") {
       const displayOptionAndQuery = displayByIdentifier(displayOption);
@@ -108,23 +108,19 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       whereQuery = displayOptionAndQuery.whereQuery;
       console.log(displayOption, whereQuery)
     } else {
-      if (dateQuery != "") {
-        arrivalDate = {
-          gte: `${dateQuery.split(" ")[0] || ""}T00:00:00.000Z`,
-          lte: `${dateQuery.split(" ")[1] || ""}T23:59:59.999Z`
+      if (dateQuery != "")
+        whereDate = {
+          AND: [
+            { arrivalDate: { gte: `${dateQuery.split(" ")[0] || ""}T00:00:00.000Z` } },
+            { departureDate: { lte: `${dateQuery.split(" ")[1] || ""}T23:59:59.999Z` } }
+          ]
         }
-        departureDate = {
-          gte: `${dateQuery.split(" ")[0] || ""}T00:00:00.000Z`,
-          lte: `${dateQuery.split(" ")[1] || ""}T23:59:59.999Z`,
-        }
-      }
     }
     if (sortAndOrder != "") orderBy = orderReservationByIdentifier(sortAndOrder);
     const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
-        ...(dateQuery && { reservation: { arrivalDate } }),
-        ...(dateQuery && { reservation: { departureDate } }),
+        ...(dateQuery && { reservation: { ...whereDate } }),
         ...(whereQuery && { reservation: { [displayOption]: whereQuery } }),
         ...(orderBy && orderBy.whereQuery),
         ...(history != "true" && { deleted: false })

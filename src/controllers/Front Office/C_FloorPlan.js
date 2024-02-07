@@ -8,7 +8,7 @@ const getFloorPlan = async (req, res) => {
   let flrpln;
   const { date } = req.query;
   try {
-    flrpln = date != undefined ? await floorplan.getFloorPlanDataBasedOnDate(date) : await floorplan.getAllStatus()
+    flrpln = date != undefined ? await floorplan.getFloorPlanByDate(date) : await floorplan.getAllStatus()
     return success(res, 'Get Success', flrpln)
   } catch (err) {
     return error(res, err.message, 404);

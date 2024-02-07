@@ -15,6 +15,7 @@ const { success, error } = require("./utils/response");
 const { getAllNotification } = require("./controllers/Front Office/C_Notification");
 const R_IMPPS = require("./routes/R_IMPPS");
 const { scheduleInvoiceReservation } = require("./schedule/daily-schedule");
+const { auth } = require("./middlewares/auth");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -40,7 +41,7 @@ app.use(bodyParser.urlencoded({
 //??Start Endpoints
 // app.get("*", checkUser)
 app.use("/auth", R_Login);
-app.get('/dashboard', async (req, res) => {
+app.get('/dashboard', auth(['Admin']), async (req, res) => {
   let { page = 1, perPage = 5, date } = req.query
   try {
     const dsbd = await dashboard.get(parseInt(page), parseInt(perPage), date);

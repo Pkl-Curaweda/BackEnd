@@ -643,9 +643,19 @@ function getMaidPerfomance(minuteFinish, standardMinute) {
   return percentagesIndex
 }
 
+const countNotificationTime = (newestDate, time) => {
+  try{
+    const timeDiff = newestDate - time;
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+
+    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+  }catch(err){ ThrowError(err)}
+}
+
 
 module.exports = {
   splitDateTime,
+  countNotificationTime,
   loginPath,
   getMaidPerfomance,
   isDateInRange,

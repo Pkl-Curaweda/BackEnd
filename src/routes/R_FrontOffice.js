@@ -9,6 +9,8 @@ const { auth } = require("../middlewares/auth");
 
 const R_FrontOffice = new Router();
 
+//! Only admin that can check Front Office page
+R_FrontOffice.use(auth(['Admin']))
 
 //?DETAIL RESERVATION
 R_FrontOffice.get("/detail/reservation/:reservationId/idcard", getPreviousCard);

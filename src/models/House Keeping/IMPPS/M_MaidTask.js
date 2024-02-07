@@ -62,24 +62,28 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
             }
 
             const workingShift = await getWorkingShifts(currentDate) //function return array of working shift from the given time
-            do {
-                while (lowestRoomMaidId < 1) {
-                    if (workingShift.length > 0) {
-                        for (let shift of workingShift) {
-                            for (let workload of shift.RoomMaid) {
-                                console.log(workload.workload)
-                                if (workload.workload < 480) {
-                                    if (workload.workload < lowestWorkload) {
-                                        lowestWorkload = workload.workload;
-                                        lowestRoomMaidId = workload.id;
-                                    }
-                                } else continue
-                            }
-                        }
-                    } else throw Error('No one is working on this shift')
-                }
-                maidWorkload = lowestWorkload + workload
-            } while (maidWorkload < 480)
+            if (workingShift.length < 1) throw Error('No one is working on this shift')
+
+            const lowestWorkloadShift = workingShift.reduce((minShift, shift) => {
+                return shift.workload < minShift.workload ? shift : minShift;
+            }, workingShift[0]);
+            console.log(lowestWorkloadShift)
+            lowestWorkload = lowestWorkloadShift.RoomMaid[0].workload
+            lowestRoomMaidId = lowestWorkloadShift.RoomMaid[0].id
+            // while (lowestRoomMaidId < 1) {
+            //     for (let shift of workingShift) {
+            //         for (let workload of shift.RoomMaid) {
+            //             console.log(workload, currentDate)
+            //             if (workload.workload < 480) {
+            //                 if (workload.workload < lowestWorkload) {
+            //                     lowestWorkload = workload.workload;
+            //                     lowestRoomMaidId = workload.id;
+            //                 }
+            //             } else continue
+            //         }
+            //     }
+            // }
+            maidWorkload = lowestWorkload + workload
             const previousSchedule = currentSchedule
             currentSchedule = formatToSchedule(currentSchedule, workload)
             const [createdTask, assigned] = await prisma.$transaction([
