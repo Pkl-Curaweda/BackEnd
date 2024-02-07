@@ -196,7 +196,7 @@ model ResvRoom {
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
   roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
-  roomMaidId       Int
+  roomMaidId       Int 
   billComment      String?        @db.Text
   voucher          Voucher?       @relation(fields: [voucherId], references: [id])
   voucherId        String?

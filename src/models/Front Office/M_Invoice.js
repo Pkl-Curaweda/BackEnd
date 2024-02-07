@@ -237,7 +237,7 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
             articleTypeId: body.articleId,
             ...(dateUsed && { dateUsed }),
             ...(dateReturn && { dateReturn }),
-            rate: resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.arithmatic) : resvRoom.arrangment.rate
+            rate: resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
           }
         })
         addedArticle.push(resvArt)

@@ -263,6 +263,7 @@ const getDetailById = async (id, reservationId) => {
             reservationRemarks: true
           }
         },
+        voucherId: true,
         room: {
           select:
           {
@@ -470,7 +471,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
         for (let room of reservation.resvRooms) {
-          await changeRoomStatusByDescription(room.roomId, "  OC")
+          await changeRoomStatusByDescription(room.roomId, "OC")
         }
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate

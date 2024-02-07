@@ -88,7 +88,7 @@ const getRoomOccupancyData = async (q) => {
                 break;
         }
 
-        const [r, ooo, om] = await prisma.$transaction([
+        const [r, comp, hu, ooo, om] = await prisma.$transaction([
             prisma.resvRoom.findMany({
                 where: {
                     reservation: {
@@ -99,6 +99,19 @@ const getRoomOccupancyData = async (q) => {
                     }
                 },
                 select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+            }),
+            prisma.resvRoom.findMany({
+                where: {
+                    voucherId: process.env.COMP_VOUCHER,
+                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                },
+                select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+            }),
+            prisma.oooOmRoom.count({ //TODO: PERSON IN HOUSE USE NEED TO BE CHANGED, FOR NOW IT ONLY TAKE THE STORED DATA FROM OOO OM ROOM MODEL
+                where: {
+                    xType: "HU",
+                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                }
             }),
             prisma.oooOmRoom.count({
                 where: {
@@ -114,13 +127,17 @@ const getRoomOccupancyData = async (q) => {
             })
         ])
 
-        let estPers = 0
+        let estPers = 0, compPerson = 0
         for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
         percData.estOcc.person += estPers
+        for(let com of comp) compPerson += com.reservation.manyAdult + com.reservation.manyBaby + com.reservation.manyChild
+        percData.comp.person += compPerson
+        percData.comp.room += comp.length
+        percData.houseUse.room += hu
         percData.ooo.room += ooo
         percData.om.room += om
-        let roomPerc = [], personPerc = [], graph = { room: 0,  person: 0 }
-        Object.values(percData).forEach(( data, ind ) => {
+        let roomPerc = [], personPerc = [], graph = { room: 0, person: 0 }
+        Object.values(percData).forEach((data, ind) => {
             console.log(data.room)
             roomPerc[ind] = data.room
             personPerc[ind] = data.person

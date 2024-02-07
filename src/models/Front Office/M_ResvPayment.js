@@ -7,13 +7,14 @@ const getBillingSummary = async (id, reservationId) => {
         let resvRoom = await prisma.resvRoom.findFirstOrThrow({
             where: { id, reservationId },
             select: {
+                id: true,
                 arrangment: {
                     select: {
                         rate: true
                     }
                 },
                 roomId: true,
-                voucherNo: true,
+                voucherId: true,
                 reservation: {
                     select: {
                         arrivalDate: true, departureDate: true,
@@ -48,7 +49,7 @@ const getBillingSummary = async (id, reservationId) => {
 
         const { tax, total } = countTaxAndTotalInvoice(billList)
         let add = {
-            billNumber: `${reservationId}-${resvRoom.voucherNo}`,
+            billNumber: `${reservationId}-${resvRoom.id}`,
             reservationResource: resvRoom.reservation.resourceName,
             arrivalDate, departureDate,
             guestName: `${guest.name} - ${guest.contact}`

@@ -38,14 +38,22 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
     } finally { await PrismaDisconnect() }
 }
 
-const countAfterVoucher = (baseline, voucherArtihmathic) => {
+const countAfterVoucher = (baseline, voucherId) => {
     try{
-        console.log('NIHHSAHDI ADJADBASBDJBASD')
-        const result = math.evaluate(voucherArtihmathic);
-        console.log(baseline, result)
+        let result = baseline
+        switch(voucherId){
+            case process.env.COMP_VOUCHER:
+                result -= result * 100 / 100
+                break;
+            default:
+                break
+        }
         console.log(result)
+        // const result = math.evaluate(voucherArtihmathic);
+        // console.log(baseline, result)
+        // console.log(result)
         // console.log(baseline result)
-        return baseline * result;
+        return result;
     }catch(err){
         ThrowError(err)
     }
