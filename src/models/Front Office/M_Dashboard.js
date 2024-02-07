@@ -25,7 +25,8 @@ const get = async (page, perPage, date) => {
                 created_at: {
                     gte: `${date}T00:00:00.000Z`,
                     lte: `${date}T23:59:59.999Z`
-                }
+                },
+                deleted: false
             },
             select: {
                 reservationId: true,

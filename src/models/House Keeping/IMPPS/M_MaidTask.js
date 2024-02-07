@@ -70,19 +70,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
             console.log(lowestWorkloadShift)
             lowestWorkload = lowestWorkloadShift.RoomMaid[0].workload
             lowestRoomMaidId = lowestWorkloadShift.RoomMaid[0].id
-            // while (lowestRoomMaidId < 1) {
-            //     for (let shift of workingShift) {
-            //         for (let workload of shift.RoomMaid) {
-            //             console.log(workload, currentDate)
-            //             if (workload.workload < 480) {
-            //                 if (workload.workload < lowestWorkload) {
-            //                     lowestWorkload = workload.workload;
-            //                     lowestRoomMaidId = workload.id;
-            //                 }
-            //             } else continue
-            //         }
-            //     }
-            // }
             maidWorkload = lowestWorkload + workload
             const previousSchedule = currentSchedule
             currentSchedule = formatToSchedule(currentSchedule, workload)

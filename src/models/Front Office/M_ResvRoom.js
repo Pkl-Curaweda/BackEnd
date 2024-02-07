@@ -1,6 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateVoucherNo, getWorkingShifts, isRoomAvailable, isArrangementMatch } = require("../../utils/helper");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
+const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 
 const getAllRoomIdReservedByReserverId = async (reserverId) => {
@@ -53,6 +54,7 @@ const createNewResvRoom = async (id, data, user) => {
       }
     })
     await setVoucher(data.voucher, resvRoom.id, user.id)
+    await addNewInvoiceFromArticle([], id, resvRoom.id)
     return resvRoom;
   } catch (err) {
     ThrowError(err)
