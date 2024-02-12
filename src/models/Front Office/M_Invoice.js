@@ -219,8 +219,8 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
     await checkInvoiceRoom(resvRoomId).then((condition) => {
       if (condition === false) b.push({ articleId: 998, qty: 1 })
     })
+  console.log(b)
     let dateUsed, dateReturn, rate
-    console.log(resvRoom, rate)
     for (let body of b) {
       if (!(body.qty <= 0)) {
         if (body.articleId != 998) {
@@ -243,6 +243,7 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
         addedArticle.push(resvArt)
       } else continue
     }
+    console.log(addedArticle)
     return addedArticle
   } catch (err) {
     ThrowError(err)

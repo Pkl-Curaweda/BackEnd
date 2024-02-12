@@ -117,7 +117,8 @@ const postNewReservation = async (req, res) => {
   const body = req.body;
   try {
     const reservation = await CreateNewReservation(body, req.user);
-    return success(res, 'New Reservation Created Successfully', reservation);
+    const message = reservation.createdResvRoom.voucherMessage !=  undefined ? `${reservation.createdResvRoom.voucherMessage}, but Reservation Created Successfully` : `Created Successfully with Id ${reservation.createdReservation.id}`
+    return success(res, message, reservation);
   } catch (err) {
     return error(res, err.message);
   }
@@ -128,7 +129,8 @@ const postNewReservationRoom = async (req, res) => {
   const body = req.body;
   try {
     const resvRoom = await createNewResvRoom(parseInt(reservationId), body, req.user)
-    return success(res, `New Room  on Reservation ${reservationId}`, resvRoom);
+    const message = resvRoom.voucherMessage != undefined ? `${resvRoom.voucherMessage}, but Reservation Created Successfully` : `New Room  on Reservation ${reservationId}`
+    return success(res, message, resvRoom);
   } catch (err) {
     return error(res, err.message);
   }

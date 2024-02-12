@@ -25,6 +25,7 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
 };
 
 const createNewResvRoom = async (id, data, user) => {
+  let voucherMessage
   try {
     const reservation = await prisma.reservation.findFirst({ where: { id } })
     await isRoomAvailable({ arr: reservation.arrivalDate.toISOString(), dep: reservation.departureDate.toISOString() }, data.roomId)
@@ -53,9 +54,10 @@ const createNewResvRoom = async (id, data, user) => {
         }
       }
     })
-    await setVoucher(data.voucher, resvRoom.id, user.id)
-    await addNewInvoiceFromArticle([], id, resvRoom.id)
-    return resvRoom;
+    const voucher = await setVoucher(data.voucher, resvRoom.id, user.id)
+    if(voucher != true) voucherMessage = "Voucher invalid"
+    await addNewInvoiceFromArticle([], reservation.id, resvRoom.id)
+    return {resvRoom, voucherMessage};
   } catch (err) {
     ThrowError(err)
   } finally {

@@ -66,7 +66,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                         id: true,
                         arrivalDate: true,
                         departureDate: true,
-                        resvStatus: { select: { rowColor: true, textColor: true } },
+                        borderColor: true,
                         reserver: { select: { guest: { select: { name: true } } } }
                     }
                 }
@@ -120,7 +120,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     if (listShown.includes(dt.room.id)) {
                         rmHist[key] = {
                             data: { label: dt.reservation.reserver.guest.name, resvId: dt.reservation.id, resvRoomId: dt.id },
-                            style: { color: dt.reservation.resvStatus.textColor, backgroundColor: dt.reservation.resvStatus.rowColor }
+                            style: { color: "#000000", backgroundColor: dt.reservation.borderColor }
                         }
                     } else {
                         rmHist[key] = {

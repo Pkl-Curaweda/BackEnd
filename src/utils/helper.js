@@ -128,12 +128,12 @@ const generateBalanceAndTotal = async (option = { balance: false, total: false }
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({
       where: { id, reservationId },
       select: {
-       Invoice: {
-        select: {
-          rate: true,
-          paid: true,
-        }
-       },
+        Invoice: {
+          select: {
+            rate: true,
+            paid: true,
+          }
+        },
         reservation: {
           select: {
             arrivalDate: true, departureDate: true,
@@ -143,12 +143,12 @@ const generateBalanceAndTotal = async (option = { balance: false, total: false }
       }
     })
 
-    for(let inv of resvRoom.Invoice){
+    for (let inv of resvRoom.Invoice) {
       totalInvoice += inv.rate
       if (inv.paid != false) totalPaid += inv.rate
     }
 
-    const [balance, total] = [ totalPaid - totalInvoice, totalInvoice -  totalPaid ]
+    const [balance, total] = [totalPaid - totalInvoice, totalInvoice - totalPaid]
 
     return { balance, total, totalInvoice, totalPaid }
 
@@ -554,6 +554,33 @@ const getWorkingShifts = async (currentTime) => {
   return currentShifts;
 };
 
+const getLowestWorkloadShift = async (currentHourFormat) => {
+  // currentHourFormat = "11:40"
+  const roomMaid = await prisma.roomMaid.findFirst({
+    where: {
+      NOT: [{ workload: { gte: 480 } }],
+      shift: {
+        AND: [
+          { startTime: { lte: currentHourFormat } },
+          { endTime: { gt: currentHourFormat } },
+          {
+            NOT: [
+              {
+                AND: [
+                  { restTimeStart: { lt: currentHourFormat } },
+                  { restTimeEnd: { gt: currentHourFormat } }
+                ]
+              }
+            ]
+          }
+        ],
+      }
+    }, select: { id: true, workload: true }, orderBy: { workload: 'asc' }
+  })
+  if(!roomMaid != null) throw Error('No one is working now, sorry')
+  return roomMaid;
+}
+
 const formatCurrency = (num = 0) => {
   try {
     return num.toLocaleString()
@@ -644,12 +671,12 @@ function getMaidPerfomance(minuteFinish, standardMinute) {
 }
 
 const countNotificationTime = (newestDate, time) => {
-  try{
+  try {
     const timeDiff = newestDate - time;
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
 
     return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-  }catch(err){ ThrowError(err)}
+  } catch (err) { ThrowError(err) }
 }
 
 
@@ -662,6 +689,7 @@ module.exports = {
   getTimeDifferenceInMinutes,
   isArrangementMatch,
   getWorkingShifts,
+  getLowestWorkloadShift,
   reverseObject,
   isRoomAvailable,
   PrismaDisconnect,

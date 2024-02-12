@@ -34,7 +34,7 @@ const getNewUserRefreshToken = async (req, res) => {
             expires
         })
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
-            expiresIn: '15m',
+            expiresIn: '1m',
             subject: newRefreshToken.userId.toString()
         })
         return success(res, 'Token Refresh Successfully', { accessToken });

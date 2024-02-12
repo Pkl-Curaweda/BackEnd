@@ -21,17 +21,40 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December",
     ];
-
-    if (date) {
-      [startDate, endDate] = date.split(' ')
-    } else {
-      startDate = new Date().toISOString().split('T')[0]
-      endDate = new Date(startDate)
-      endDate.setDate(endDate.getDate() + 7)
-      endDate = endDate.toISOString().split('T')[0]
+    switch (date) {
+      case !undefined:
+        [startDate, endDate] = date.split(' ')
+        break;
+      default:
+        switch (disOpt) {
+          case "week":
+            startDate = new Date().toISOString().split('T')[0]
+            endDate = new Date(startDate)
+            endDate.setDate(endDate.getDate() + 30)
+            endDate = endDate.toISOString().split('T')[0]
+            break;
+          case "month":
+            startDate = new Date().toISOString().split('T')[0]
+            endDate = new Date(startDate)
+            endDate.setDate(endDate.getDate() + 90)
+            endDate = endDate.toISOString().split('T')[0]
+            break;
+          case "year":
+            const currYear = new Date().getFullYear()
+            startDate = `${currYear}-01-01`
+            endDate = `${currYear}-12-31`
+            break;
+          default:
+            startDate = new Date().toISOString().split('T')[0]
+            endDate = new Date(startDate)
+            endDate.setDate(endDate.getDate() + 7)
+            endDate = endDate.toISOString().split('T')[0]
+            break;
+        }
+        break;
     }
-
     dates = generateDateBetweenStartAndEnd(startDate, endDate)
+    if (disOpt != "day") endIndex = dates.length - 1
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
 
@@ -193,9 +216,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
               taxed: 0
             }
           }
-          console.log("==========", month)
           const report = reports.filter((report) => new Date(report.date).getMonth() === month);
-          console.log(report)
           report.forEach(report => {
             sendedData.roomAvailable += report.roomAvailable,
               sendedData.occupied += report.occupied,

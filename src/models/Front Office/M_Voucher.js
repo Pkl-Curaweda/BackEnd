@@ -7,7 +7,7 @@ const { createOooRoom } = require("../House Keeping/M_OOORoom")
 const isVoucherValid = async (id) => {
     try {
         const voucher = await prisma.voucher.findFirst({ where: { id } })
-        if (voucher === null) throw Error("Voucher is invalid")
+        if (voucher === null) return false
         return voucher
     } catch (err) {
         ThrowError(err)
@@ -19,7 +19,8 @@ const isVoucherValid = async (id) => {
 const setVoucher = async (voucherId, resvRoomId, userId) => {
     try {
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
-        await isVoucherValid(voucherId).catch((err) => { throw Error(`${err.message}, but other edited/created data are success`) })
+        const validVoucher = await isVoucherValid(voucherId)
+        if(validVoucher != true) return false
         if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
             room: {
                 connect: { id: resvRoom.roomId }

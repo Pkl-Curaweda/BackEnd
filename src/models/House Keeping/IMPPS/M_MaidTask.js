@@ -1,6 +1,6 @@
 const { create } = require("qrcode")
 const { prisma } = require("../../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts } = require("../../../utils/helper")
+const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts, getLowestWorkloadShift } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
 const { countTaskPerformance, countActual, resetRoomMaid } = require("../M_RoomMaid")
 const { warnEnvConflicts } = require("@prisma/client/runtime/library")
@@ -35,17 +35,18 @@ const getAllWorkingTaskId = async () => {
 }
 
 const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Request / Note', workload: 0, typeId: 'CLN' }]) => {
-    let assigne = [], currentDate = new Date(), currentSchedule; //The example of current schedule is a string like this: 08:00
+    let assigne = [], currentDate = new Date(), currentSchedule, previouseSchedule; //The example of current schedule is a string like this: 08:00
+    const [shift, latestTask] = await prisma.$transaction([
+        prisma.shift.findFirst({ where: { id: 1 }, select: { startTime: true } }),
+        prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })
+    ])
+    //if latestTask wasn't find while findFirst, then it mean this was the first task of a new day
+    if (latestTask === null) await resetRoomMaid() //function reset all workload of maid
 
     try {
+        tasks.sort((a, b) => b.workload - a.workload)
         for (let task of tasks) {
             let { roomId, request, workload, action, typeId } = task, maidWorkload = 0, lowestRoomMaidId = 0, lowestWorkload = Infinity, hours, minutes;
-            const [shift, latestTask] = await prisma.$transaction([
-                prisma.shift.findFirst({ where: { id: 1 }, select: { startTime: true } }),
-                prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })
-            ])
-            //if latestTask wasn't find while findFirst, then it mean this was the first task of a new day
-            if (latestTask === null) await resetRoomMaid() //function reset all workload of maid
             if (currentSchedule === undefined) {
                 if (action === "DLYCLEAN") {
                     currentSchedule = latestTask != null ? latestTask.schedule.split('-')[1] : shift.startTime
@@ -53,26 +54,20 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                     minutes = parseInt(currentSchedule.split(":")[1])
                 } else {
                     const { time } = splitDateTime(currentDate.toISOString())
-                    hours = parseInt(time.split(':')[0]) + 7
-                    minutes = parseInt(time.split(':')[1])
+                    hours = time.split(':')[0]
+                    minutes = time.split(':')[1]
                     currentSchedule = `${hours}:${minutes}`
                 }
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
-            }
-
-            const workingShift = await getWorkingShifts(currentDate) //function return array of working shift from the given time
-            if (workingShift.length < 1) throw Error('No one is working on this shift')
-
-            const lowestWorkloadShift = workingShift.reduce((minShift, shift) => {
-                return shift.workload < minShift.workload ? shift : minShift;
-            }, workingShift[0]);
-            console.log(lowestWorkloadShift)
-            lowestWorkload = lowestWorkloadShift.RoomMaid[0].workload
-            lowestRoomMaidId = lowestWorkloadShift.RoomMaid[0].id
-            maidWorkload = lowestWorkload + workload
-            const previousSchedule = currentSchedule
+            } previousSchedule = currentSchedule
             currentSchedule = formatToSchedule(currentSchedule, workload)
+            
+            const choosenMaid = await getLowestWorkloadShift(currentSchedule)
+            lowestRoomMaidId = choosenMaid.id
+            lowestWorkload = choosenMaid.workload
+
+            maidWorkload = lowestWorkload + workload
             const [createdTask, assigned] = await prisma.$transaction([
                 prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, schedule: `${previousSchedule}-${currentSchedule}`, typeId } }),
                 prisma.roomMaid.update({ where: { id: lowestRoomMaidId }, data: { workload: maidWorkload } })
@@ -88,7 +83,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                     maidWorkload: assigned.workload
                 }
             })
-            console.log(assigne)
         }
         return assigne
     } catch (err) {
@@ -124,7 +118,6 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
             default:
                 throw Error('No action matched')
         }
-        console.log(assigne)
         return assigne
     } catch (err) {
         ThrowError(err)
