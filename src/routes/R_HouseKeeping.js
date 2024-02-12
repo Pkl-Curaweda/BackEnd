@@ -38,32 +38,6 @@ const { dailyCleaning, amenitiesTask, resetSchedule, postCreate, postCreateRoomM
 
 const router = express.Router()
 
-//Start Multer
-const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
-const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => {
-        cb(null, 'public/assets/lost-found')
-    },
-    filename: (_req, file, cb) => {
-        crypto.pseudoRandomBytes(16, (_err, raw) => {
-            cb(null, raw.toString('hex') + path.extname(file.originalname))
-        })
-    }
-})
-
-const upload = multer({
-    storage,
-    fileFilter(req, file, cb) {
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-            req.fileValidationError = 'Only image file are allowed'
-            cb(null, false)
-            return
-        }
-        cb(null, true)
-    }
-})
-
-//End Multer
 
 router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
@@ -89,14 +63,7 @@ router.delete('/users/:id', user.remove)
 
 //Start Lost Found
 router.get('/lostfound/', lostFound.findAll)
-router.post('/lostfound/', auth(['Room Boy']), 
-upload.single('image'), 
-(req, res, next) => {
-    if (req.fileValidationError) {
-        return error(res, req.fileValidationError)
-    }
-    next()
-}, createLostFoundValidation, lostFound.create)
+
 router.post('/lostfound/:id', auth(['Room Boy']), lostFound.finish)
 router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
 router.delete('/lostfound/:id/:act', lostFound.remove)

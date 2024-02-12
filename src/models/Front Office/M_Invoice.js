@@ -1,5 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice, splitDateTime } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice, splitDateTime, countISORange } = require("../../utils/helper");
+const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { countAfterVoucher } = require("./M_Voucher");
 
 const sortInvoice = (ident = "paid", ascDesc = "asc") => {
@@ -34,7 +35,7 @@ const sortInvoice = (ident = "paid", ascDesc = "asc") => {
 //?This one is only the invoice is by the room/ per resvRoom
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
-    let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc;
+    let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc, orderBy, startDate, endDate;
     const [resvRoom, artList] = await prisma.$transaction([
       prisma.resvRoom.findFirstOrThrow({
         where: { id: resvRoomId, reservationId },
@@ -61,54 +62,39 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       prisma.articleType.findMany({ select: { id: true, description: true, price: true } })
     ])
     if (date) {
-      const startDate = date.split('T')[0];
-      const endDate = date.split('T')[1];
-      dates = generateDateBetweenStartAndEnd(startDate, endDate)
-    } else {
-      const currDate = new Date()
-      arrivalDate = resvRoom.reservation.arrivalDate.toISOString().split("T")[0];
-      departureDate = currDate.toISOString().split('T')[0]
-      dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate);
+      startDate = date.split('T')[0];
+      endDate = date.split('T')[1];
     }
-    let orderBy
     if (sortIdentifier != undefined) {
       [ident, ascDesc] = sortIdentifier.split('-')
       orderBy = sortInvoice(ident, ascDesc);
     }
+    console.log(startDate, endDate)
+    const inv = await prisma.invoice.findMany({
+      where: {
+        resvRoomId,
+        ...(date && { created_at: { gte: `${startDate}T00:00:00.000Z`, lte: `${endDate}T23:59:59.999Z` } })
+      },
+      select: { id: true, paid: true, created_at: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
+      ...(orderBy != false && { ...orderBy } || { orderBy: { paid: 'desc' } })
+    })
 
-    for (let i = dates.length - 1; i >= 0; i--) {
-      const searchedDate = new Date(dates[i]);
-      const searchDate = searchedDate.toISOString().split("T")[0];
-      const [inv] = await prisma.$transaction([
-        prisma.invoice.findMany({
-          where: {
-            resvRoomId, created_at: {
-              gte: `${searchDate}T00:00:00.000Z`,
-              lte: `${searchDate}T23:59:59.999Z`,
-            },
-          },
-          select: { id: true, paid: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
-          ...(orderBy != false && { ...orderBy } || { orderBy: { paid: 'desc' } })
-        })
-      ])
-      for (let i of inv) {
-        invoices.push({
-          art: i.articleType != null ? i.articleType.id : "In Room",
-          uniqueId: i.id,
-          qty: i.qty,
-          rowColor: i.paid != false ? "#808080" : "#ffffff",
-          desc: i.articleType != null ? i.articleType.description : i.orderDetail.service.name,
-          rate: i.rate,
-          amount: (i.rate * i.qty),
-          roomNo: i.roomId,
-          billDate: searchDate,
-        })
-      }
+    for (let i of inv) {
+      invoices.push({
+        art: i.articleType != null ? i.articleType.id : "In Room",
+        uniqueId: i.id,
+        qty: i.qty,
+        rowColor: i.paid != false ? "#808080" : "#ffffff",
+        desc: i.articleType != null ? i.articleType.description : i.orderDetail.service.name,
+        rate: i.rate,
+        amount: (i.rate * i.qty),
+        roomNo: i.roomId,
+        billDate: splitDateTime(i.created_at).date,
+      })
     }
 
     if (orderBy === false) {
       if (ident === "rev") ident = "amount"
-      console.log(ident)
       switch (ascDesc) {
         case "desc":
           invoices = invoices.sort((a, b) => {
@@ -136,7 +122,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       invoices,
       added: {
         roomBoys: resvRoom.roomMaids.user.name,
-        voucherNo: resvRoom.voucherId
+        voucherNo: resvRoom.voucherId || '-'
       },
       artList,
       meta: {
@@ -215,35 +201,34 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
 const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true, arithmatic: true } }} })
-    await checkInvoiceRoom(resvRoomId).then((condition) => {
-      if (condition === false) b.push({ articleId: 998, qty: 1 })
-    })
-  console.log(b)
-    let dateUsed, dateReturn, rate
-    for (let body of b) {
-      if (!(body.qty <= 0)) {
-        if (body.articleId != 998) {
-          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
-          dateUsed = resvRoom.reservation.arrivalDate;
-          dateReturn = resvRoom.reservation.departureDate;
-          rate = art.price
-        }else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
-        const resvArt = await prisma.invoice.create({
-          data: {
-            resvRoomId,
-            roomId: resvRoom.roomId,
-            qty: body.qty,
-            articleTypeId: body.articleId,
-            ...(dateUsed && { dateUsed }),
-            ...(dateReturn && { dateReturn }),
-            rate
-          }
-        })
-        addedArticle.push(resvArt)
-      } else continue
-    }
-    return addedArticle
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true, arithmatic: true } } } })
+    await checkInvoiceRoom(resvRoomId)
+    // console.log(b)
+    // let dateUsed, dateReturn, rate
+    // for (let body of b) {
+    //   if (!(body.qty <= 0)) {
+    //     if (body.articleId != 998) {
+    //       const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+    //       dateUsed = resvRoom.reservation.arrivalDate;
+    //       dateReturn = resvRoom.reservation.departureDate;
+    //       rate = art.price
+    //       await genearateListOfTask("GUEREQ", resvRoom.roomId, `Room ${resvRoom.roomId} need ${resvArt.qty}`, resvArt.articleTypeId, resvArt.qty)
+    //     } else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
+    //     const resvArt = await prisma.invoice.create({
+    //       data: {
+    //         resvRoomId,
+    //         roomId: resvRoom.roomId,
+    //         qty: body.qty,
+    //         articleTypeId: body.articleId,
+    //         ...(dateUsed && { dateUsed }),
+    //         ...(dateReturn && { dateReturn }),
+    //         rate
+    //       }
+    //     })
+    //     addedArticle.push(resvArt)
+    //   } else continue
+    // }
+    // return addedArticle
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -253,16 +238,22 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
 
 const checkInvoiceRoom = async (resvRoomId) => {
   try {
-    const currentDate = new Date().toISOString().split('T')[0]
-    const check = await prisma.invoice.findFirst({
-      where: {
-        resvRoomId, articleTypeId: 998, AND: [
-          { created_at: { gte: `${currentDate}T00:00:00.000Z` } },
-          { created_at: { lte: `${currentDate}T23:59:59.999Z` } }
-        ]
-      }
-    })
-    return check != null
+    let roomBill = []
+    const currentDate = new Date().toISOString()
+    const [resvRoom, totalRoomBillExist] = await prisma.$transaction([
+      prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } } }),
+      prisma.invoice.count({
+        where: {
+          resvRoomId, articleTypeId: 998, AND: [
+            { created_at: { gte: `${resvRoom.reservation.checkInDate}T00:00:00.000Z` } },
+            { created_at: { lte: `${currentDate.split('T')[0]}T23:59:59.999Z` } }
+          ]
+        }
+      })
+    ])
+    const neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
+    console.log(neededRoomBill)
+    // return check != null
   } catch (err) {
     ThrowError(err)
   } finally {

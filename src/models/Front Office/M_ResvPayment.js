@@ -31,7 +31,7 @@ const getBillingSummary = async (id, reservationId) => {
         const dates = generateDateBetweenStartAndEnd(arrivalDate, departureDate)
 
         const invoices = await prisma.invoice.findMany({
-            where: { paid: false },
+            where: { paid: false, resvRoomId: resvRoom.id },
             select: { id: true, created_at: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
             orderBy: { rate: 'asc' }
         })

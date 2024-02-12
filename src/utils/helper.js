@@ -556,6 +556,7 @@ const getWorkingShifts = async (currentTime) => {
 
 const getLowestWorkloadShift = async (currentHourFormat) => {
   // currentHourFormat = "11:40"
+  console.log(currentHourFormat)
   const roomMaid = await prisma.roomMaid.findFirst({
     where: {
       NOT: [{ workload: { gte: 480 } }],
@@ -577,7 +578,7 @@ const getLowestWorkloadShift = async (currentHourFormat) => {
       }
     }, select: { id: true, workload: true }, orderBy: { workload: 'asc' }
   })
-  if(!roomMaid != null) throw Error('No one is working now, sorry')
+  if(!(roomMaid != null)) throw Error('No one is working now, sorry')
   return roomMaid;
 }
 
@@ -679,10 +680,18 @@ const countNotificationTime = (newestDate, time) => {
   } catch (err) { ThrowError(err) }
 }
 
+const countISORange = (startISO, endISO) => {
+  try{
+    [startISO, endISO] = [new Date(startISO).getDate, new Date(endISO).getDate]
+    return startISO - endISO
+  }catch(err){ ThrowError(err) }
+}
+
 
 module.exports = {
   splitDateTime,
   countNotificationTime,
+  countISORange,
   loginPath,
   getMaidPerfomance,
   isDateInRange,

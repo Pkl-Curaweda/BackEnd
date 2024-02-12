@@ -35,7 +35,7 @@ const getAllWorkingTaskId = async () => {
 }
 
 const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Request / Note', workload: 0, typeId: 'CLN' }]) => {
-    let assigne = [], currentDate = new Date(), currentSchedule, previouseSchedule; //The example of current schedule is a string like this: 08:00
+    let assigne = [], currentDate = new Date(), currentSchedule, previousSchedule; //The example of current schedule is a string like this: 08:00
     const [shift, latestTask] = await prisma.$transaction([
         prisma.shift.findFirst({ where: { id: 1 }, select: { startTime: true } }),
         prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })

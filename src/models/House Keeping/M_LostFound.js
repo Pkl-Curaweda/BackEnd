@@ -181,10 +181,8 @@ async function create(lostFound, image, sender) {
             id: roomId,
           }
         },
-        user: {
-          connect: {
-            id: +sender.id
-          }
+        pic: {
+          connect: { id: +sender.id }
         }
       },
       select
