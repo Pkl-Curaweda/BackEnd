@@ -228,7 +228,7 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
           dateUsed = resvRoom.reservation.arrivalDate;
           dateReturn = resvRoom.reservation.departureDate;
           rate = art.price
-        }
+        }else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
         const resvArt = await prisma.invoice.create({
           data: {
             resvRoomId,
@@ -237,13 +237,12 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
             articleTypeId: body.articleId,
             ...(dateUsed && { dateUsed }),
             ...(dateReturn && { dateReturn }),
-            rate: resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
+            rate
           }
         })
         addedArticle.push(resvArt)
       } else continue
     }
-    console.log(addedArticle)
     return addedArticle
   } catch (err) {
     ThrowError(err)
