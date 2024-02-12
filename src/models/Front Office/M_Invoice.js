@@ -202,33 +202,35 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true, arithmatic: true } } } })
-    await checkInvoiceRoom(resvRoomId)
-    // console.log(b)
-    // let dateUsed, dateReturn, rate
-    // for (let body of b) {
-    //   if (!(body.qty <= 0)) {
-    //     if (body.articleId != 998) {
-    //       const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
-    //       dateUsed = resvRoom.reservation.arrivalDate;
-    //       dateReturn = resvRoom.reservation.departureDate;
-    //       rate = art.price
-    //       await genearateListOfTask("GUEREQ", resvRoom.roomId, `Room ${resvRoom.roomId} need ${resvArt.qty}`, resvArt.articleTypeId, resvArt.qty)
-    //     } else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
-    //     const resvArt = await prisma.invoice.create({
-    //       data: {
-    //         resvRoomId,
-    //         roomId: resvRoom.roomId,
-    //         qty: body.qty,
-    //         articleTypeId: body.articleId,
-    //         ...(dateUsed && { dateUsed }),
-    //         ...(dateReturn && { dateReturn }),
-    //         rate
-    //       }
-    //     })
-    //     addedArticle.push(resvArt)
-    //   } else continue
-    // }
-    // return addedArticle
+    await checkInvoiceRoom(resvRoomId).then(data => {
+      for(let dt of data) b.push(dt)
+    })
+    console.log(addedArticle)
+    let dateUsed, dateReturn, rate
+    for (let body of b) {
+      if (!(body.qty <= 0)) {
+        if (body.articleId != 998) {
+          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+          dateUsed = resvRoom.reservation.arrivalDate;
+          dateReturn = resvRoom.reservation.departureDate;
+          rate = art.price
+        } else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
+        const resvArt = await prisma.invoice.create({
+          data: {
+            resvRoomId,
+            roomId: resvRoom.roomId,
+            qty: body.qty,
+            articleTypeId: body.articleId,
+            ...(dateUsed && { dateUsed }),
+            ...(dateReturn && { dateReturn }),
+            rate
+          }
+        })
+        if(body.articleId != 998) await genearateListOfTask("GUEREQ", resvRoom.roomId, `Room ${resvRoom.roomId} need ${resvArt.qty}`, resvArt.articleTypeId, resvArt.qty)
+        addedArticle.push(resvArt)
+      } else continue
+    }
+    return addedArticle
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -239,21 +241,27 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
 const checkInvoiceRoom = async (resvRoomId) => {
   try {
     let roomBill = []
-    const currentDate = new Date().toISOString()
-    const [resvRoom, totalRoomBillExist] = await prisma.$transaction([
-      prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } } }),
-      prisma.invoice.count({
-        where: {
-          resvRoomId, articleTypeId: 998, AND: [
-            { created_at: { gte: `${resvRoom.reservation.checkInDate}T00:00:00.000Z` } },
-            { created_at: { lte: `${currentDate.split('T')[0]}T23:59:59.999Z` } }
-          ]
-        }
-      })
-    ])
+    const currentDate = new Date()
+    const resvRoom = await prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } } })
+    const totalRoomBillExist = await prisma.invoice.count({
+      where: {
+        resvRoomId, articleTypeId: 998, AND: [
+          { created_at: { gte: `${resvRoom.reservation.checkInDate.toISOString().split('T')[0]}T00:00:00.000Z` } },
+          { created_at: { lte: `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z` } }
+        ]
+      }
+    })
+    console.log(totalRoomBillExist)
     const neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
     console.log(neededRoomBill)
-    // return check != null
+    if (!(neededRoomBill < 0)) {
+      for (let i = 0; i < (neededRoomBill - totalRoomBillExist); i++) {
+        roomBill.push({
+          articleId: 998, qty: 1
+        })
+      }
+    }
+    return roomBill
   } catch (err) {
     ThrowError(err)
   } finally {

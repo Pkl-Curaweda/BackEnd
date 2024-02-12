@@ -94,7 +94,7 @@ async function all(option) {
     const [total, lostFounds, found, lost] = await prisma.$transaction([
       prisma.lostFound.count({ where }),
       prisma.lostFound.findMany({
-        take: perPage,
+        take: +perPage,
         skip: (page - 1) * perPage,
         where,
         orderBy,

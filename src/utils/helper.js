@@ -578,7 +578,7 @@ const getLowestWorkloadShift = async (currentHourFormat) => {
       }
     }, select: { id: true, workload: true }, orderBy: { workload: 'asc' }
   })
-  if(!(roomMaid != null)) throw Error('No one is working now, sorry')
+  if (!(roomMaid != null)) throw Error('No one is working now, sorry')
   return roomMaid;
 }
 
@@ -681,10 +681,11 @@ const countNotificationTime = (newestDate, time) => {
 }
 
 const countISORange = (startISO, endISO) => {
-  try{
-    [startISO, endISO] = [new Date(startISO).getDate, new Date(endISO).getDate]
-    return startISO - endISO
-  }catch(err){ ThrowError(err) }
+  try {
+    startISO = new Date(startISO).getDate()
+    endISO = new Date(endISO).getDate()
+    return endISO - startISO
+  } catch (err) { ThrowError(err) }
 }
 
 
