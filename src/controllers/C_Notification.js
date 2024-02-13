@@ -14,7 +14,7 @@ const getAllNotification = async (req, res) => {
 const getUnreadMessage = async (req, res) => {
     try {
         const data = await notification.getUnreadTotal(req.user.lastCheckNotif)
-        return data
+        return success(res, 'Value shown', data)
     } catch (err) {
         return error(res, err.message)
     }
