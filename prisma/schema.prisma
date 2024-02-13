@@ -95,33 +95,34 @@ model Guest {
 // This table is for admin & mitra (hotel)
 
 model User {
-  id            Int          @id @default(autoincrement())
-  name          String
-  gender        Gender
-  phone         String
-  picture       String
-  birthday      DateTime
-  nik           String
-  email         String       @unique
-  username      String       @unique
-  password      String
-  role          Role         @relation(fields: [roleId], references: [id])
-  roleId        Int
-  guest         Guest?       @relation(fields: [guestId], references: [id])
-  guestId       Int?
-  room          Room?        @relation(fields: [roomId], references: [id])
-  roomId        Int?
-  service       Service[]
-  productReqs   ProductReq[]
-  cleanRooms    CleanRoom[]
-  Tokens        UserToken[]
-  DirtyRoom     DirtyRoom[]
-  roomMaids     RoomMaid[]
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
-  lostFounds    LostFound[]  @relation("LostFound_user")
-  lostFoundsPic LostFound[]  @relation("LostFound_pic")
-  OooOmRoom     OooOmRoom[]
+  id             Int          @id @default(autoincrement())
+  name           String
+  gender         Gender
+  phone          String
+  picture        String
+  birthday       DateTime
+  nik            String
+  email          String       @unique
+  username       String       @unique
+  password       String
+  lastCheckNotif DateTime     @default(now())
+  role           Role         @relation(fields: [roleId], references: [id])
+  roleId         Int
+  guest          Guest?       @relation(fields: [guestId], references: [id])
+  guestId        Int?
+  room           Room?        @relation(fields: [roomId], references: [id])
+  roomId         Int?
+  service        Service[]
+  productReqs    ProductReq[]
+  cleanRooms     CleanRoom[]
+  Tokens         UserToken[]
+  DirtyRoom      DirtyRoom[]
+  roomMaids      RoomMaid[]
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  lostFounds     LostFound[]  @relation("LostFound_user")
+  lostFoundsPic  LostFound[]  @relation("LostFound_pic")
+  OooOmRoom      OooOmRoom[]
 }
 
 model UserToken {

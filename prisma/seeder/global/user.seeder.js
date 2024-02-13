@@ -2,6 +2,15 @@ const { prisma } = require("../config");
 const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
+const { random } = require("mathjs");
+
+const listOfProfilePict = [
+  `${process.env.BASE_URL}/assets/profile-pict/1.png`,
+  `${process.env.BASE_URL}/assets/profile-pict/2.jpg`,
+  `${process.env.BASE_URL}/assets/profile-pict/3.jpg`,
+  `${process.env.BASE_URL}/assets/profile-pict/4.png`,
+  `${process.env.BASE_URL}/assets/profile-pict/5.png`,
+]
 
 const users = [
 
@@ -10,7 +19,7 @@ const users = [
     name: "Admin",
     gender: "MALE",
     phone: "08123456789",
-    picture: "https://i.pravatar.cc/300",
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "admin1@gmail.com",
     nik: "1234567890123456",
     birthday: new Date("1990-01-01"),
@@ -26,7 +35,7 @@ const users = [
     name: faker.person.firstName(),
     gender: "MALE",
     phone: "08123456789",
-    picture: faker.image.avatarGitHub(),
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy1@gmail.com",
     nik: randomInt(999999999).toString(),
     birthday: new Date(faker.date.birthdate()),
@@ -40,7 +49,7 @@ const users = [
     name: faker.person.firstName(),
     gender: "MALE",
     phone: "083424234578",
-    picture: faker.image.avatarGitHub(),
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy2@gmail.com",
     nik: randomInt(999999999).toString(),
     birthday: new Date(faker.date.birthdate()),
@@ -54,7 +63,7 @@ const users = [
     name: faker.person.firstName(),
     gender: "FEMALE",
     phone: "083424234578",
-    picture: faker.image.avatarGitHub(),
+    picture:listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy3@gmail.com",
     nik: randomInt(999999999).toString(),
     birthday: new Date(faker.date.birthdate()),
@@ -70,7 +79,7 @@ const users = [
     name: faker.person.firstName(),
     gender: "MALE",
     phone: "0834325251",
-    picture: faker.image.avatarGitHub(),
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "supervisor1@gmail.com",
     nik: randomInt(999999999).toString(),
     birthday: new Date(faker.date.birthdate()),

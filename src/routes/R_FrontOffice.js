@@ -6,6 +6,7 @@ const { getAllReport, getReportPDF, postReportPDF } = require("../controllers/Fr
 const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard, putNewInvoiceData, deleteInvoice } = require("../controllers/Front Office/C_Detail");
 const { auth } = require("../middlewares/auth");
+const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
 
 const R_FrontOffice = new Router();
 

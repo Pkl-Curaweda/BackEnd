@@ -1,24 +1,19 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, splitDateTime, countNotificationTime } = require("../../utils/helper")
 
-const get = async () => {
+const get = async (userData) => {
     try{
+        console.log('masuk kah?')
         const dateRef = new Date()
         const currentDate = splitDateTime(dateRef).date
-        const notifications = await prisma.notification.findMany({ select: { content: true, created_at: true }, orderBy: { created_at: 'desc' }, take: 5 })
+        const notifications = await prisma.notification.findMany({ where: {
+            created_at: {  gte: userData.lastCheckNotif }
+        }, select: { content: true, created_at: true }, orderBy: { created_at: 'desc' }, take: 5 })
         const listNotification = notifications.map(notif => ({
             content: notif.content,
             time: currentDate === splitDateTime(notif.created_at).date ? countNotificationTime(dateRef, notif.created_at) : splitDateTime(notif.created_at).date
         }))
-        // for(let notif of notifications){
-        //     const [notifDate, notifTime] = splitDateTime(notif.created_at).date
-        //     console.log(notifDate, notifTime)
-        //     listNotification.push({
-        //     })
-        // }
-        // const listNotification = notifications.map(notif => (
-        //     {
-        // }))
+        await prisma.user.update({ where: { id: userData.id } , data:{ lastCheckNotif: new Date().toISOString() }})
         return listNotification
     }catch(err){
         ThrowError(err)
@@ -27,6 +22,15 @@ const get = async () => {
     }
 }
 
+const getUnreadTotal = async (lastCheckTime) => {
+    try{
+        return await prisma.notification.count({ where: { created_at:{ gte: lastCheckTime } } })
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
 const createNotification = async (data = { content: '' }) => {
     try{
         const created = await prisma.notification.create({ data })
@@ -36,4 +40,4 @@ const createNotification = async (data = { content: '' }) => {
     }
 }
 
-module.exports = { get, createNotification }
+module.exports = { get, createNotification, getUnreadTotal }

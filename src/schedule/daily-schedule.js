@@ -6,19 +6,17 @@ const { addNewInvoiceFromArticle } = require('../models/Front Office/M_Invoice')
 const permanentDeleteResvervation = async () => {
     try{
         const currDate = new Date().toISOString()
-        await prisma
+        const resvRoomList = await prisma.resvRoom.findMany({ where: { deleted_at: { lte: currDate } }})
+        if(resvRoomList.length > 0){
+            for(let resvRoom of resvRoomList) await prisma.resvRoom.delete({ where: { id: resvRoom.id } })
+        }
     }catch(err){
         ThrowError(err)
     }finally{
         await PrismaDisconnect();
     }
 }
-
-const runSchedule = () => {
-    const currDate = new Date().toISOString().split('T')[0]
-    schedule.scheduleJob('daily', '* * * * *', async () => {
-        await scheduleInvoiceReservation(currDate)
-    })
-}
-
-// module.exports = { scheduleInvoiceReservation }
+schedule.scheduleJob('daily', '0 * * * *', async () => { //?Every one minute check deleted_at
+    console.log('DELETING......')
+    await permanentDeleteResvervation()
+})

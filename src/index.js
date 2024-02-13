@@ -10,9 +10,9 @@ const R_Login = require("./routes/R_Login");
 const R_FrontOffice = require("./routes/R_FrontOffice");
 const R_HouseKeeping = require('./routes/R_HouseKeeping')
 const R_InRoomService = require("./routes/R_InRoomService");
+const R_Notif = require("./routes/R_Notification");
 const dashboard = require('./models/Front Office/M_Dashboard');
 const { success, error } = require("./utils/response");
-const { getAllNotification } = require("./controllers/Front Office/C_Notification");
 const R_IMPPS = require("./routes/R_IMPPS");
 const { scheduleInvoiceReservation } = require("./schedule/daily-schedule");
 const { auth } = require("./middlewares/auth");
@@ -40,6 +40,7 @@ app.use(bodyParser.urlencoded({
 
 //??Start Endpoints
 // app.get("*", checkUser)
+app.use('/notif', R_Notif)
 app.use("/auth", R_Login);
 app.get('/dashboard', auth(['Admin']), async (req, res) => {
   let { page = 1, perPage = 5, date } = req.query
@@ -50,7 +51,6 @@ app.get('/dashboard', auth(['Admin']), async (req, res) => {
     return error(res, err.message)
   }
 })
-app.get('/notif', getAllNotification)
 app.use("/fo", R_FrontOffice);
 app.use('/hk', R_HouseKeeping)
 app.use('/impps', R_IMPPS)
