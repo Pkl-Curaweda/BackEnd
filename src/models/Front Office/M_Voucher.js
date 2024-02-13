@@ -18,9 +18,11 @@ const isVoucherValid = async (id) => {
 
 const setVoucher = async (voucherId, resvRoomId, userId) => {
     try {
+        console.log(voucherId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
         const validVoucher = await isVoucherValid(voucherId)
-        if(validVoucher != true) return false
+        console.log(validVoucher)
+        if(validVoucher === false) return false
         if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
             room: {
                 connect: { id: resvRoom.roomId }
@@ -39,21 +41,11 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
     } finally { await PrismaDisconnect() }
 }
 
-const countAfterVoucher = (baseline, voucherId) => {
+const countAfterVoucher = async (baseline, voucherId) => {
     try{
         let result = baseline
-        switch(voucherId){
-            case process.env.COMP_VOUCHER:
-                result -= result * 100 / 100
-                break;
-            default:
-                break
-        }
-        console.log(result)
-        // const result = math.evaluate(voucherArtihmathic);
-        // console.log(baseline, result)
-        // console.log(result)
-        // console.log(baseline result)
+        const voucher = await isVoucherValid(voucherId)
+        if(voucher != null) result -= result * voucher.cutPercentage / 100
         return result;
     }catch(err){
         ThrowError(err)

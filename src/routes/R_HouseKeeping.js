@@ -50,7 +50,7 @@ router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
 //Start OOO Room
 router.get('/ooo-rooms/', ooorooms.findAll)
-router.post('/ooo-rooms/', createOooRoomValidation, ooorooms.create)
+router.post('/ooo-rooms/', auth(['Admin']), ooorooms.create)
 //End OOO Room
 
 //Start User

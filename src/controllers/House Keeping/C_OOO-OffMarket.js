@@ -19,10 +19,11 @@ async function findAll(req, res) {
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
- */
+*/
 async function create(req, res) {
   try {
-    const oooRoom = await oooRoomRepository.createOooRoom(req.body)
+    req.body.userId = req.user.id
+    const oooRoom = await oooRoomRepository.createOooRoom(req.body.xType, req.body)
     return success(res, 'OOO Created Successfully', oooRoom)
   }
   catch (e) {

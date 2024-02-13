@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, generateVoucherNo, getWorkingShifts, isRoomAvailable, isArrangementMatch } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, generateVoucherNo, getWorkingShifts, isRoomAvailable, isArrangementMatch, generateDeleteDate } = require("../../utils/helper");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
@@ -23,6 +23,19 @@ const getAllRoomIdReservedByReserverId = async (reserverId) => {
     await PrismaDisconnect();
   }
 };
+
+const checkStatus = async (resvRoomId) => {
+  try {
+    const exist = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId }, select: { reservation: { select: { resvStatusId: true } } } })
+    if (exist.reservation.resvStatusId === 2) {
+      return await prisma.resvRoom.update({ where: { id: resvRoomId }, data: { deleted_at: generateDeleteDate("status6PM") } })
+    } else return false
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
 
 const createNewResvRoom = async (id, data, user) => {
   let voucherMessage
@@ -54,10 +67,11 @@ const createNewResvRoom = async (id, data, user) => {
         }
       }
     })
+    await checkStatus(resvRoom.id)
     const voucher = await setVoucher(data.voucher, resvRoom.id, user.id)
-    if(voucher != true) voucherMessage = "Voucher invalid"
-    await addNewInvoiceFromArticle([], reservation.id, resvRoom.id)
-    return {resvRoom, voucherMessage};
+    if (voucher === false) voucherMessage = "Voucher invalid"
+    if (reservation.checkInDate != null) await addNewInvoiceFromArticle([], reservation.id, resvRoom.id)
+    return { resvRoom, voucherMessage };
   } catch (err) {
     ThrowError(err)
   } finally {

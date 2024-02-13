@@ -622,7 +622,7 @@ async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
             { arrivalDate: { gte: `${date.arr.split('T')[0]}T00:00:00.00Z` } },
             { departureDate: { lte: `${date.dep.split('T')[0]}T23:59:59.999Z` } }
           ]
-        }
+        }, deleted: false
       }
     })
     if (roomAvailable.length != 0) throw Error('Room are used')
@@ -688,12 +688,31 @@ const countISORange = (startISO, endISO) => {
   } catch (err) { ThrowError(err) }
 }
 
+const generateDeleteDate = (param) => {
+  const currentDate = new Date()
+  switch(param){
+    case "deleteResv":
+      currentDate.setDate(currentDate.getDate() + 7);
+      break;
+      
+    case "status6PM":
+      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate.setHours(18, 0, 0, 0);
+      break;
+
+    default:
+      break
+  }
+  return currentDate.toISOString()
+}
+
 
 module.exports = {
   splitDateTime,
   countNotificationTime,
   countISORange,
   loginPath,
+  generateDeleteDate,
   getMaidPerfomance,
   isDateInRange,
   getTimeDifferenceInMinutes,

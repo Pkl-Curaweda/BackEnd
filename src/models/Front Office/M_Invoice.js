@@ -201,7 +201,8 @@ const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
 const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true, arithmatic: true } } } })
+    console.log()
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true } } } })
     await checkInvoiceRoom(resvRoomId).then(data => {
       for(let dt of data) b.push(dt)
     })
@@ -214,13 +215,19 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
           dateUsed = resvRoom.reservation.arrivalDate;
           dateReturn = resvRoom.reservation.departureDate;
           rate = art.price
-        } else rate = resvRoom.voucherId != null ? countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
+        } else rate = resvRoom.voucherId != null ? await countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
         const resvArt = await prisma.invoice.create({
           data: {
-            resvRoomId,
-            roomId: resvRoom.roomId,
+            resvRoom: {
+              connect: { id: resvRoomId }
+            },
+            room:{
+              connect: { id: resvRoom.roomId }
+            },
             qty: body.qty,
-            articleTypeId: body.articleId,
+            articleType: {
+              connect: { id: body.articleId }
+            },
             ...(dateUsed && { dateUsed }),
             ...(dateReturn && { dateReturn }),
             rate
@@ -242,17 +249,17 @@ const checkInvoiceRoom = async (resvRoomId) => {
   try {
     let roomBill = []
     const currentDate = new Date()
-    const resvRoom = await prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } } })
+    const resvRoom = await prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } , created_at: true} })
     const totalRoomBillExist = await prisma.invoice.count({
       where: {
         resvRoomId, articleTypeId: 998, AND: [
-          { created_at: { gte: `${resvRoom.reservation.checkInDate.toISOString().split('T')[0]}T00:00:00.000Z` } },
+          { created_at: { gte: `${resvRoom.created_at.toISOString().split('T')[0]}T00:00:00.000Z` } },
           { created_at: { lte: `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z` } }
-        ]
+        ], NOT: [ { created_at: { lte: `${resvRoom.reservation.checkInDate.toISOString()}` } } ]
       }
     })
-    console.log(totalRoomBillExist)
-    const neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
+    let neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
+    if(neededRoomBill === 0) neededRoomBill = 1 //? If the range is 0, it mean it was the first time/ first room price
     console.log(neededRoomBill)
     if (!(neededRoomBill < 0)) {
       for (let i = 0; i < (neededRoomBill - totalRoomBillExist); i++) {

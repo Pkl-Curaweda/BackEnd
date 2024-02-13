@@ -196,11 +196,12 @@ model ResvRoom {
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
   roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
-  roomMaidId       Int 
+  roomMaidId       Int
   billComment      String?        @db.Text
   voucher          Voucher?       @relation(fields: [voucherId], references: [id])
   voucherId        String?
   deleted          Boolean        @default(false)
+  deleted_at       DateTime?
   roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
@@ -209,10 +210,10 @@ model ResvRoom {
 }
 
 model Voucher {
-  id         String     @id
-  abilites   String     @db.Text
-  arithmatic String     @db.Text
-  ResvRoom   ResvRoom[]
+  id            String     @id
+  abilites      String     @db.Text
+  cutPercentage Int
+  ResvRoom      ResvRoom[]
 }
 
 model Reserver {

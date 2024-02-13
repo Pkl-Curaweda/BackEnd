@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, paginateFO, isRoomAvailable } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, paginateFO, isRoomAvailable, generateDeleteDate } = require("../../utils/helper");
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
@@ -8,6 +8,7 @@ const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
+const { addNewInvoiceFromArticle } = require("./M_Invoice");
 
 const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -182,7 +183,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           }
         }
       },
-      orderBy: orderBy && orderBy.orderQuery
+      orderBy: orderBy && orderBy.orderQuery || { created_at: 'desc' }
     })
 
     const roomBoys = await prisma.user.findMany({
@@ -314,9 +315,7 @@ const CreateNewReservation = async (data, user) => {
         manyBaby: data.manyBaby,
         manyNight,
         resvStatus: {
-          connect: {
-            id: data.resvStatusId
-          }
+          connect: { id: data.resvStatusId }
         },
         reservationRemarks: data.reservationRemarks
       }
@@ -365,7 +364,8 @@ const deleteReservationById = async (id, resvRoomId) => {
       prisma.reservation.findFirstOrThrow({ where: { id }, select: { resvRooms: true } }),
       prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId } }),
     ])
-    await prisma.resvRoom.update({ where: { id: resvroomExist.id }, data: { deleted: true } })
+    const deleted_at = generateDeleteDate("deleteResv")
+    await prisma.resvRoom.update({ where: { id: resvroomExist.id }, data: { deleted: true, deleted_at } })
     return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);
@@ -451,7 +451,7 @@ const AddWaitingList = async (reservationId, resvRoomId, request) => {
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
     let currentStat;
-    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { roomId: true } } } });
+    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: {id: true,  borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { id: true, roomId: true } } } });
     const currentDate = new Date();
     const oldBorderColor = reservation.borderColor;
     const progressColor = ["#16a75c", "#fffc06", "#fe0001"]
@@ -466,10 +466,10 @@ const ChangeReservationProgress = async (id, changeTo) => {
         progressIndex = 1
         if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
+        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {
           await changeRoomStatusByDescription(room.roomId, "OC")
         }
-        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkInDate = currentDate
         break;
       case 'checkout':
@@ -488,6 +488,8 @@ const ChangeReservationProgress = async (id, changeTo) => {
     if (changeTo != 'reservation') {
       roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
       resvRooms.forEach(async room => {
+        console.log(room)
+        if(changeTo != "checkout") await addNewInvoiceFromArticle([], reservation.id, room.id)
         await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
       })
     }

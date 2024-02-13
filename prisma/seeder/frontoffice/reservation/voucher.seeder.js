@@ -4,8 +4,13 @@ const vouchers = [
     {
         id: process.env.COMP_VOUCHER,
         abilites: "100% diskon to arrangment",
-        arithmatic: "* 1000 / 100"
-    }
+        cutPercentage: 100
+    },
+    {
+        id: "NEWYEARNEWME",
+        abilites: "50% diskon to arrangment",
+        cutPercentage: 50
+    },
 ];
 async function VoucherSeed() {
     for (let voucher of vouchers) {
