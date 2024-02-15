@@ -468,7 +468,7 @@ model OooOmRoom {
 model Stock {
   id            Int         @id @default(autoincrement())
   articleType   ArticleType @relation(fields: [articleTypeId], references: [id])
-  articleTypeId Int
+  articleTypeId Int         @unique
   remain        Int
   rStock        Int
 }

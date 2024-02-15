@@ -1,7 +1,10 @@
+const { ar } = require("@faker-js/faker");
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, generateBalanceAndTotal, countDPP, generateSubtotal, generateTotal, generateItemPrice, splitDateTime, countISORange } = require("../../utils/helper");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
+const { reduceRemainingStock, getAvailableArticleAndStock } = require("../House Keeping/M_Stock");
 const { countAfterVoucher } = require("./M_Voucher");
+const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 
 const sortInvoice = (ident = "paid", ascDesc = "asc") => {
   try {
@@ -25,7 +28,6 @@ const sortInvoice = (ident = "paid", ascDesc = "asc") => {
         orderBy = { [ident]: ascDesc }
         break;
     }
-    console.log(orderBy)
     return { orderBy }
   } catch (err) {
     ThrowError(err.message)
@@ -36,31 +38,28 @@ const sortInvoice = (ident = "paid", ascDesc = "asc") => {
 const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
   try {
     let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc, orderBy, startDate, endDate;
-    const [resvRoom, artList] = await prisma.$transaction([
-      prisma.resvRoom.findFirstOrThrow({
-        where: { id: resvRoomId, reservationId },
-        select: {
-          id: true,
-          arrangment: {
-            select: {
-              rate: true,
-            },
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({
+      where: { id: resvRoomId, reservationId },
+      select: {
+        id: true,
+        arrangment: {
+          select: {
+            rate: true,
           },
-          voucherId: true,
-          roomMaids: { select: { user: { select: { name: true } } } },
-          reservation: {
-            select: {
-              arrivalDate: true,
-              departureDate: true,
-              reserver: {
-                select: { guestId: true },
-              },
+        },
+        voucherId: true,
+        roomMaids: { select: { user: { select: { name: true } } } },
+        reservation: {
+          select: {
+            arrivalDate: true,
+            departureDate: true,
+            reserver: {
+              select: { guestId: true },
             },
           },
         },
-      }),
-      prisma.articleType.findMany({ select: { id: true, description: true, price: true } })
-    ])
+      },
+    })
     if (date) {
       startDate = date.split('T')[0];
       endDate = date.split('T')[1];
@@ -75,7 +74,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         resvRoomId,
         ...(date && { created_at: { gte: `${startDate}T00:00:00.000Z`, lte: `${endDate}T23:59:59.999Z` } })
       },
-      select: { id: true, paid: true, created_at: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
+      select: { id: true, paid: true, created_at: true, articleType: { select: { id: true, description: true, price: true, Stock: { select: { remain: true } } } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
       ...(orderBy != false && { ...orderBy } || { orderBy: { paid: 'desc' } })
     })
 
@@ -118,6 +117,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
     if (search != undefined) invoices = searchInvoice(invoices, search)
     invoices = invoices.slice(startIndex, endIndex + 1);
 
+    const artList = await getAvailableArticleAndStock()
     return {
       invoices,
       added: {
@@ -202,26 +202,26 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true, checkInDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true } } } })
-    if(resvRoom.reservation.checkInDate === null) throw Error('Reseration must be Check In before adding another Invoice')
+    if (resvRoom.reservation.checkInDate === null) throw Error('Reseration must be Check In before adding another Invoice')
     await checkInvoiceRoom(resvRoomId).then(data => {
-      for(let dt of data) b.push(dt)
+      for (let dt of data) b.push(dt)
     })
-    console.log(addedArticle)
     let dateUsed, dateReturn, rate
     for (let body of b) {
       if (!(body.qty <= 0)) {
         if (body.articleId != 998) {
-          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true } })
+          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true, id: true } })
           dateUsed = resvRoom.reservation.arrivalDate;
           dateReturn = resvRoom.reservation.departureDate;
           rate = art.price
+          await reduceRemainingStock(art.id, body.qty)
         } else rate = resvRoom.voucherId != null ? await countAfterVoucher(resvRoom.arrangment.rate, resvRoom.voucher.id) : resvRoom.arrangment.rate
         const resvArt = await prisma.invoice.create({
           data: {
             resvRoom: {
               connect: { id: resvRoomId }
             },
-            room:{
+            room: {
               connect: { id: resvRoom.roomId }
             },
             qty: body.qty,
@@ -233,7 +233,7 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
             rate
           }
         })
-        if(body.articleId != 998) await genearateListOfTask("GUEREQ", resvRoom.roomId, `Room ${resvRoom.roomId} need ${resvArt.qty}`, resvArt.articleTypeId, resvArt.qty)
+        if (body.articleId != 998) await genearateListOfTask("GUEREQ", resvRoom.roomId, `Room ${resvRoom.roomId} need ${resvArt.qty}`, resvArt.articleTypeId, resvArt.qty)
         addedArticle.push(resvArt)
       } else continue
     }
@@ -249,17 +249,17 @@ const checkInvoiceRoom = async (resvRoomId) => {
   try {
     let roomBill = []
     const currentDate = new Date()
-    const resvRoom = await prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } } , created_at: true} })
+    const resvRoom = await prisma.resvRoom.findFirst({ where: { id: resvRoomId }, select: { reservation: { select: { checkInDate: true } }, created_at: true } })
     const totalRoomBillExist = await prisma.invoice.count({
       where: {
         resvRoomId, articleTypeId: 998, AND: [
           { created_at: { gte: `${resvRoom.created_at.toISOString().split('T')[0]}T00:00:00.000Z` } },
           { created_at: { lte: `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z` } }
-        ], NOT: [ { created_at: { lte: `${resvRoom.reservation.checkInDate.toISOString()}` } } ]
+        ], NOT: [{ created_at: { lte: `${resvRoom.reservation.checkInDate.toISOString()}` } }]
       }
     })
     let neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
-    if(neededRoomBill === 0) neededRoomBill = 1 //? If the range is 0, it mean it was the first time/ first room price
+    if (neededRoomBill === 0) neededRoomBill = 1 //? If the range is 0, it mean it was the first time/ first room price
     console.log(neededRoomBill)
     if (!(neededRoomBill < 0)) {
       for (let i = 0; i < (neededRoomBill - totalRoomBillExist); i++) {

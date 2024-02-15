@@ -22,9 +22,11 @@ const Stocks =[
 ]
 
 async function StockSeed(){
-    for(stock of Stocks){
-        await prisma.stock.create({
-            data: stock
+    for(let stock of Stocks){
+        await prisma.stock.upsert({
+            where: { articleTypeId:  stock.articleTypeId},
+            update: { ...stock },
+            create: { ...stock }
         })
     }
 }
