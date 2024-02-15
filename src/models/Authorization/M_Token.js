@@ -21,7 +21,6 @@ const CheckToken = async (type, refreshToken) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     token = await tokenClient.findUniqueOrThrow({ where: { refreshToken } });
-    console.log(token)
     if (!token) throw Error('Invalid refresh token')
     if (Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
     return token;

@@ -15,7 +15,7 @@ const reduceRemainingStock = async (articleTypeId, used) => {
 const getAvailableArticleAndStock = async (perPage, page) => {
     try{
         const listOfArticle = []
-        const article = await prisma.articleType.findMany({ select: { id: true, price: true, description: true, Stock: { select: { remain: true } } } })
+        const article = await prisma.articleType.findMany({ where: { NOT: [ { id: { gte: 998 } }] }, select: { id: true, price: true, description: true, Stock: { select: { remain: true } } }, orderBy: { id: 'asc' }, take: +perPage, skip: (skip - 1) * perPage })
         for(let art of article){
             listOfArticle.push({
                 id: art.id,

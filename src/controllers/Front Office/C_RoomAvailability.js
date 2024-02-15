@@ -22,21 +22,4 @@ const CreateLog = async (req, res) => {
 
 }
 
-//?DAILY REPORT
-const dailyReport = async () => {
-  const currDate = new Date();
-  schedule.scheduleJob('logs', '0 0 * * *', async () => {
-    console.log('Running schedule....')
-    await createNewLogAvailable().then(() => {
-      console.log(`Log created for ${currDate}`)
-      console.log('Schedule end...')
-    }).catch((err) => {
-      console.log(err.message)
-      schedule.cancelJob('logs')
-    })
-  })
-}
-
-dailyReport();
-
 module.exports = { getRoomAvailability, CreateLog };

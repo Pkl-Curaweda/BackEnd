@@ -88,7 +88,6 @@ async function create(req, res) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.message, res);
     }
-    console.log(error)
     return errorResponse(res, 'Internal server error', error.message, 500);
   }
 }

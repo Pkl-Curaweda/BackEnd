@@ -8,7 +8,6 @@ const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 
 const sortInvoice = (ident = "paid", ascDesc = "asc") => {
   try {
-    console.log(ident)
     switch (ident) {
       case "art":
         orderBy = { articleTypeId: ascDesc }
@@ -35,7 +34,7 @@ const sortInvoice = (ident = "paid", ascDesc = "asc") => {
 }
 
 //?This one is only the invoice is by the room/ per resvRoom
-const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date) => {
+const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date, articlePage, articlePerPage) => {
   try {
     let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc, orderBy, startDate, endDate;
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({
@@ -68,7 +67,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       [ident, ascDesc] = sortIdentifier.split('-')
       orderBy = sortInvoice(ident, ascDesc);
     }
-    console.log(startDate, endDate)
     const inv = await prisma.invoice.findMany({
       where: {
         resvRoomId,
@@ -117,7 +115,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
     if (search != undefined) invoices = searchInvoice(invoices, search)
     invoices = invoices.slice(startIndex, endIndex + 1);
 
-    const artList = await getAvailableArticleAndStock()
+    const artList = await getAvailableArticleAndStock(+articlePerPage, +articlePage)
     return {
       invoices,
       added: {
@@ -260,7 +258,6 @@ const checkInvoiceRoom = async (resvRoomId) => {
     })
     let neededRoomBill = countISORange(resvRoom.reservation.checkInDate, currentDate)
     if (neededRoomBill === 0) neededRoomBill = 1 //? If the range is 0, it mean it was the first time/ first room price
-    console.log(neededRoomBill)
     if (!(neededRoomBill < 0)) {
       for (let i = 0; i < (neededRoomBill - totalRoomBillExist); i++) {
         roomBill.push({

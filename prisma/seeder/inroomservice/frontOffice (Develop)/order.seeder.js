@@ -16,17 +16,13 @@ const orders = [{
 }];
 
 const orderSeeder = async () => {
-    try {
-        for (let order of orders) {
-            order.id = generateId()
-            await prisma.order.createMany({
-                data: order
-            });
-            await orderDetailSeeder(order.id);
-            await transactionSeeder(order.id)
-        }
-    } catch (err) {
-        console.log(err)
+    for (let order of orders) {
+        order.id = generateId()
+        await prisma.order.createMany({
+            data: order
+        });
+        await orderDetailSeeder(order.id);
+        await transactionSeeder(order.id)
     }
 }
 

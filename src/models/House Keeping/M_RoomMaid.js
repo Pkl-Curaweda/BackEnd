@@ -160,7 +160,6 @@ const getRoomMaidReport = async (q) => {
                 departure: r ? splitDateTime(r.reservation.departureDate).date : '',
                 remarks: r ? r.reservation.reservationRemarks : ''
             })
-            console.log(reports)
         }
         if (sortOrder != undefined) {
             switch (sortOrder) {
@@ -209,7 +208,6 @@ const countActual = async (startTime, endTime) => {
     let actual = 0, UoM = "Minute"
     try {
         actual = getTimeDifferenceInMinutes(startTime, endTime)
-        console.log(actual)
         if (actual > 60) {
             UoM = "Hour"
             actual = parseInt(actual / 60)
@@ -227,7 +225,6 @@ const countTaskPerformance = async (taskId, spvPerformance) => {
         const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, select: { endTime: true, startTime: true, type: { select: { standardTime: true } } } })
         const minutes = getTimeDifferenceInMinutes(task.startTime, task.endTime)
         const maidPerfomance = getMaidPerfomance(minutes, task.type.standardTime)
-        console.log(spvPerformance, maidPerfomance)
         return parseInt((spvPerformance + maidPerfomance) / 2)
     } catch (err) {
         ThrowError(err)

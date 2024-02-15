@@ -66,8 +66,6 @@ const getFloorPlanByDate = async (dateRange) => {
       }
     })
 
-    console.log(resv)
-
     for(let res of resv){
       listRoom[res.roomId - 101].roomStatus = {
         rowColor: res.reservation.specialTreatmentId != null ? res.reservation.specialTreatment.rowColor : "#f8fdf7",

@@ -126,7 +126,6 @@ async function all(option) {
     graph.lost = lost
     const list = []
     for (let lf of lostFounds) {
-      console.log(lf)
       const { date, time } = splitDateTime(lf.created_at)
       list.push({
         date, time,

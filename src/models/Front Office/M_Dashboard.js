@@ -74,7 +74,6 @@ const getChart = async () => {
             select: { roomId: true, reservation: { select: { inHouseIndicator: true, arrivalDate: true, departureDate: true, checkInDate: true, checkoutDate: true, created_at: true, inHouseIndicator: true } } }
         })
 
-        console.log(resvRoom, dts)
         // dts.reverse()
         for (dt of dts) {
             let data = { nw: 0, ci: 0, co: 0 }

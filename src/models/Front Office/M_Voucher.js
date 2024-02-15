@@ -18,10 +18,8 @@ const isVoucherValid = async (id) => {
 
 const setVoucher = async (voucherId, resvRoomId, userId) => {
     try {
-        console.log(voucherId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
         const validVoucher = await isVoucherValid(voucherId)
-        console.log(validVoucher)
         if(validVoucher === false) return false
         if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
             room: {

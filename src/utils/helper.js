@@ -556,7 +556,6 @@ const getWorkingShifts = async (currentTime) => {
 
 const getLowestWorkloadShift = async (currentHourFormat) => {
   // currentHourFormat = "11:40"
-  console.log(currentHourFormat)
   const roomMaid = await prisma.roomMaid.findFirst({
     where: {
       NOT: [{ workload: { gte: 480 } }],
@@ -675,10 +674,17 @@ const countNotificationTime = (newestDate, time) => {
   try {
     const timeDiff = newestDate - time;
     const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
 
-    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-  } catch (err) { ThrowError(err) }
-}
+    if (hours > 0) {
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    } else {
+      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+    }
+  } catch (err) {
+    ThrowError(err);
+  }
+};
 
 const countISORange = (startISO, endISO) => {
   try {

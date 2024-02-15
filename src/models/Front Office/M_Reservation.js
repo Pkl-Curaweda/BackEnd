@@ -3,7 +3,7 @@ const { ThrowError, PrismaDisconnect, countNight, generateBalanceAndTotal, pagin
 const { CreateNewGuest } = require("../Authorization/M_Guest");
 const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
-const { getAllAvailableRoom, changeRoomStatusByDescription } = require("../House Keeping/M_Room");
+const { getAllAvailableRoom, changeRoomStatusByDescription, changeOccupied } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
@@ -107,7 +107,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       const displayOptionAndQuery = displayByIdentifier(displayOption);
       displayOption = displayOptionAndQuery.displayOption;
       whereQuery = displayOptionAndQuery.whereQuery;
-      console.log(displayOption, whereQuery)
     } else {
       if (dateQuery != "")
         whereDate = {
@@ -469,6 +468,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {
           await changeRoomStatusByDescription(room.roomId, "OC")
+          await changeOccupied(room.roomId, true)
         }
         reservation.checkInDate = currentDate
         break;
@@ -477,6 +477,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
         for (let room of reservation.resvRooms) {
           await changeRoomStatusByDescription(room.roomId, "VD")
+          await changeOccupied(room.roomId, false)
         }
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
@@ -485,20 +486,18 @@ const ChangeReservationProgress = async (id, changeTo) => {
       default:
         throw Error("No Progress Sync");
     }
-    if (changeTo != 'reservation') {
-      roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
-      resvRooms.forEach(async room => {
-        console.log(room)
-        if(changeTo != "checkout") await addNewInvoiceFromArticle([], reservation.id, room.id)
-        await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
-      })
-    }
     delete reservation.resvRooms
     reservation.inHouseIndicator = changeTo != 'checkin' ? false : true
     reservation.borderColor = progressColor[progressIndex];
     reservation.onGoingReservation = changeTo != 'checkout' ? true : false
-    console.log(reservation)
     const updatedReservation = await prisma.reservation.update({ where: { id }, data: reservation })
+    if (changeTo != 'reservation') {
+      roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
+      resvRooms.forEach(async room => {
+        if(changeTo != "checkout") await addNewInvoiceFromArticle([], reservation.id, room.id)
+        await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
+      })
+    }
     return { message: `Status Change to ${progressName[progressIndex]}`, oldBorderColor, newBorderColor: updatedReservation.borderColor, checkInDate: updatedReservation.checkInDate, checkOutDate: updatedReservation.checkoutDate }
   } catch (err) {
     ThrowError(err)

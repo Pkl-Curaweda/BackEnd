@@ -84,14 +84,11 @@ const paidInvoice = async (invoiceId) => {
 const createResvPayment = async (reservationId, resvRoomId, data) => {
     let paidArticle = [], totalBill = 0, totalTax = 0, { invoices, paidAmount, paymentMethod, useTax } = data
     try {
-        // console.log(data)
         await prisma.resvRoom.findFirstOrThrow({ where: { reservationId, id: resvRoomId } });
         for (let dt of invoices) {
-            console.log('================', dt)
             if (useTax != false) totalTax += (dt.amount * 21) / 100 //TODO: NEED TO BE CHANGED
             paidAmount -= (dt.amount + totalTax)
             totalBill += dt.amount
-            console.log(paidAmount, totalBill, totalTax)
 
             //? Check if the amount of paid are enought to paid invoice
             //?if not then finish the for loop and only pay invoice that can be paid

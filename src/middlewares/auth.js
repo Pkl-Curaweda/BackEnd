@@ -41,7 +41,6 @@ const auth = (roles) => async (req, res, next) => {
         req.user = userData
         next();
     } catch (err) {
-        console.log(err)
         return error(res, err.message, 401);
     }
 }

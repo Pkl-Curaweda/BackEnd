@@ -7,9 +7,9 @@ const { error, success } = require("../../utils/response");
 
 const getInvoice = async (req, res) => {
   const { reservationId, resvRoomId } = req.params;
-  const { page = 1, perPage = 5, sort, search, date } = req.query;
+  const { page = 1, perPage = 5, sort, search, date , artPage, artPerPage} = req.query;
   try {
-    const invoices = await GetInvoiceByResvRoomId(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage), search, date);
+    const invoices = await GetInvoiceByResvRoomId(parseInt(reservationId), parseInt(resvRoomId), sort, parseInt(page), parseInt(perPage), search, date, artPage, artPerPage);
     return success(res, `Showing Invoice from Reservation ${resvRoomId}`, invoices);
   } catch (err) {
     return error(res, err.message);
@@ -41,7 +41,7 @@ const postNewInvoice = async (req, res) => {
   const { reservationId = 1, resvRoomId = 1, identifier } = req.params;
   const body = req.body;
   try {
-    const createdInvoice = identifier != "order" ? await addNewInvoiceFromArticle(body, parseInt(reservationId), parseInt(resvRoomId)) : await addNewInvoiceFromOrder(body.items, +reservationId, +resvRoomId)
+    const createdInvoice = identifier != "order" ? await addNewInvoiceFromArticle(body, parseInt(reservationId), parseInt(resvRoomId)) : await addNewInvoiceFromOrder(body.items, +reservationId, +resvRoomId, )
     return success(res, `New Invoice Created`, createdInvoice)
   } catch (err) {
     return error(res, err.message)
