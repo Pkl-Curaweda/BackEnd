@@ -11,7 +11,7 @@ const getAllNotification = async (req, res) => {
     }
 }
 
-const getUnreadMessage = async (req, res) => {
+const getTotalUnread = async (req, res) => {
     try {
         const value = await notification.getUnreadTotal(req.user.lastCheckNotif)
         return success(res, 'Value shown', {value})
@@ -19,4 +19,13 @@ const getUnreadMessage = async (req, res) => {
         return error(res, err.message)
     }
 }
-module.exports = { getAllNotification, getUnreadMessage }
+
+const readMessage = async (req, res) => {
+    try{
+        const updateUser = await notification.changeLatestCheckNotif(req.user.id)
+        return success(res, 'Message readed', updateUser)
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+module.exports = { getAllNotification, getTotalUnread, readMessage }

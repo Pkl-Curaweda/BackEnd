@@ -8,13 +8,23 @@ const get = async (userData) => {
         const notifications = await prisma.notification.findMany({ where: {
             created_at: {  gte: userData.lastCheckNotif}
         }, select: { content: true, created_at: true }, orderBy: { created_at: 'desc' }, take: 5 })
-        console.log(notifications)
         const listNotification = notifications.map(notif => ({
             content: notif.content,
             time: currentDate === splitDateTime(notif.created_at).date ? countNotificationTime(dateRef, notif.created_at) : splitDateTime(notif.created_at).date
         }))
-        await prisma.user.update({ where: { id: userData.id } , data:{ lastCheckNotif: new Date().toISOString() }})
         return listNotification
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+const changeLatestCheckNotif = async (userId) => {
+    try{
+        return await prisma.user.update({ where: { id: +userId },  data: {
+            lastCheckNotif: new Date().toISOString()
+        }})
     }catch(err){
         ThrowError(err)
     }finally{
@@ -40,4 +50,4 @@ const createNotification = async (data = { content: '' }) => {
     }
 }
 
-module.exports = { get, createNotification, getUnreadTotal }
+module.exports = { get, createNotification, getUnreadTotal, changeLatestCheckNotif }
