@@ -7,11 +7,11 @@ const ChangeRoom = async (id, reservationId, body) => {
     const [resvRoom, room] = await prisma.$transaction([
       prisma.resvRoom.findFirstOrThrow({
         where: { id, reservationId },
-        select: { room: { select: { id: true, rate: true}}},
+        select: { room: { select: { id: true, rate: true } } },
       }),
       prisma.room.findFirstOrThrow({ where: { id: body.roomId }, select: { rate: true } })
     ])
-    if(body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
+    if (body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
     await isArrangementMatch(body.roomId, body.arrangmentCodeId)
     const changeRoomLog = await prisma.roomChange.create({
       data: {
@@ -27,8 +27,7 @@ const ChangeRoom = async (id, reservationId, body) => {
         where: { id },
         data: { roomId: body.roomId, arrangmentCodeId: body.arrangmentCodeId },
       }),
-      
-      ({
+      prisma.room.update({
         where: { id: body.roomId },
         data: {
           occupied_status: true,
@@ -40,7 +39,7 @@ const ChangeRoom = async (id, reservationId, body) => {
     return { updatedResvRoom, changeRoomLog, updatedRoom };
   } catch (err) {
     ThrowError(err);
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 };
@@ -49,7 +48,7 @@ const getAllRoomChange = async (q) => {
   let { page = 1, perPage = 5, from, to } = q
   let roomChangeData = [];
   if (from === undefined) from = splitDateTime(new Date().toISOString()).date
-  if (to === undefined){
+  if (to === undefined) {
     to = new Date()
     to = splitDateTime(to.setDate(new Date(from).getDate() + 7)).date
   }

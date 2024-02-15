@@ -3,12 +3,12 @@ const { ThrowError, PrismaDisconnect, splitDateTime, countNotificationTime } = r
 
 const get = async (userData) => {
     try{
-        console.log('masuk kah?')
         const dateRef = new Date()
         const currentDate = splitDateTime(dateRef).date
         const notifications = await prisma.notification.findMany({ where: {
-            created_at: {  gte: userData.lastCheckNotif }
+            created_at: {  gte: userData.lastCheckNotif}
         }, select: { content: true, created_at: true }, orderBy: { created_at: 'desc' }, take: 5 })
+        console.log(notifications)
         const listNotification = notifications.map(notif => ({
             content: notif.content,
             time: currentDate === splitDateTime(notif.created_at).date ? countNotificationTime(dateRef, notif.created_at) : splitDateTime(notif.created_at).date

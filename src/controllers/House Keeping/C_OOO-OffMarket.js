@@ -24,7 +24,7 @@ async function create(req, res) {
   try {
     req.body.userId = req.user.id
     const oooRoom = await oooRoomRepository.createOooRoom(req.body.xType, req.body)
-    return success(res, 'OOO Created Successfully', oooRoom)
+    return success(res, `${req.body.xType} Created Successfully`, oooRoom)
   }
   catch (e) {
     return error(res, e)

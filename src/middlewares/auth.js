@@ -39,7 +39,6 @@ const auth = (roles) => async (req, res, next) => {
             if (!isAllowed) return error(res, 'Forbidden, you are not allowed access this resource', 403);
         }
         req.user = userData
-        console.log(req.user)
         next();
     } catch (err) {
         console.log(err)
