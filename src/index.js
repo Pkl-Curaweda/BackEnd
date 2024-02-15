@@ -4,6 +4,8 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require('body-parser');
 const morgan = require('morgan')
 const cors = require('cors')
+const rateLimit = require('express-rate-limit');
+
 
 // routers
 const R_Login = require("./routes/R_Login");
@@ -35,6 +37,13 @@ app.use(bodyParser.urlencoded({
   extended: true,
 }),
 );
+app.use(rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 30,
+  message: {
+    message: 'Too many request, please slow down'
+  }
+}));
 
 // scheduleInvoiceReservation()
 
