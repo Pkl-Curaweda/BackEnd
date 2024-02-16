@@ -13,6 +13,21 @@ const listOfProfilePict = [
 ]
 
 const users = [
+  //! SUPER ADMIN
+  {
+    name: "Super Admin",
+    gender: "MALE",
+    phone: "08123456789",
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
+    email: "superadmin1@gmail.com",
+    nik: "1234567890123456",
+    birthday: new Date("1990-01-01"),
+    username: faker.internet.userName(),
+    password: "password",
+    roleId: 1,
+    created_at: new Date(),
+    updated_at: new Date(),
+  },
 
   //! ADMIN
   {

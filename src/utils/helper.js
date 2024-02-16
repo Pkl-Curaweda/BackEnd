@@ -597,6 +597,9 @@ const isDateInRange = (date, rangeStart, rangeEnd) => {
 const loginPath = (ident) => {
   let path
   switch (ident) {
+    case "Super Admin":
+      path = '/fo/super-admin'
+      break;
     case "Admin":
       path = `/`
       break;

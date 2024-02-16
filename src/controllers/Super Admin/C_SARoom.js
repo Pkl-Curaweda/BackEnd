@@ -1,5 +1,5 @@
-const { upsertRoom, getSARoom } = require("../../models/House Keeping/M_Room")
-const { error } = require("../../utils/response")
+const { addEditRoom, getSARoom, deleteRoom } = require("../../models/Super Admin/M_SARoom")
+const { error, success } = require("../../utils/response")
 
 const get = async () => {
     try {
@@ -9,13 +9,32 @@ const get = async () => {
     }
 }
 
-const addEditRoom = async (req, res) => {
-    const { id } = req.params
+const postAddEdit = async (req, res) => {
     try {
-        const room = await upsertRoom(id, req.body)
+        const room = await addEditRoom(req.body, req.params.action)
     } catch (err) {
         return error(res, err.message)
     }
 }
 
-module.exports = { get, addEditRoom }
+const deleteData = async (req, res) => {
+    let { id, item } = req.params, deleted
+    try{
+        switch(item){
+            case "room":
+                deleted = await deleteRoom(+id)
+                break;
+            case "room-type":
+                break;
+            case "arrangment":
+                break;
+            default:
+                throw Error('Cannot be deleted')
+        }
+        return success(res, deleted.message, deleted.data)
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+
+module.exports = { get, postAddEdit, deleteData }

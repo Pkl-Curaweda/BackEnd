@@ -18,6 +18,7 @@ const { success, error } = require("./utils/response");
 const R_IMPPS = require("./routes/R_IMPPS");
 const { scheduleInvoiceReservation } = require("./schedule/daily-schedule");
 const { auth } = require("./middlewares/auth");
+const R_SA = require("./routes/R_SuperAdmin");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -60,6 +61,7 @@ app.get('/dashboard', auth(['Admin']), async (req, res) => {
     return error(res, err.message)
   }
 })
+app.use('/sa', R_SA)
 app.use("/fo", R_FrontOffice);
 app.use('/hk', R_HouseKeeping)
 app.use('/impps', R_IMPPS)

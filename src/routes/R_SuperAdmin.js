@@ -6,5 +6,7 @@ const R_SA = Router()
 R_SA.use(auth(['Super Admin']))
 
 R_SA.get('/room', SARoom.get)
+R_SA.post('/room', SARoom.postAddEdit)
+R_SA.delete('/room/:item/:id', SARoom.deleteData)
 
-module.exports = R_Notif
+module.exports = R_SA

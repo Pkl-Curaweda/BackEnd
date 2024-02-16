@@ -2,7 +2,7 @@ const { create } = require("qrcode")
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts, getLowestWorkloadShift } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
-const { countTaskPerformance, countActual, resetRoomMaid } = require("../M_RoomMaid")
+const { countTaskPerformance, countActual, resetRoomMaid } = require("./M_RoomMaid")
 const { warnEnvConflicts } = require("@prisma/client/runtime/library")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
@@ -62,7 +62,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
             currentSchedule = formatToSchedule(currentSchedule, workload)
-            
+
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
             lowestRoomMaidId = choosenMaid.id
             lowestWorkload = choosenMaid.workload

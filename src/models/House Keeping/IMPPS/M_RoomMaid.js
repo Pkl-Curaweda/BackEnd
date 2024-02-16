@@ -1,6 +1,6 @@
 const { randomInt } = require("crypto")
-const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect, splitDateTime, generatePercentageValues, getTimeDifferenceInMinutes, getMaidPerfomance } = require("../../utils/helper")
+const { prisma } = require("../../../../prisma/seeder/config")
+const { ThrowError, PrismaDisconnect, splitDateTime, generatePercentageValues, getTimeDifferenceInMinutes, getMaidPerfomance } = require("../../../utils/helper")
 const { getTime } = require("date-fns")
 
 const getAllRoomMaid = async () => {
@@ -96,7 +96,7 @@ const getRoomMaidTaskById = async (id, q) => {
                 comments: mTask.comment ? mTask.comment : "-"
             };
         })
-        return { maidName: roomMaid.user.name ,performance: maidPerfomance, listTask }
+        return { maidName: roomMaid.user.name, performance: maidPerfomance, listTask }
     } catch (err) {
         ThrowError(err)
     } finally {

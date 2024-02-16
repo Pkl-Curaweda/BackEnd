@@ -19,16 +19,7 @@ const getAllAvailableRoom = async () => {
     }
 }
 
-const getSARoom = async () => {
-    try {
-        const rooms = await prisma.room.findMany({ select: { id: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } })
-        console.log(rooms)
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
+
 
 const getAllRoomStatus = async () => {
     try {
@@ -47,19 +38,6 @@ const getRoomStatWithId = async (id) => {
         if (id) room = await prisma.room.findFirstOrThrow({ where: { id: parseInt(id) }, select: { roomStatus: true } })
         allStat = await prisma.roomStatus.findMany()
         return { room, allStat }
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
-
-const upsertRoom = async (id, data) => {
-    try {
-        return await prisma.room.upsert({
-            where: { id },
-            update: data, create: data
-        })
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -89,4 +67,4 @@ const changeOccupied = async (roomId, value) => {
     }
 }
 
-module.exports = { getAllAvailableRoom, getRoomStatWithId, getAllRoomStatus, changeRoomStatusByDescription, changeOccupied, upsertRoom, getSARoom }
+module.exports = { getAllAvailableRoom, getRoomStatWithId, getAllRoomStatus, changeRoomStatusByDescription, changeOccupied }

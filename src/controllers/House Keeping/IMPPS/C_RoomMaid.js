@@ -1,6 +1,6 @@
 const { assignCleaningTask, assignTask, genearateListOfTask, taskAction, updateTask } = require("../../../models/House Keeping/IMPPS/M_MaidTask")
 const { isSupervisor } = require("../../../models/House Keeping/IMPPS/M_Supervisor")
-const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid, createRoomMaid, isRoomMaid } = require("../../../models/House Keeping/M_RoomMaid")
+const { resetRoomMaid, getRoomMaidTaskById, getAllRoomMaid, createRoomMaid, isRoomMaid } = require("../../../models/House Keeping/IMPPS/M_RoomMaid")
 const { ThrowError } = require("../../../utils/helper")
 const { error, success } = require("../../../utils/response")
 

@@ -5,7 +5,7 @@ const { CreateNewReserver } = require("./M_Reserver");
 const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRoom");
 const { getAllAvailableRoom, changeRoomStatusByDescription, changeOccupied } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
-const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
+const { assignRoomMaid } = require("../House Keeping/IMPPS/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
@@ -450,7 +450,7 @@ const AddWaitingList = async (reservationId, resvRoomId, request) => {
 const ChangeReservationProgress = async (id, changeTo) => {
   try {
     let currentStat;
-    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: {id: true,  borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { id: true, roomId: true } } } });
+    const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { id: true, borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { id: true, roomId: true } } } });
     const currentDate = new Date();
     const oldBorderColor = reservation.borderColor;
     const progressColor = ["#16a75c", "#fffc06", "#fe0001"]
@@ -494,7 +494,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
     if (changeTo != 'reservation') {
       roomStatusId = changeTo === 'checkin' ? 5 : 3 //?Occupied Clean or Vacant Dirty
       resvRooms.forEach(async room => {
-        if(changeTo != "checkout") await addNewInvoiceFromArticle([], reservation.id, room.id)
+        if (changeTo != "checkout") await addNewInvoiceFromArticle([], reservation.id, room.id)
         await prisma.room.update({ where: { id: room.roomId }, data: { roomStatusId } })
       })
     }

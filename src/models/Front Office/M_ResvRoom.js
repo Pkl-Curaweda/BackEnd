@@ -1,6 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateVoucherNo, getWorkingShifts, isRoomAvailable, isArrangementMatch, generateDeleteDate } = require("../../utils/helper");
-const { assignRoomMaid } = require("../House Keeping/M_RoomMaid");
+const { assignRoomMaid } = require("../House Keeping/IMPPS/M_RoomMaid");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 

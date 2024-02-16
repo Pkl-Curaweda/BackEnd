@@ -61,15 +61,44 @@ const addEditVoucher = async (body, act) => {
             expired_at: body.expireAt
         }
         if (data.cutPercentage > 100) throw Error('Discount cannot set higher more than 100')
-        if(act === "add"){
+        if (act === "add") {
             const exist = await prisma.voucher.findFirst({ where: { id: data.id, expired: false } })
-            if(exist != null) throw Error('Voucher Name Already exist')
+            if (exist != null) throw Error('Voucher Name Already exist')
         }
         return await prisma.voucher.upsert({
             where: { id: data.id },
             create: { ...data },
             update: { ...data }
         })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getDetailVoucherById = async (id) => {
+    try{
+        const voucher = await prisma.voucher.findFirstOrThrow({ where: { id }, select: { id: true, abilites: true, cutPercentage: true, trackComp:true, trackHU: true, expired_at: true } })
+        return {
+            voucherName: voucher.id,
+            description: voucher.abilites,
+            discount: voucher.cutPercentage,
+            complimentary: voucher.trackComp,
+            houseUse: voucher.trackHU,
+            expireAt: voucher.expired_at,
+        }
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+const deleteVoucher = async (id) => {
+    try {
+        await prisma.voucher.findFirstOrThrow({ where: { id } })
+        return await prisma.voucher.delete({ where: { id } })
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -90,17 +119,17 @@ const getAllVoucher = async (q) => {
                         { expired_at: { lte: `${endDate}T23:59:59.999Z` } }
                     ]
                 })
-            }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true },
+            }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true, rowColor: true },
             orderBy: { created_at: 'desc' }
         })
-        console.log(vouchers)
         vouchers = vouchers.map(voucher => ({
             voucherName: voucher.id,
             description: voucher.abilites,
             discount: `${voucher.cutPercentage}%`,
             complimentary: voucher.trackComp ? "✅" : "❎",
             houseUse: voucher.trackHU ? "✅" : "❎",
-            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '-'
+            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '-',
+            rowColor: voucher.rowColor
         }))
         return vouchers
     } catch (err) {
@@ -110,4 +139,4 @@ const getAllVoucher = async (q) => {
     }
 }
 
-module.exports = { isVoucherValid, setVoucher, countAfterVoucher, addEditVoucher, getAllVoucher }
+module.exports = { isVoucherValid, setVoucher, countAfterVoucher, addEditVoucher, getAllVoucher, deleteVoucher, getDetailVoucherById }
