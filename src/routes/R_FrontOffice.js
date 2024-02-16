@@ -9,7 +9,7 @@ const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
 
 const R_FrontOffice = new Router();
-
+const voucher = require('../controllers/Front Office/C_Voucher')
 //! Only admin that can check Front Office page
 R_FrontOffice.use(auth(['Admin']))
 
@@ -46,5 +46,9 @@ R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
 R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInvoice)
+
+//?VOUCHER
+R_FrontOffice.get("/voucher", voucher.getAll);
+R_FrontOffice.post('/voucher/:action', voucher.postAddEdit)
 
 module.exports = R_FrontOffice;

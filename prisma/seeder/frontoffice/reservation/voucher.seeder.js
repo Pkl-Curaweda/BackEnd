@@ -4,7 +4,9 @@ const vouchers = [
     {
         id: process.env.COMP_VOUCHER,
         abilites: "100% diskon to arrangment",
-        cutPercentage: 100
+        cutPercentage: 100,
+        trackComp: true,
+        trackHU: true
     },
     {
         id: "NEWYEARNEWME",

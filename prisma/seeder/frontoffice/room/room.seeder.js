@@ -7,113 +7,93 @@ const { randomInt } = require("crypto");
 const rooms = [
   {
     id: 101,
-    roomType: "DELUXE",
+    roomTypeId: "DLX",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "KING",
-    rate: "DLX-RO"
   },
   {
     id: 102,
-    roomType: "DELUXE",
+    roomTypeId: "DLX",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "KING",
-    rate: "DLX-RO"
   },
   {
     id: 103,
-    roomType: "DELUXE",
+    roomTypeId: "DLX",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "KING",
-    rate: "DLX-RO"
   },
   {
     id: 104,
-    roomType: "DELUXE",
+    roomTypeId: "DLX",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "KING",
-    rate: "DLX-RO"
   },
   {
     id: 105,
-    roomType: "FAMILY",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "TWIN",
-    rate: "FML-RO"
   },
   {
     id: 106,
-    roomType: "FAMILY",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "TWIN",
-    rate: "FML-RO"
   },
   {
     id: 107,
-    roomType: "FAMILY",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "TWIN",
-    rate: "FML-RO"
   },
   {
     id: 108,
-    roomType: "STANDARD",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "SINGLE",
-    rate: "STD-RO"
   },
   {
     id: 109,
-    roomType: "STANDARD",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "SINGLE",
-    rate: "STD-RO"
   },
   {
     id: 110,
-    roomType: "STANDARD",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
     description: faker.person.bio(),
-    bedSetup: "SINGLE",
-    rate: "STD-RO"
   },
 ];
 

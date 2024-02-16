@@ -193,11 +193,29 @@ async function create(lostFound, image, sender) {
   }
 }
 
-const finishLostFound = async (lostFoundId, sender) => {
+const finishLostFound = async (lostFoundId, sender, status) => {
+  let update
   try {
+    switch (status) {
+      case "FOUND":
+        update = {
+          finished_at: new Date(),
+          userId: sender.id,
+          phoneNumber: sender.phone
+        }
+        break;
+      default:
+        status = "LOST"
+        update = {
+          finished_at: null,
+          userId: null,
+          phoneNumber: null
+        }
+        break;
+    }
     const [exist, lostFound] = await prisma.$transaction([
       prisma.lostFound.findFirstOrThrow({ where: { id: +lostFoundId } }),
-      prisma.lostFound.update({ where: { id: +lostFoundId }, data: { finished_at: new Date(), userId: sender.id, phoneNumber: sender.phone } })
+      prisma.lostFound.update({ where: { id: +lostFoundId }, data: { ...update, status } })
     ])
     return lostFound
   } catch (err) {

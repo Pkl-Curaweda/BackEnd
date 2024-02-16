@@ -28,10 +28,10 @@ async function findOne(req, res) {
   }
 }
 
-async function finish(req, res) {
-  const  { id } = req.params
+async function lostFinish(req, res) {
+  const  { id, status } = req.params
   try{
-    const data = await lostFoundRepository.finishLostFound(id, req.user)
+    const data = await lostFoundRepository.finishLostFound(id, req.user, status)
     return success(res, 'Update Success', data)
   }catch(err){
     return error(res, err.message)
@@ -81,4 +81,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { findAll, findOne, create, update, remove, finish }
+module.exports = { findAll, findOne, create, update, remove, lostFinish }

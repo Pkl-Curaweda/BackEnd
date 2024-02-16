@@ -64,7 +64,7 @@ router.delete('/users/:id', user.remove)
 //Start Lost Found
 router.get('/lostfound/', lostFound.findAll)
 
-router.post('/lostfound/:id', auth(['Room Boy']), lostFound.finish)
+router.post('/lostfound/:id/:status', auth(['Admin']), lostFound.lostFinish)
 router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
 router.delete('/lostfound/:id/:act', lostFound.remove)
 //End Lost Found

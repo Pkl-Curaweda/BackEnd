@@ -26,12 +26,6 @@ enum OrderStatus {
   CANCEL
 }
 
-enum RoomType {
-  DELUXE
-  FAMILY
-  STANDARD
-}
-
 enum StatusProductReq {
   PENDING
   REJECTED
@@ -52,7 +46,6 @@ enum cardIdentifier {
 enum LostFoundStatus {
   LOST
   FOUND
-  ONPROGRESS
 }
 
 enum xTypeRoom {
@@ -214,6 +207,13 @@ model Voucher {
   id            String     @id
   abilites      String     @db.Text
   cutPercentage Int
+  trackComp     Boolean    @default(false)
+  trackHU       Boolean    @default(false)
+  rowColor      String     @default("#FFFFFF")
+  expired       Boolean    @default(false)
+  expired_at    DateTime?
+  updated_at    DateTime   @updatedAt
+  created_at    DateTime   @default(now())
   ResvRoom      ResvRoom[]
 }
 
@@ -236,13 +236,6 @@ model idCard {
   cardIdentifier cardIdentifier
   cardId         String
   address        String         @db.Text
-}
-
-model ArrangmentCode {
-  id       String     @id
-  rate     Float
-  ResvRoom ResvRoom[]
-  Room     Room[]
 }
 
 model Invoice {
@@ -312,20 +305,18 @@ model RoomStatus {
 }
 
 model Room {
-  id              Int            @id @default(autoincrement())
-  roomType        RoomType
+  id              Int          @id @default(autoincrement())
+  roomType        RoomType     @relation(fields: [roomTypeId], references: [id])
+  roomTypeId      String
   roomImage       String
-  roomStatus      RoomStatus     @relation(fields: [roomStatusId], references: [id])
+  roomStatus      RoomStatus   @relation(fields: [roomStatusId], references: [id])
   roomStatusId    Int
-  floor           Int
-  bedSetup        BedType
   description     String
+  floor           Int
   occupied_status Boolean
-  rateCode        ArrangmentCode @relation(fields: [rate], references: [id])
-  rate            String
-  updatedAt       DateTime       @updatedAt
-  roomChangesFrom RoomChange[]   @relation("RoomChangeFrom")
-  roomChangesTo   RoomChange[]   @relation("RoomChangeTo")
+  updatedAt       DateTime     @updatedAt
+  roomChangesFrom RoomChange[] @relation("RoomChangeFrom")
+  roomChangesTo   RoomChange[] @relation("RoomChangeTo")
   order           Order[]
   resvRooms       ResvRoom[]
   cleanRooms      CleanRoom[]
@@ -335,6 +326,24 @@ model Room {
   OooOmRoom       OooOmRoom[]
   Invoice         Invoice[]
   User            User[]
+}
+
+model RoomType {
+  id             String           @id
+  longDesc       String           @db.Text
+  bedSetup       BedType
+  updated_at     DateTime         @updatedAt
+  created_at     DateTime         @default(now())
+  Room           Room[]
+  ArrangmentCode ArrangmentCode[]
+}
+
+model ArrangmentCode {
+  id          String     @id
+  rate        Float
+  matchType   RoomType   @relation(fields: [matchTypeId], references: [id])
+  matchTypeId String
+  ResvRoom    ResvRoom[]
 }
 
 model RoomChange {
@@ -364,9 +373,10 @@ model RoomMaid {
   workload      Int        @default(0)
   department    Department @relation(fields: [departmentId], references: [id])
   departmentId  Int
-  MaidTask      MaidTask[]
   ResvRoom      ResvRoom[]
   updated_at    DateTime   @updatedAt
+  MaidTask      MaidTask[] @relation("assignTo")
+  MaidBefore    MaidTask[] @relation("assignBefore")
 }
 
 model Shift {
@@ -382,28 +392,31 @@ model Shift {
 }
 
 model MaidTask {
-  id          Int           @id @default(autoincrement())
-  room        Room          @relation(fields: [roomId], references: [id])
-  roomId      Int
-  request     String        @db.Text
-  roomMaid    RoomMaid      @relation(fields: [roomMaidId], references: [id])
-  roomMaidId  Int
-  type        TaskType      @relation(fields: [typeId], references: [id])
-  typeId      String
-  schedule    String
-  rowColor    maidTaskColor @default(FFFFFF)
-  finished    Boolean       @default(false)
-  actual      Int?
-  UoM         String?
-  performance Int?
-  startTime   DateTime?
-  endTime     DateTime?
-  checkedTime DateTime?
-  comment     String?       @db.Text
-  status      String?
-  mainStatus  String        @default("WAITING")
-  updated_at  DateTime      @updatedAt
-  created_at  DateTime      @default(now())
+  id                  Int           @id @default(autoincrement())
+  room                Room          @relation(fields: [roomId], references: [id])
+  roomId              Int
+  request             String        @db.Text
+  roomMaid            RoomMaid      @relation(name: "assignTo", fields: [roomMaidId], references: [id])
+  roomMaidId          Int
+  type                TaskType      @relation(fields: [typeId], references: [id])
+  typeId              String
+  schedule            String
+  rowColor            maidTaskColor @default(FFFFFF)
+  finished            Boolean       @default(false)
+  actual              Int?
+  UoM                 String?
+  performance         Int?
+  startTime           DateTime?
+  endTime             DateTime?
+  checkedTime         DateTime?
+  comment             String?       @db.Text
+  status              String?
+  assignToAnotherMaid Boolean?
+  assignedBefore      RoomMaid?     @relation(name: "assignBefore", fields: [assignedBeforeId], references: [id])
+  assignedBeforeId    Int?
+  mainStatus          String        @default("WAITING")
+  updated_at          DateTime      @updatedAt
+  created_at          DateTime      @default(now())
 }
 
 model TaskType {

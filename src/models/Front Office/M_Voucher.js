@@ -1,7 +1,7 @@
 const { base } = require("@faker-js/faker")
 const math = require('mathjs');
 const { prisma } = require("../../../prisma/seeder/config")
-const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
+const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper")
 const { createOooRoom } = require("../House Keeping/M_OOORoom")
 
 const isVoucherValid = async (id) => {
@@ -20,7 +20,7 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
     try {
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
         const validVoucher = await isVoucherValid(voucherId)
-        if(validVoucher === false) return false
+        if (validVoucher === false) return false
         if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
             room: {
                 connect: { id: resvRoom.roomId }
@@ -40,14 +40,74 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
 }
 
 const countAfterVoucher = async (baseline, voucherId) => {
-    try{
+    try {
         let result = baseline
         const voucher = await isVoucherValid(voucherId)
-        if(voucher != null) result -= result * voucher.cutPercentage / 100
+        if (voucher != null) result -= result * voucher.cutPercentage / 100
         return result;
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
     }
 }
 
-module.exports = { isVoucherValid, setVoucher,countAfterVoucher }
+const addEditVoucher = async (body, act) => {
+    try {
+        const data = {
+            id: body.voucherName,
+            abilites: body.description,
+            cutPercentage: body.discount,
+            trackComp: body.complimentary,
+            trackHU: body.houseUse,
+            expired_at: body.expireAt
+        }
+        if (data.cutPercentage > 100) throw Error('Discount cannot set higher more than 100')
+        if(act === "add"){
+            const exist = await prisma.voucher.findFirst({ where: { id: data.id, expired: false } })
+            if(exist != null) throw Error('Voucher Name Already exist')
+        }
+        return await prisma.voucher.upsert({
+            where: { id: data.id },
+            create: { ...data },
+            update: { ...data }
+        })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getAllVoucher = async (q) => {
+    let { date, search } = q, startDate, endDate
+    if (date != undefined) [startDate, endDate] = date.split('T')
+    try {
+        let vouchers = await prisma.voucher.findMany({
+            where: {
+                id: { contains: search },
+                ...(date != undefined && {
+                    AND: [
+                        { expired_at: { gte: `${startDate}T00:00:00.000Z` } },
+                        { expired_at: { lte: `${endDate}T23:59:59.999Z` } }
+                    ]
+                })
+            }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true },
+            orderBy: { created_at: 'desc' }
+        })
+        console.log(vouchers)
+        vouchers = vouchers.map(voucher => ({
+            voucherName: voucher.id,
+            description: voucher.abilites,
+            discount: `${voucher.cutPercentage}%`,
+            complimentary: voucher.trackComp ? "✅" : "❎",
+            houseUse: voucher.trackHU ? "✅" : "❎",
+            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '-'
+        }))
+        return vouchers
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+module.exports = { isVoucherValid, setVoucher, countAfterVoucher, addEditVoucher, getAllVoucher }
