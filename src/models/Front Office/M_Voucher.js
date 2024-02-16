@@ -86,7 +86,7 @@ const getDetailVoucherById = async (id) => {
             discount: voucher.cutPercentage,
             complimentary: voucher.trackComp,
             houseUse: voucher.trackHU,
-            expireAt: voucher.expired_at,
+            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : voucher.expired_at,
         }
     }catch(err){
         ThrowError(err)

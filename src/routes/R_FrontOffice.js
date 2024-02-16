@@ -50,7 +50,7 @@ R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInv
 //?VOUCHER
 R_FrontOffice.get("/voucher", voucher.getAll);
 R_FrontOffice.get('/voucher/:id', voucher.getDetail)
-R_FrontOffice.post('/voucher/:action', voucher.postAddEdit)
+R_FrontOffice.post('/voucher/:action?', voucher.postAddEdit)
 R_FrontOffice.delete('/voucher/:id', voucher.deleteData)
 
 module.exports = R_FrontOffice;
