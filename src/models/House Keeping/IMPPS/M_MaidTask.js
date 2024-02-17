@@ -61,6 +61,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
+            console.log(workload)
             currentSchedule = formatToSchedule(currentSchedule, workload)
 
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)

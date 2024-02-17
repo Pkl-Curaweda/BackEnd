@@ -3,8 +3,20 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 
 const getSARoom = async () => {
     try {
-        const rooms = await prisma.room.findMany({ select: { id: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } })
-        console.log(rooms)
+        let [rooms, roomTypes, arrangment] = await prisma.$transaction([
+            prisma.room.findMany({ select: { id: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
+            prisma.roomType.findMany({ select: { id: true }, orderBy: { id: 'asc'} }),
+            prisma.arrangmentCode.findMany({ select: { id: true }, orderBy: { matchTypeId: 'asc' } })
+        ])
+        rooms = rooms.map(room => ({
+            roomNo: room.id,
+            roomType: room.roomType.id,
+            arrangment: room.roomType.ArrangmentCode,
+            roomStatus: room.roomStatus.longDescription,
+            bedSetup: room.roomType.bedSetup,
+            image: room.roomImage
+        }))
+        return { rooms, roomTypes, arrangment }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -15,23 +27,26 @@ const getSARoom = async () => {
 const addEditRoom = async (body, act) => {
     try {
         const data = {
-            id: body.roomNo,
+            id: +body.roomNo,
             description: body.description,
-            roomType: {
-                connect: {
-                    id: body.type,
-                    ArrangmentCode: { connect: { id: body.arrangment } }
-                }
+            roomType: { connect: { id: body.type } },
+            roomImage: body.image,
+            floor: +body.floor,
+            roomStatus: {
+                connect: { id: 1 }
             }
         }
+        let message = `Room ${data.id} Edited Succesfully`
         if (act === "add") {
+            message = `Room ${data.id} Created Succesfully`
             const exist = await prisma.room.findFirst({ where: { id: data.id } })
             if (exist != null) throw Error('Room already exist')
         }
-        return await prisma.room.upsert({
-            where: { id },
-            update: data, create: data
+        const room = await prisma.room.upsert({
+            where: { id: +body.roomNo },
+            update: { ...data }, create: { ...data }
         })
+        return { message, data: room }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -46,58 +61,33 @@ const addEditRoomType = async (body, act) => {
             longDesc: body.longDesc,
             bedSetup: body.bedSetup
         }
+        let message = `Room Type ${data.id} Edited Succesfully`
         if (act === "add") {
-            const exist = await prisma.room.findFirst({ where: { id: data.id } })
+            message = `Room Type ${data.id} Created Succesfully`
+            const exist = await prisma.roomType.findFirst({ where: { id: data.id } })
             if (exist != null) throw Error('Type already exist')
         }
-    
         const createdtype = await prisma.roomType.upsert({
-            where: { id },
-            update: { ArrangmentCode: { conne } }, create: data
-        })
-
-        if (body.genearateArr) {
-            const RbRo = [`${data.id}-RB`, `${data.id}-RO`]
-            const priceRbRo = [body.priceRB, body.priceRO]
-            for (i = 0; i >= RbRo.length - 1; i++) {
-                await prisma.arrangmentCode.upsert({
-                    where: { id: RbRo[i] },
-                    create: {
-                        id: RbRo[i],
-                        rate: priceRbRo[i],
-                        matchTypeId: createdtype.id
-                    }
-                })
-            }
-        }
-
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
-
-const addEditArrangment = async (body, act) => {
-    try {
-        const data = {
-            id: body.roomNo,
-            description: body.description,
-            roomType: {
-                connect: {
-                    id: body.type,
-                    ArrangmentCode: { connect: { id: body.arrangment } }
-                }
-            }
-        }
-        if (act === "add") {
-            const exist = await prisma.room.findFirst({ where: { id: data.id } })
-            if (exist != null) throw Error('Room already exist')
-        }
-        return await prisma.room.upsert({
-            where: { id },
+            where: { id: data.id },
             update: data, create: data
         })
+
+        if (body.genearateArr && act === "add") {
+            const RbRo = [`${data.id}-RB`, `${data.id}-RO`]
+            const priceRbRo = [body.priceRB, body.priceRO]
+            const arrangmentData = []
+            for (i = 0; i >= RbRo.length - 1; i++) {
+                arrangmentData.push({
+                    id: RbRo[i],
+                    rate: priceRbRo[i],
+                    matchTypeId: createdtype.id
+                })
+            }
+            await addEditArrangment(arrangmentData)
+        }
+        return {
+            message, data: createdtype
+        } 
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -105,11 +95,17 @@ const addEditArrangment = async (body, act) => {
     }
 }
 
-
-
-const deleteRoom = async (id) => {
+const addEditArrangment = async (body) => {
     try {
-        return await prisma.room.delete({ where: { id } })
+        const listArr = []
+        for (let arrangment of body) {
+            const arr = await prisma.arrangmentCode.upsert({
+                where: { id: arrangment.id },
+                create: arrangment, update: arrangment
+            })
+            listArr.push(arr)
+        }
+        return { message: "Edit / Add Arrangment Success", data: listArr }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -117,9 +113,28 @@ const deleteRoom = async (id) => {
     }
 }
 
-const deleteRoomType = async (id) => {
+
+const deleteSARoom = async (id, ident) => {
+    let prismaClient, message
     try {
-        return await prisma.roomType.delete({ where: { id } })
+        switch (ident) {
+            case "room":
+                message = `Room ${id} Deleted Successfully`
+                prisma.room
+                break;
+            case "type":
+                message = `Room Type ${id} Deleted Successfully`
+                prisma.roomType
+                break;
+            case "arr":
+                message = `Arrangment ${id} Deleted Successfully`
+                prisma.arrangmentCode
+                break;
+            default:
+                throw Error('Cannot be deleted')
+        }
+        const data = await prismaClient.delete({ where: { id } })
+        return { message, data }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -127,14 +142,4 @@ const deleteRoomType = async (id) => {
     }
 }
 
-const deleteArrangment = async (id) => {
-    try {
-        return await prisma.arrangmentCode.delete({ where: { id } })
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
-
-module.exports = { getSARoom, addEditRoom, deleteRoom, deleteRoomType, deleteArrangment }
+module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment }

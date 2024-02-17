@@ -7,8 +7,7 @@ const getAllAvailableRoom = async () => {
         const availableRooms = await prisma.room.findMany({
             where: { occupied_status: false }, select: {
                 id: true,
-                roomType: true,
-                bedSetup: true
+                roomType: true
             }
         });
         return availableRooms
@@ -18,8 +17,6 @@ const getAllAvailableRoom = async () => {
         await PrismaDisconnect();
     }
 }
-
-
 
 const getAllRoomStatus = async () => {
     try {

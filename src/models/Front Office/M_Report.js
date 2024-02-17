@@ -59,6 +59,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
       prisma.room.findMany({ select: { id: true } }),
       prisma.resvRoom.findMany({
         where: {
+          deleted: false,
           reservation: {
             OR: [
               { arrivalDate: { gte: `${startDate}T00:00:00.000Z` } },
@@ -367,7 +368,7 @@ const getReportDetailData = async (date, displayOption) => {
           }
         }
       }),
-      prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true } })
+      prisma.room.findMany({ select: { id: true, roomType: true } })
     ])
 
     for (let room of rooms) percentages[`room_${room.id}`] = 0
@@ -387,15 +388,15 @@ const getReportDetailData = async (date, displayOption) => {
     }
 
     for (let room of rooms) {
-      const { id, roomType, bedSetup } = room
+      const { id } = room
       let key = `room_${id}`, percent = percentages[key];
-      const detailKey = `${id}-${roomType}-${bedSetup}`;
+      const detailKey = `${id}-${room.roomType.id}-${room.roomType.bedSetup}`;
       if (percentages[key] > 1) {
         percent = dates.length / percentages[`room_${id}`] * 100
         percent = parseFloat(percent.toFixed(1))
       }
       if (!detail.hasOwnProperty(detailKey)) {
-        detail[detailKey] = { id, roomType, bedSetup, percent };
+        detail[detailKey] = { id, roomType: room.roomType.id, bedSetup: room.roomType.bedSetup, percent };
       }
     }
 

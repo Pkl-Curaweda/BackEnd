@@ -78,8 +78,8 @@ const addEditVoucher = async (body, act) => {
 }
 
 const getDetailVoucherById = async (id) => {
-    try{
-        const voucher = await prisma.voucher.findFirstOrThrow({ where: { id }, select: { id: true, abilites: true, cutPercentage: true, trackComp:true, trackHU: true, expired_at: true } })
+    try {
+        const voucher = await prisma.voucher.findFirstOrThrow({ where: { id }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true } })
         return {
             voucherName: voucher.id,
             description: voucher.abilites,
@@ -88,9 +88,9 @@ const getDetailVoucherById = async (id) => {
             houseUse: voucher.trackHU,
             expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : voucher.expired_at,
         }
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -122,13 +122,25 @@ const getAllVoucher = async (q) => {
             }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true, rowColor: true },
             orderBy: { created_at: 'desc' }
         })
+        if (startDate && endDate) {
+            let permaVoucher = await prisma.voucher.findMany({
+                where: {
+                    id: { contains: search },
+                    expired_at: null
+                }, select: { id: true, abilites: true, cutPercentage: true, trackComp: true, trackHU: true, expired_at: true, rowColor: true },
+                orderBy: { created_at: 'desc' }
+            })
+            for (let permanent of permaVoucher) {
+                vouchers.push(permanent)
+            }
+        }
         vouchers = vouchers.map(voucher => ({
             voucherName: voucher.id,
             description: voucher.abilites,
             discount: `${voucher.cutPercentage}%`,
             complimentary: voucher.trackComp ? "✅" : "❎",
             houseUse: voucher.trackHU ? "✅" : "❎",
-            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '-',
+            expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '∞',
             rowColor: voucher.rowColor
         }))
         return vouchers

@@ -4,12 +4,12 @@ const { ThrowError, PrismaDisconnect, splitDateTime, isArrangementMatch } = requ
 
 const ChangeRoom = async (id, reservationId, body) => {
   try {
-    const [resvRoom, room] = await prisma.$transaction([
+    const [resvRoom, roomExist] = await prisma.$transaction([
       prisma.resvRoom.findFirstOrThrow({
         where: { id, reservationId },
-        select: { room: { select: { id: true, rate: true } } },
+        select: { room: { select: { id: true} } },
       }),
-      prisma.room.findFirstOrThrow({ where: { id: body.roomId }, select: { rate: true } })
+      prisma.room.findFirstOrThrow({ where: { id: body.roomId } })
     ])
     if (body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
     await isArrangementMatch(body.roomId, body.arrangmentCodeId)
@@ -31,8 +31,6 @@ const ChangeRoom = async (id, reservationId, body) => {
         where: { id: body.roomId },
         data: {
           occupied_status: true,
-          roomType: body.newRoomType,
-          rate: body.arrangmentCodeId,
         },
       })
     ])

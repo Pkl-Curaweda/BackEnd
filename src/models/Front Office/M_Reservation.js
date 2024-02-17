@@ -64,11 +64,10 @@ const orderReservationByIdentifier = (sortAndOrder) => {
         query.whereQuery = { roomMaids: { user: { name: { contains: filter } } } }
         break;
       case 'type':
-        query.whereQuery = { room: { roomType: filter } }
+        query.whereQuery = { room: { roomType: { id: filter } } }
         break;
       case 'bedSetup':
-
-        query.whereQuery = { room: { bedSetup: filter } }
+        query.whereQuery = { room: { roomType: { bedSetup: filter } } }
         break;
       default:
         query.orderQuery = { room: { [sortBy]: filter } }
@@ -116,7 +115,9 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           ]
         }
     }
+    console.log('Suck ma')
     if (sortAndOrder != "") orderBy = orderReservationByIdentifier(sortAndOrder);
+    console.log(sortAndOrder, orderBy)
     const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
@@ -137,8 +138,9 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         room: {
           select: {
             id: true,
-            roomType: true,
-            bedSetup: true
+            roomType:{
+              select:  { id: true, bedSetup: true }
+            }
           },
         },
         roomMaids: {
@@ -264,8 +266,9 @@ const getDetailById = async (id, reservationId) => {
           select:
           {
             id: true,
-            roomType: true,
-            bedSetup: true,
+            roomType: {
+              select: { id: true, bedSetup: true  }
+            },
             roomImage: true,
           },
         },

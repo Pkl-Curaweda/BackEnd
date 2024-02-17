@@ -10,7 +10,7 @@ const getRoomOccupancyData = async (q) => {
     let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
         //TODO: HOUSE USE, COMP
-        const roomType = filt ? { roomType: filt } : undefined
+        const roomType = filt ? { roomType: { id: filt } } : undefined
         const roomStatus = await prisma.room.findMany({
             where: {
                 ...(roomType != undefined && roomType)

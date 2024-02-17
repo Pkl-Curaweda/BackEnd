@@ -9,11 +9,11 @@ const filterRoomHistory = (roomHistory, filter) => {
     switch (filterIdentifier) {
         case "T":
             for (room of roomHistory) {
-                if (room.room.roomType === filter) filteredRoomHistory.push(room);
+                if (room.room.roomType.id === filter) filteredRoomHistory.push(room);
             }
             break;
         case "B":
-            for (room of roomHistory) if (room.room.bedSetup === filter) filteredRoomHistory.push(room);
+            for (room of roomHistory) if (room.room.roomType.bedSetup === filter) filteredRoomHistory.push(room);
             break;
         default:
             filteredRoomHistory = roomHistory
@@ -59,7 +59,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     select: { rate: true }
                 },
                 room: {
-                    select: { id: true, roomType: true, bedSetup: true }
+                    select: { id: true, roomType: true }
                 },
                 reservation: {
                     select: {
@@ -137,9 +137,13 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         }
         Object.keys(roomAverage).forEach(avgKey => {
             avgKey.replace('total_', '');
-            roomAverage[avgKey] = roomAverage[avgKey] > 0 ? parseInt(roomAverage[avgKey] / (dates.length * 100) * 100) : 0;
+            roomAverage[avgKey] = {
+                data: { label: roomAverage[avgKey] > 0 ? `${parseInt(roomAverage[avgKey] / (dates.length * 100) * 100)}%` : "0%"},
+                style: {}
+            }
         });
-
+        if(filter === "R_DESC") roomAverage = reverseObject(roomAverage)
+        console.log(roomAverage)
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             logData, roomAverage, meta: {
@@ -225,8 +229,8 @@ const createNewLogAvailable = async () => {
                 roomHistory[key] = {
                     "room": {
                         "id": room.id,
-                        "roomType": room.roomType,
-                        "bedSetup": room.bedSetup
+                        "roomType": room.roomType.id,
+                        "bedSetup": room.roomType.bedSetup
                     },
                     "occupied": 0,
                 };

@@ -94,7 +94,6 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                         select: {
                             id: true,
                             roomType: true,
-                            bedSetup: true,
                             roomStatus: {
                                 select: {
                                     rowColor: true,
@@ -122,8 +121,8 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                     backgroundColor: res.room.roomStatus.rowColor,
                     textColor: res.room.roomStatus.textColor
                 },
-                roomType: res.room.roomType,
-                bedType: res.room.bedSetup,
+                roomType: res.room.roomType.id,
+                bedType: res.room.roomType.bedSetup,
                 guestName: res.reservation.reserver.guest.name,
                 nik,
                 arrangment: res.arrangmentCodeId,

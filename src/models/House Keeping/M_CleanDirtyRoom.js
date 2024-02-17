@@ -53,15 +53,13 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
         for (let r of rs) {
             const resv = await prisma.resvRoom.findFirst({
                 where: {
-                    roomId: r.id, reservation: {
-                        arrivalDate: {
-                            gte: `${arr}T00:00:00.000Z`,
-                            lte: `${dep}T23:59:59.999Z`
-                        },
-                        departureDate: {
-                            gte: `${arr}T00:00:00.000Z`,
-                            lte: `${dep}T23:59:59.999Z`
-                        }
+                    roomId: r.id,
+                    deleted: false,
+                    reservation: {
+                        AND: [
+                            { arrivalDate: { lte: `${arr}T00:00:00.000Z` } },
+                            { departureDate: { gte: `${dep}T23:59:59.999Z` } }
+                        ]
                     }
                 }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }
             })
@@ -70,7 +68,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
                 roomStatus: r.roomStatus.longDescription,
                 guestName: resv ? resv.reservation.reserver.guest.name : "-",
                 arrival: resv ? splitDateTime(resv.reservation.arrivalDate).date : "-",
-                departure: resv ?  splitDateTime(resv.reservation.departureDate).date : "-",
+                departure: resv ? splitDateTime(resv.reservation.departureDate).date : "-",
                 pic: resv ? resv.roomMaids.user.name : "-"
             })
             const status = r.roomStatus.shortDescription;
@@ -88,7 +86,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
             default:
                 break;
         }
-        return { arr, dep ,room, main }
+        return { arr, dep, room, main }
     } catch (err) {
         ThrowError(err)
     } finally {

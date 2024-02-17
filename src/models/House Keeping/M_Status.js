@@ -35,7 +35,6 @@ const getStatusData = async (q) => {
                 select: {
                     id: true,
                     roomType: true,
-                    bedSetup: true,
                     roomStatus: {
                         select: { longDescription: true }
                     }
