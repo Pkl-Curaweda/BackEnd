@@ -34,7 +34,7 @@ const sortInvoice = (ident = "paid", ascDesc = "asc") => {
 }
 
 //?This one is only the invoice is by the room/ per resvRoom
-const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date, articlePage, articlePerPage) => {
+const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier, page, perPage, search, date, articlePage = 1, articlePerPage = 5) => {
   try {
     let invoices = [], startIndex, endIndex, arrivalDate, departureDate, dates, ident, ascDesc, orderBy, startDate, endDate;
     const resvRoom = await prisma.resvRoom.findFirstOrThrow({

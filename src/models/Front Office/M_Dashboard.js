@@ -159,7 +159,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
 const getHouseKeepingRoomData = async () => {
     let status = { vc: 0, vcu: 0, vd: 0, oc: 0, od: 0, ttl: 0 };
     try {
-        const rooms = await prisma.room.findMany({ select: { roomStatus: { select: { shortDescription: true } } } })
+        const rooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { roomStatus: { select: { shortDescription: true } } } })
         for (room of rooms) {
             const shtDesc = room.roomStatus.shortDescription
             switch (shtDesc) {

@@ -337,6 +337,7 @@ const DetailCreateReservationHelper = async () => {
   try {
     const availableRooms = await getAllAvailableRoom();
     const arrangmentCode = await prisma.arrangmentCode.findMany({
+      where: { NOT: [ { id: `REMOVED` }] },
       select: {
         id: true,
         rate: true
