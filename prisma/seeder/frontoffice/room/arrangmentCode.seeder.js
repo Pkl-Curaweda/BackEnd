@@ -2,6 +2,11 @@ const { prisma } = require("../../config");
 
 const arrangmentCodes = [
     {
+        id: "REMOVED",
+        rate: 0,
+        matchTypeId: "REMOVED"
+    },
+    {
         id: "DLX-RB",
         rate: 530000,
         matchTypeId: "DLX"

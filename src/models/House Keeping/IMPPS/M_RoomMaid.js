@@ -2,6 +2,7 @@ const { randomInt } = require("crypto")
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, splitDateTime, generatePercentageValues, getTimeDifferenceInMinutes, getMaidPerfomance } = require("../../../utils/helper")
 const { getTime } = require("date-fns")
+const { splitUnit } = require("mathjs")
 
 const getAllRoomMaid = async () => {
     try {
@@ -89,7 +90,7 @@ const getRoomMaidTaskById = async (id, q) => {
                 roomType: mTask.room.roomType,
                 schedule: mTask.schedule,
                 rowColor: `#${mTask.rowColor}`,
-                standard: `${mTask.type.standardTime} ${mTask.type.UoM}`,
+                standard: `${mTask.customWorkload ? mTask.customWorkload : mTask.type.standardTime} ${mTask.type.UoM}`,
                 actual: mTask.actual != null ? `${mTask.actual} ${mTask.UoM}` : '',
                 remarks: mTask.request ? mTask.request : "-",
                 status: mTask.status ? mTask.status : "-",

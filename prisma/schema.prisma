@@ -33,6 +33,7 @@ enum StatusProductReq {
 }
 
 enum BedType {
+  UNKNOWN
   KING
   SINGLE
   TWIN
@@ -68,6 +69,7 @@ enum maidTaskColor {
 model Role {
   id         Int      @id @default(autoincrement())
   name       String
+  access     Json
   users      User[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -185,8 +187,8 @@ model ResvRoom {
   id               Int            @id @default(autoincrement())
   reservation      Reservation    @relation(fields: [reservationId], references: [id])
   reservationId    Int
-  room             Room           @relation(fields: [roomId], references: [id])
-  roomId           Int
+  room             Room?          @relation(fields: [roomId], references: [id])
+  roomId           Int?
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
   roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
@@ -196,9 +198,9 @@ model ResvRoom {
   voucherId        String?
   deleted          Boolean        @default(false)
   deleted_at       DateTime?
-  roomChanges      RoomChange[]
   created_at       DateTime       @default(now())
   updated_at       DateTime       @updatedAt
+  roomChanges      RoomChange[]
   Invoice          Invoice[]
   ResvPayment      ResvPayment[]
 }
@@ -305,18 +307,16 @@ model RoomStatus {
 }
 
 model Room {
-  id              Int          @id
-  roomType        RoomType     @relation(fields: [roomTypeId], references: [id])
-  roomTypeId      String
+  id              Int         @id
+  roomType        RoomType?   @relation(fields: [roomTypeId], references: [id])
+  roomTypeId      String?
   roomImage       String
-  roomStatus      RoomStatus   @relation(fields: [roomStatusId], references: [id])
+  roomStatus      RoomStatus  @relation(fields: [roomStatusId], references: [id])
   roomStatusId    Int
   description     String
   floor           Int
-  occupied_status Boolean      @default(false)
-  updatedAt       DateTime     @updatedAt
-  roomChangesFrom RoomChange[] @relation("RoomChangeFrom")
-  roomChangesTo   RoomChange[] @relation("RoomChangeTo")
+  occupied_status Boolean     @default(false)
+  updatedAt       DateTime    @updatedAt
   order           Order[]
   resvRooms       ResvRoom[]
   cleanRooms      CleanRoom[]
@@ -341,16 +341,14 @@ model RoomType {
 model ArrangmentCode {
   id          String     @id
   rate        Float
-  matchType   RoomType   @relation(fields: [matchTypeId], references: [id])
-  matchTypeId String
+  matchType   RoomType?  @relation(fields: [matchTypeId], references: [id])
+  matchTypeId String?
   ResvRoom    ResvRoom[]
 }
 
 model RoomChange {
   id         Int      @id @default(autoincrement())
-  roomFrom   Room     @relation(name: "RoomChangeFrom", fields: [roomFromId], references: [id])
   roomFromId Int
-  roomTo     Room     @relation(name: "RoomChangeTo", fields: [roomToId], references: [id])
   roomToId   Int
   resvRoom   ResvRoom @relation(fields: [resvRoomId], references: [id])
   resvRoomId Int
@@ -404,7 +402,8 @@ model MaidTask {
   rowColor            maidTaskColor @default(FFFFFF)
   finished            Boolean       @default(false)
   actual              Int?
-  UoM                 String?
+  customWorkload      Int?
+  UoM                 String? @default("minute")
   performance         Int?
   startTime           DateTime?
   endTime             DateTime?

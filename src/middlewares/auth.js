@@ -7,7 +7,7 @@ const { error } = require("../utils/response");
    * @param {import('express').Response} res
    * @param {import('express').NextFunction} next
  */
-const auth = (roles) => async (req, res, next) => {
+const auth = (access) => async (req, res, next) => {
     try {
         const { authorization } = req.headers;
         if (!authorization) return error(res, 'Forbidden authorization token is not found', 403)
@@ -29,13 +29,17 @@ const auth = (roles) => async (req, res, next) => {
                 picture: true,
                 role: {
                     select: {
-                        name: true
+                        name: true,
+                        access: true
                     }
                 }
             }
         })
-        if (roles !== undefined) {
-            const isAllowed = roles.some((role) => role === userData.role.name);
+        if (access !== undefined) {
+            const userAllowedAccess = Object.keys(userData.role.access)
+            const isAccessible = access.some((acc) => userAllowedAccess.includes(acc))
+            if (!isAccessible) return error(res, 'Forbidden, you have no access to this resource', 401)
+            const isAllowed = userData.role.access[access]
             if (!isAllowed) return error(res, 'Forbidden, you are not allowed access this resource', 403);
         }
         req.user = userData

@@ -5,7 +5,7 @@ const getSARoom = async () => {
     try {
         let [rooms, roomTypes, arrangment] = await prisma.$transaction([
             prisma.room.findMany({ select: { id: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
-            prisma.roomType.findMany({ select: { id: true }, orderBy: { id: 'asc'} }),
+            prisma.roomType.findMany({ select: { id: true }, orderBy: { id: 'asc' } }),
             prisma.arrangmentCode.findMany({ select: { id: true }, orderBy: { matchTypeId: 'asc' } })
         ])
         rooms = rooms.map(room => ({
@@ -57,8 +57,8 @@ const addEditRoom = async (body, act) => {
 const addEditRoomType = async (body, act) => {
     try {
         const data = {
-            id: body.shortDesc,
-            longDesc: body.longDesc,
+            id: body.shortDesc.toUpperCase(),
+            longDesc: body.longDesc.toUpperCase(),
             bedSetup: body.bedSetup
         }
         let message = `Room Type ${data.id} Edited Succesfully`
@@ -72,22 +72,22 @@ const addEditRoomType = async (body, act) => {
             update: data, create: data
         })
 
-        if (body.genearateArr && act === "add") {
+        if (body.generateArr && act === "add") {
+            console.log('Sampe sini?')
             const RbRo = [`${data.id}-RB`, `${data.id}-RO`]
             const priceRbRo = [body.priceRB, body.priceRO]
             const arrangmentData = []
-            for (i = 0; i >= RbRo.length - 1; i++) {
+            for (let index = 0; index <= (RbRo.length - 1); index++)
                 arrangmentData.push({
-                    id: RbRo[i],
-                    rate: priceRbRo[i],
+                    id: RbRo[index],
+                    rate: priceRbRo[index],
                     matchTypeId: createdtype.id
                 })
-            }
-            await addEditArrangment(arrangmentData)
+            await addEditArrangment(arrangmentData, "add")
         }
         return {
             message, data: createdtype
-        } 
+        }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -95,17 +95,25 @@ const addEditRoomType = async (body, act) => {
     }
 }
 
-const addEditArrangment = async (body) => {
+const addEditArrangment = async (body, act) => {
+    let messageAction = "Edited"
     try {
         const listArr = []
         for (let arrangment of body) {
-            const arr = await prisma.arrangmentCode.upsert({
-                where: { id: arrangment.id },
-                create: arrangment, update: arrangment
-            })
-            listArr.push(arr)
+            let alreadyExist = false
+            if (act === "add") {
+                messageAction = "Created"
+                alreadyExist = await prisma.arrangmentCode.findFirst({ where: { id: arrangment.id } })
+            }
+            if (!alreadyExist) {
+                const arr = await prisma.arrangmentCode.upsert({
+                    where: { id: arrangment.id },
+                    create: arrangment, update: arrangment
+                })
+                listArr.push(arr)
+            }
         }
-        return { message: "Edit / Add Arrangment Success", data: listArr }
+        return { message: `${listArr.length} Arrangment ${messageAction} Successfully`, data: listArr }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -120,15 +128,15 @@ const deleteSARoom = async (id, ident) => {
         switch (ident) {
             case "room":
                 message = `Room ${id} Deleted Successfully`
-                prisma.room
+                prismaClient = prisma.room
                 break;
-            case "type":
+            case "room-type":
                 message = `Room Type ${id} Deleted Successfully`
-                prisma.roomType
+                prismaClient = prisma.roomType
                 break;
             case "arr":
                 message = `Arrangment ${id} Deleted Successfully`
-                prisma.arrangmentCode
+                prismaClient = prisma.arrangmentCode
                 break;
             default:
                 throw Error('Cannot be deleted')
@@ -142,4 +150,51 @@ const deleteSARoom = async (id, ident) => {
     }
 }
 
-module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment }
+const deleteRoomType = async (id) => {
+    try {
+        const relatedData = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { Room: true, ArrangmentCode: true } })
+        const { Room, ArrangmentCode } = relatedData
+        for (let room of Room) {
+            await prisma.room.update({ where: { id: room.id }, data: { roomType: { connect: { id: "REMOVED" } } } })
+        }
+        for (let arr of ArrangmentCode) {
+            await prisma.arrangmentCode.update({ where: { id: arr.id }, data: { matchType: { connect: { id: "REMOVED" } } } })
+        }
+        await prisma.roomType.delete({ where: { id } })
+        return { message: `Room Type ${id} successfully deleted`, data: { changesIn: relatedData } }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const deleteArrangment = async (id) => {
+    try {
+        const relatedData = await prisma.arrangmentCode.findFirstOrThrow({ where: { id }, select: { ResvRoom: true } })
+        const { ResvRoom } = relatedData
+        for (let resvRoom of ResvRoom) {
+            await prisma.resvRoom.update({ where: { id: resvRoom.id }, data: { arrangmentCodeId: "REMOVED" } })
+        }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const deleteRoom = async (id) => {
+    try {
+        const relatedData = await prisma.room.findFirstOrThrow({ where: { id }, select: { order: true, resvRooms: true, cleanRooms: true, dirtyRooms: true, lostFounds: true, MaidTask: true, OooOmRoom: true, Invoice: true, User: true } })
+        const updatedData = { ...relatedData }
+        for (let invoice of updatedData.Invoice) {
+            await prisma.invoice.update({ where: { id: invoice.id }, data: { roomId: 0 } })
+        }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, deleteArrangment }

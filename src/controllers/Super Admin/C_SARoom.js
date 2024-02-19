@@ -1,4 +1,4 @@
-const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment } = require("../../models/Super Admin/M_SARoom")
+const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType } = require("../../models/Super Admin/M_SARoom")
 const { error, success } = require("../../utils/response")
 
 const get = async (req, res) => {
@@ -18,7 +18,7 @@ const postAddEdit = async (req, res) => {
                 payload = await addEditRoomType(req.body, action)
                 break;
             case "arr":
-                payload = await addEditArrangment(req.body)
+                payload = await addEditArrangment(req.body, action)
                 break;
         }
         return success(res, payload.message, payload.data)
@@ -39,13 +39,19 @@ const postAddRoom = async (req, res) => {
 }
 
 const deleteData = async (req, res) => {
-    let { id, ident } = req.params
+    let { id, item } = req.params, deleted
     try {
-        const deleted = await deleteSARoom(id, ident)
+        switch(item){
+            case "room-type":
+                deleted  = await deleteRoomType(id)
+                break;
+            case "arr":
+                break;
+        }
+        // deleted = await deleteSARoom(id, item)
         return success(res, deleted.message, deleted.data)
     } catch (err) {
         return error(res, err.message)
     }
 }
-
 module.exports = { get, postAddEdit, deleteData, postAddRoom }

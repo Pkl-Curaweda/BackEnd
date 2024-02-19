@@ -3,27 +3,45 @@ const { prisma } = require("../config");
 const roles = [
   {
     name: "Super Admin",
+    access: {
+      showSuperAdmin: true,
+      createSuperAdmin:true,
+    },
     created_at: new Date(),
     updated_at: new Date(),
   },
   {
     name: "Admin",
+    access: {
+      showAdmin: true,
+      createAdmin: true
+    },
     created_at: new Date(),
     updated_at: new Date(),
   },
   {
     name: "Room Boy",
+    access: {
+      showMaid: true,
+      createMaid: true
+    },
     created_at: new Date(),
     updated_at: new Date(),
   },
   {
     name: "Mitra",
+    access: {}
   },
   {
-    name: "Supervisor"
+    name: "Supervisor",
+    access: {
+      showSupervisor: true,
+      createSupervisor: true
+    },
   },
   {
-    name: "Room"
+    name: "Room",
+    access: {}
   }
 ];
 

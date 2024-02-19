@@ -6,6 +6,15 @@ const { randomInt } = require("crypto");
 
 const rooms = [
   {
+    id: 0,
+    roomTypeId: "REMOVED",
+    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomStatusId: 1,
+    floor: 1,
+    occupied_status: false,
+    description: faker.person.bio(),
+  },
+  {
     id: 101,
     roomTypeId: "DLX",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",

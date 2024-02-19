@@ -46,6 +46,15 @@ const taskTypes = [
             connect: { id: 1 }
         }
     },
+    {
+        id: "SPVTASK",
+        activity: "Supervisor Task",
+        standardTime: 0,
+        UoM: "minute",
+        department: {
+            connect: { id: 1 }
+        }
+    }
 ];
 
 async function taskTypeSeed() {

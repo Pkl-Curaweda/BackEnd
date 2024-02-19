@@ -10,47 +10,46 @@ const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notif
 
 const R_FrontOffice = new Router();
 const voucher = require('../controllers/Front Office/C_Voucher')
-//! Only admin that can check Front Office page
-R_FrontOffice.use(auth(['Admin']))
+
+R_FrontOffice.use(auth(['showAdmin']))
 
 //?DETAIL RESERVATION
 R_FrontOffice.get("/detail/reservation/:reservationId/idcard", getPreviousCard);
 R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", getHelperDetail);
 R_FrontOffice.get("/detail/report/", getReportDetail);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId", getInvoiceDetail);
-R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", putNewInvoiceData)
-R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", postHelperDetail);
-R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", putNewReservationData);
-R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", deleteInvoice);
-R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", deleteReservation);
+R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", auth(['createAdmin']), putNewInvoiceData)
+R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", auth(['createAdmin']), postHelperDetail);
+R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", auth(['createAdmin']), putNewReservationData);
+R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", auth(['createAdmin']), deleteInvoice);
+R_FrontOffice.delete("/detail/reservation/:reservationId/:resvRoomId/delete", auth(['createAdmin']), deleteReservation);
 
 //?ARRIVAL GUEST LIST
 R_FrontOffice.get("/arrival", getArrivalGuestData);
-R_FrontOffice.put("/arrival", putChangeTreatment);
+R_FrontOffice.put("/arrival", auth(['createAdmin']), putChangeTreatment);
 
 //?FLOOR PLAN
 R_FrontOffice.get("/floorplan", getFloorPlan);
 R_FrontOffice.get("/floorplan/detail/:id?", getFloorPLanDetail)
-R_FrontOffice.post("/floorplan/detail/:id/:status", postStat)
+R_FrontOffice.post("/floorplan/detail/:id/:status", auth(['createAdmin']), postStat)
 
 //?lOG AVAILABILITY
 R_FrontOffice.get("/roomavail", getRoomAvailability);
-R_FrontOffice.post("/roomavail/create-log", CreateLog);
 
 //?REPORT PAGE
 R_FrontOffice.get("/report/", getAllReport);
 
 //?INVOICE
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
-R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", postNewPayment);
+R_FrontOffice.post("/invoice/payment/:reservationId/:resvRoomId", auth(['createAdmin']), postNewPayment);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId", getInvoice);
 R_FrontOffice.get("/invoice/:reservationId/:resvRoomId/print", getPrintData);
-R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", postNewInvoice)
+R_FrontOffice.post("/invoice/:reservationId/:resvRoomId/:identifier", auth(['createAdmin']), postNewInvoice)
 
 //?VOUCHER
 R_FrontOffice.get("/voucher", voucher.getAll);
 R_FrontOffice.get('/voucher/:id', voucher.getDetail)
-R_FrontOffice.post('/voucher/:action?', voucher.postAddEdit)
-R_FrontOffice.delete('/voucher/:id', voucher.deleteData)
+R_FrontOffice.post('/voucher/:action?', auth(['createAdmin']), voucher.postAddEdit)
+R_FrontOffice.delete('/voucher/:id', auth(['createAdmin']), voucher.deleteData)
 
 module.exports = R_FrontOffice;

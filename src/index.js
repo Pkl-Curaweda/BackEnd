@@ -52,7 +52,7 @@ app.use(rateLimit({
 // app.get("*", checkUser)
 app.use('/notif', R_Notif)
 app.use("/auth", R_Login);
-app.get('/dashboard', auth(['Admin']), async (req, res) => {
+app.get('/dashboard', auth(['showAdmin']), async (req, res) => {
   let { page = 1, perPage = 5, date } = req.query
   try {
     const dsbd = await dashboard.get(parseInt(page), parseInt(perPage), date);

@@ -8,7 +8,7 @@ const SARoom = require('../controllers/Super Admin/C_SARoom');
 const { error } = require('../utils/response');
 const R_SA = Router()
 
-R_SA.use(auth(['Super Admin']))
+R_SA.use(auth(['showSuperAdmin']))
 
 //Start Multer
 const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']

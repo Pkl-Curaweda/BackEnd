@@ -3,6 +3,11 @@ const { prisma } = require("../../config")
 
 const roomTypes = [
     {
+        id: "REMOVED",
+        longDesc: "REMOVED",
+        bedSetup: "UNKNOWN"
+    },
+    {
         id: "DLX",
         longDesc: "DELUXE",
         bedSetup: "KING"

@@ -2,7 +2,7 @@ const { create } = require("qrcode")
 const { prisma } = require("../../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkingShifts, getLowestWorkloadShift } = require("../../../utils/helper")
 const { createNotification } = require("../../Authorization/M_Notitication")
-const { countTaskPerformance, countActual, resetRoomMaid } = require("./M_RoomMaid")
+const { countTaskPerformance, countActual, resetRoomMaid, isRoomMaid } = require("./M_RoomMaid")
 const { warnEnvConflicts } = require("@prisma/client/runtime/library")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
@@ -61,7 +61,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
-            console.log(workload)
             currentSchedule = formatToSchedule(currentSchedule, workload)
 
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
@@ -182,6 +181,35 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
     }
 }
 
+const createNewMaidTask = async (roomMaidId, roomId, data) => {
+    try {
+        const { time } = splitDateTime(new Date().toISOString())
+        const [hours, minutes] = time.split(':')
+        const currentTime = `${hours}:${minutes}`
+        const [roomMaid, room] = await prisma.$transaction([
+            prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId } }),
+            prisma.room.findFirstOrThrow({ where: { id: roomId} })
+        ])
+        console.log(roomMaid.workload + data.customWorkload)
+        const canWorkOnTask = roomMaid.workload + data.customWorkload < 480
+        const scheduleEnd = formatToSchedule(currentTime, data.customWorkload)
+        data.schedule = `${currentTime}-${scheduleEnd}`
+        if (!canWorkOnTask) throw Error('Please assign another maid for this task')
+        const createdTask = await prisma.maidTask.create({
+            data: {
+                roomId: room.id,
+                roomMaidId,
+                ...data
+            }
+        })
+        return createdTask
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const updateTask = async (taskId, data) => {
     try {
         const exist = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId } })
@@ -192,4 +220,4 @@ const updateTask = async (taskId, data) => {
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask }
+module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask }
