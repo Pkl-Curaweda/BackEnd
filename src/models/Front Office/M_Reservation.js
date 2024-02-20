@@ -188,7 +188,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     })
 
     const roomBoys = await prisma.user.findMany({
-      where: { roleId: 3 },
+      where: { roleId: 4 },
       select: { name: true }
     })
 

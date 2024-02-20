@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const path = require('path');
 
 const SARoom = require('../controllers/Super Admin/C_SARoom');
+const SAArticle = require('../controllers/Super Admin/C_SAArticle')
 const { error } = require('../utils/response');
 const R_SA = Router()
 
@@ -36,6 +37,7 @@ const upload = multer({
 })
 //End Multer
 
+//? START ROOM PAGE
 R_SA.get('/room', SARoom.get)
 R_SA.post('/room/room/:action?', upload.single('image'), (req, res, next) => {
     if (req.fileValidationError) {
@@ -45,5 +47,11 @@ R_SA.post('/room/room/:action?', upload.single('image'), (req, res, next) => {
 }, SARoom.postAddRoom)
 R_SA.post('/room/:item/:action?', SARoom.postAddEdit)
 R_SA.delete('/room/:item/:id', SARoom.deleteData)
+//? END ROOM PAGE
 
+//? START ARTICLE PAGE
+R_SA.get('/article', SAArticle.get)
+R_SA.post('/article/:action', SAArticle.addEdit)
+R_SA.delete('/article/:id', SAArticle.deleteArticle)
+//? END ARTICLE PAGE
 module.exports = R_SA

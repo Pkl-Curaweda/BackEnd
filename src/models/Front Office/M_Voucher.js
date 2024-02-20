@@ -138,8 +138,9 @@ const getAllVoucher = async (q) => {
             voucherName: voucher.id,
             description: voucher.abilites,
             discount: `${voucher.cutPercentage}%`,
-            complimentary: voucher.trackComp ? "✅" : "❎",
-            houseUse: voucher.trackHU ? "✅" : "❎",
+            complimentary: voucher.trackComp ? "✔️" : "✖️",
+            houseUse: voucher.trackHU ? "✔️" : "✖️",
+            
             expireAt: voucher.expired_at != null ? splitDateTime(voucher.expired_at).date : '∞',
             rowColor: voucher.rowColor
         }))

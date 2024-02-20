@@ -636,9 +636,9 @@ async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
 
 async function isArrangementMatch(roomId, checkArrangment) {
   try {
-    if(roomId === undefined) throw Error('Sorry you didnt specify the Room Number')
-    if(checkArrangment === undefined) throw Error('Please send your Arrangment Code')
-    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { roomType: { select: { ArrangmentCode: { select: { matchTypeId: true} } } } } })
+    if (roomId === undefined) throw Error('Sorry you didnt specify the Room Number')
+    if (checkArrangment === undefined) throw Error('Please send your Arrangment Code')
+    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { roomType: { select: { ArrangmentCode: { select: { matchTypeId: true } } } } } })
     if (checkArrangment.split('-')[0] != room.roomType.ArrangmentCode[0].matchTypeId) throw Error('Unmatched Arrangment Code')
     return
   } catch (err) {
@@ -703,11 +703,11 @@ const countISORange = (startISO, endISO) => {
 
 const generateDeleteDate = (param) => {
   const currentDate = new Date()
-  switch(param){
+  switch (param) {
     case "deleteResv":
       currentDate.setDate(currentDate.getDate() + 7);
       break;
-      
+
     case "status6PM":
       currentDate.setDate(currentDate.getDate() + 1);
       currentDate.setHours(18, 0, 0, 0);
@@ -718,8 +718,6 @@ const generateDeleteDate = (param) => {
   }
   return currentDate.toISOString()
 }
-
-
 module.exports = {
   splitDateTime,
   countNotificationTime,

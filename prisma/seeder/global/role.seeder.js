@@ -2,6 +2,10 @@ const { prisma } = require("../config");
 
 const roles = [
   {
+    name: "REMOVED",
+    access: {},
+  },
+  {
     name: "Super Admin",
     access: {
       showSuperAdmin: true,
