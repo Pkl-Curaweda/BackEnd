@@ -6,6 +6,7 @@ const path = require('path');
 
 const SARoom = require('../controllers/Super Admin/C_SARoom');
 const SAArticle = require('../controllers/Super Admin/C_SAArticle')
+const SAAccess = require('../controllers/Super Admin/C_SAAcess')
 const { error } = require('../utils/response');
 const R_SA = Router()
 
@@ -51,7 +52,28 @@ R_SA.delete('/room/:item/:id', SARoom.deleteData)
 
 //? START ARTICLE PAGE
 R_SA.get('/article', SAArticle.get)
-R_SA.post('/article/:action', SAArticle.addEdit)
+R_SA.post('/article/:action?', SAArticle.addEdit)
 R_SA.delete('/article/:id', SAArticle.deleteArticle)
 //? END ARTICLE PAGE
+
+//? START ACCESS PAGE
+R_SA.get('/access', SAAccess.get)
+R_SA.post('/access/role', SAAccess.postNewRole)
+// R_SA.post('/access/user/add', upload.single('picture'), (req, res, next) => {
+//     if (req.fileValidationError) {
+//         return error(res, req.fileValidationError)
+//     }
+//     next()
+// }, SAAccess.postNewUser)
+R_SA.post('/access/rb/', SAAccess.postNewRoomBoy)
+R_SA.put('/access/rb/:id', SAAccess.putEditRoomBoy)
+R_SA.put('/access/role/:id', SAAccess.putEditRole)
+R_SA.post('/access/user/:action/:id?', upload.single('picture'), (req, res, next) => {
+    if (req.fileValidationError) {
+        return error(res, req.fileValidationError)
+    }
+    next()
+}, SAAccess.postAddEditUser)
+R_SA.delete('/access/role/:id', SAAccess.deleteRole)
+//? END ACCESS PAGE
 module.exports = R_SA

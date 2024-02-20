@@ -4,7 +4,7 @@ const { error, success } = require("../../utils/response")
 
 const get = async (req, res) => {
     try {
-        const data = getSAArticleData(req.query)
+        const data = await getSAArticleData(req.query)
         return success(res, 'Showing Article Page', data)
     } catch (err) {
         return error(res, err.message)

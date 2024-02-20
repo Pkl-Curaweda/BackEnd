@@ -123,7 +123,7 @@ async function roomSeed() {
             birthday: new Date(faker.date.birthdate()),
             username: `Kamar ${room.id}`,
             password: "password",
-            roleId: 7,
+            roleId: 8,
           }
         }
       }

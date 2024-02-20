@@ -4,6 +4,13 @@ const roles = [
   {
     name: "REMOVED",
     access: {},
+    defaultPath: '/auth/login'
+  },
+  {
+    name: "UNKNOWN",
+    access: {},
+    defaultPath: '/auth/login'
+
   },
   {
     name: "Super Admin",
@@ -11,6 +18,7 @@ const roles = [
       showSuperAdmin: true,
       createSuperAdmin:true,
     },
+    defaultPath: '/fo/super-admin/',
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -20,6 +28,7 @@ const roles = [
       showAdmin: true,
       createAdmin: true
     },
+    defaultPath: '/',
     created_at: new Date(),
     updated_at: new Date(),
   },
@@ -29,12 +38,14 @@ const roles = [
       showMaid: true,
       createMaid: true
     },
+    defaultPath: '/hk/rb/dashboard',
     created_at: new Date(),
     updated_at: new Date(),
   },
   {
     name: "Mitra",
-    access: {}
+    access: {},
+    defaultPath: '/auth/login'
   },
   {
     name: "Supervisor",
@@ -42,10 +53,12 @@ const roles = [
       showSupervisor: true,
       createSupervisor: true
     },
+    defaultPath: '/hk/spv/dashboard'
   },
   {
     name: "Room",
-    access: {}
+    access: {},
+    defaultPath: '/auth/login'
   }
 ];
 

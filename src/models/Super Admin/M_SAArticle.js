@@ -2,9 +2,9 @@ const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, formatCurrency } = require("../../utils/helper")
 
 const getSAArticleData = async (query) => {
-    const { search, art } = query, sendedData = { table: undefined, detail: undefined }
+    let { search = undefined, art = "0" } = query, sendedData = { table: undefined, detail: undefined }
     try {
-        const articles = await prisma.articleType.findMany({ where: { description: { contains: (search != "" && search) } }, select: { id: true, description: true, price: true } })
+        const articles = await prisma.articleType.findMany({ where: { description: { contains: search } }, select: { id: true, description: true, price: true } })
         sendedData.table = articles.map(article => ({
             artNo: article.id,
             description: article.description,

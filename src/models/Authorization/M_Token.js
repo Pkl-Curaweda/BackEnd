@@ -7,7 +7,8 @@ const generateRefreshToken = async (client) => {
     do {
       generatedToken = generateRandomString(100);
       tokenExist = await client.findUnique({ where: { refreshToken: generatedToken } }); //Check if token is existed in database
-    } while (tokenExist)
+      console.log(generatedToken)
+    } while (tokenExist != null)
     return generatedToken;
   } catch (err) {
     ThrowError(err);

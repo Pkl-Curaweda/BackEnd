@@ -49,7 +49,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
             sortOrder = sortOrderCleanDirty(ident, ascDesc)
             roomOrder = sortOrder
         }
-        const rs = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
+        const rs = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
         for (let r of rs) {
             const resv = await prisma.resvRoom.findFirst({
                 where: {

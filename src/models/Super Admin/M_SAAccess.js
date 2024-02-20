@@ -1,34 +1,36 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const bcrypt = require("bcrypt");
-const { ThrowError, PrismaDisconnect, existingAccess } = require("../../utils/helper")
+const M_User = require('../Authorization/M_User')
+const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToEmoji } = require("../../utils/helper");
+const { Gender } = require("@prisma/client");
 
 const getData = async (query) => {
-    let { role } = query, sendedData = { listRole: [], listUser }
+    let { role } = query, sendedData = { listRole: [], listUser: undefined }
     try {
         const roles = await prisma.role.findMany({ select: { id: true, name: true, access: true } })
         for (let role of roles) {
-            sendedData.listRole = {
+            sendedData.listRole.push({
                 id: role.id,
                 name: role.name,
                 superAdmin: {
-                    reader: role.access['readSuperAdmin'] != undefined ? role.access['readSuperAdmin'] : false,
-                    editor: role.access['createSuperAdmin'] != undefined ? role.access['createSuperAdmin'] : false
+                    reader: role.access['showSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['showSuperAdmin']) : "✖️",
+                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : "✖️"
                 },
                 admin: {
-                    reader: role.access['readAdmin'] != undefined ? role.access['readAdmin'] : false,
-                    editor: role.access['createAdmin'] != undefined ? role.access['createAdmin'] : false
+                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : "✖️",
+                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : "✖️"
                 },
                 roomBoy: {
-                    reader: role.access['readMaid'] != undefined ? role.access['readMaid'] : false,
-                    editor: role.access['createMaid'] != undefined ? role.access['createMaid'] : false
+                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : "✖️",
+                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : "✖️"
                 },
                 supervisor: {
-                    reader: role.access['readSupervisor'] != undefined ? role.access['readSupervisor'] : false,
-                    editor: role.access['createSupervisor'] != undefined ? role.access['createSupervisor'] : false
+                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : "✖️",
+                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : "✖️"
                 },
-            }
+            })
         }
-        const users = await prisma.user.findMany({ where: { ...(role != "ALL" && { roleId: role }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
+        const users = await prisma.user.findMany({ where: { ...(role != "ALL" && { name: role }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
         sendedData.listUser = users.map(user => ({
             id: user.id,
             email: user.email,
@@ -43,22 +45,38 @@ const getData = async (query) => {
     }
 }
 
-const postAddEditUser = async (body, act) => {
-    let { id, name, phone, birthday, nik, gender, username, password } = body, message = "Edit User Success"
+const addEditUser = async (body, act, userId = undefined) => {
     try {
-        if (!(act != "add")) {
-            const exist = await prisma.user.findFirst({ where: { id } })
-            if (exist != null) throw Error('User already exist')
-            message = "Create User Success"
+        console.log(body)
+        if (body.email) {
+            const emailUssed = await prisma.user.findFirst({ where: { email: body.email } })
+            if (emailUssed != null) throw Error(`Email already exist, for user ${emailUssed.name}`)
         }
-        const salt = await bcrypt.genSalt();
-        password = await bcrypt.hash(password, salt);
-        const user = await prisma.user.upsert({
-            where: { id },
-            update: { name, phone, birthday, nik, gender, username, password },
-            create: { ...body }
-        })
-        return { message, data: user }
+        if (body.username) {
+            const usernameUssed = await prisma.user.findFirst({ where: { username: body.username } })
+            if (usernameUssed != null) throw Error(`Username already used by ${usernameUssed.name}`)
+        }
+        switch (act) {
+            case "add":
+                if (!body.picture) body.picture = `${process.env.BASE_URL}/assets/profile-pict/default.png`
+                if (!body.roleId) body.roleId = 2
+                if (body.password && body.password.length > 0) {
+                    const salt = await bcrypt.genSalt();
+                    body.password = await bcrypt.hash(body.password, salt);
+                } else throw Error('Please send a correct password')
+                return await prisma.user.create({
+                    data: { ...body }
+                })
+            default:
+                await prisma.user.findFirstOrThrow({ where: { id: +userId } })
+                if (body.password) {
+                    if (body.password.length > 0) {
+                        const salt = await bcrypt.genSalt();
+                        body.password = await bcrypt.hash(body.password, salt);
+                    } else throw Error('Please the password must be atleast has 1 character')
+                }
+                return await prisma.user.update({ where: { id: +userId }, data: { ...body } })
+        }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -66,20 +84,22 @@ const postAddEditUser = async (body, act) => {
     }
 }
 
-const postAddEditRole = async (body, act) => {
-    let { id, name } = body, message = `Edit Role ${name} Success`
+const addNewRole = async (body) => {
     try {
-        if (!(act != "add")) {
-            const exist = await prisma.role.findFirst({ where: { id } })
-            if (exist != null) throw Error('Role already exist')
-            message = `Create Role ${name} Success`
-        }
-        const role = await prisma.role.upsert({
-            where: { id },
-            update: { ...body },
-            create: { ...body }
-        })
-        return { message, data: role }
+        const nameExist = await prisma.role.findFirst({ where: { name: body.name } })
+        if (nameExist != null) throw Error('Role Name Already Exist')
+        return await prisma.role.create({ data: { name: body.name, defaultPath: body.path, access: body.access } })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const editRoleById = async (roleId, body) => {
+    try {
+        const roleExist = await prisma.role.findFirstOrThrow({ where: { id: roleId }, select: { id: true } })
+        return await prisma.role.update({ where: { id: roleExist.id }, data: { name: body.name, defaultPath: body.path, access: body.access } })
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -88,15 +108,15 @@ const postAddEditRole = async (body, act) => {
 }
 
 const addNewRoomBoy = async (body) => {
-    const { userId, shift, aliases } = body
+    const { userId, shift, aliases, departmentId } = body
     try {
         const [userExist, shiftExist] = await prisma.$transaction([
             prisma.roomMaid.findFirst({ where: { userId } }),
             prisma.shift.findFirstOrThrow({ where: { id: shift } })
         ])
-        if (!exist) throw Error('User already assign as Maid')
+        if (userExist != null) throw Error('User already assign as Maid')
         return await prisma.roomMaid.create({
-            data: { id: userExist.id, shiftId: shiftExist.id, aliases }
+            data: { shift: { connect: { id: shiftExist.id } }, aliases, user: { connect: { id: userId } }, department: { connect: { id: departmentId } } }
         })
     } catch (err) {
         ThrowError(err)
@@ -106,13 +126,13 @@ const addNewRoomBoy = async (body) => {
 }
 
 const editRoomBoy = async (maidId, body) => {
-    const {shift, aliases } = body
+    const { shift, aliases, userId, departmentId } = body
     try {
         const [userExist, shiftExist] = await prisma.$transaction([
-            prisma.roomMaid.findFirstOrThrow({ where: { id: maidId } }),
+            prisma.roomMaid.findFirstOrThrow({ where: { id: +maidId } }),
             prisma.shift.findFirstOrThrow({ where: { id: body.shift } })
         ])
-        return await prisma.roomMaid.update({ where: { id: maidId }, data: { shiftId: shift, aliases} })
+        return await prisma.roomMaid.update({ where: { id: maidId }, data: { shift: { connect: { id: shift } }, user: { connect: { id: userId } }, department: { connect: { id: departmentId } }, aliases } })
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -121,17 +141,17 @@ const editRoomBoy = async (maidId, body) => {
 }
 
 const deleteRole = async (id) => {
-    try{
+    try {
         const exist = await prisma.role.findFirstOrThrow({ where: { id }, select: { users: true } })
-        for(let user of exist.users){
-            await prisma.user.update({ where: { id: user.id }, data: { roleId: 1} }) //Change to REMOVED
+        for (let user of exist.users) {
+            await prisma.user.update({ where: { id: user.id }, data: { roleId: 1 } }) //Change to REMOVED
         }
         return await prisma.role.delete({ where: { id } })
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
 
-module.exports = { getData, postAddEditRole, postAddEditUser, addNewRoomBoy, editRoomBoy, deleteRole }
+module.exports = { getData, addNewRole, editRoleById, addNewRoomBoy, editRoomBoy, deleteRole, addEditUser }

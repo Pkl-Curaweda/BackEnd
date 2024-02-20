@@ -24,6 +24,7 @@ const getNewUserRefreshToken = async (req, res) => {
     try {
         const cookie = req.cookies.refresh_token;
         if (cookie === undefined) throw Error("Cookie Didn't Exist")
+        console.log(cookie)
 
         const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
         const newRefreshToken = await RefreshToken("user", cookie, expires);
@@ -34,7 +35,7 @@ const getNewUserRefreshToken = async (req, res) => {
             expires
         })
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
-            expiresIn: '15m',
+            expiresIn: process.env.JWT_EXPIRE,
             subject: newRefreshToken.userId.toString()
         })
         return success(res, 'Token Refresh Successfully', { accessToken });
@@ -55,7 +56,7 @@ const postLogin = async (req, res) => {
             expires
         });
         const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
-            expiresIn: '15m',
+            expiresIn: process.env.JWT_EXPIRE,
             subject: payload.user.id.toString()
         });
 

@@ -67,12 +67,13 @@ enum maidTaskColor {
 // Front Office Area ==========================================================
 
 model Role {
-  id         Int      @id @default(autoincrement())
-  name       String
-  access     Json
-  users      User[]
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  defaultPath String
+  access      Json
+  users       User[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
 
 model Guest {
@@ -92,11 +93,11 @@ model Guest {
 model User {
   id             Int          @id @default(autoincrement())
   name           String
-  gender         Gender
-  phone          String
-  picture        String
-  birthday       DateTime
-  nik            String
+  gender         Gender?
+  phone          String?
+  picture        String?
+  birthday       DateTime?
+  nik            String?
   email          String       @unique
   username       String       @unique
   password       String
@@ -403,7 +404,7 @@ model MaidTask {
   finished            Boolean       @default(false)
   actual              Int?
   customWorkload      Int?
-  UoM                 String? @default("minute")
+  UoM                 String?       @default("minute")
   performance         Int?
   startTime           DateTime?
   endTime             DateTime?

@@ -32,7 +32,7 @@ async function login(req, res) {
     expires,
   })
 
-  const accessToken = jwt.sign({}, process.env.SECRET_KEY, {
+  const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
     expiresIn: '15m',
     subject: user.id.toString()
   })
@@ -58,7 +58,7 @@ async function refresh(req, res) {
   }
 
   if (Date.now() > refreshToken.expired_at.getTime()) {
-    return error(res, 'Refresh token expired', 401)
+    return error(res, 'Refresh token expired', 405)
   }
 
   await prisma.userToken.delete({ where: { id: refreshToken.id } })
@@ -67,7 +67,7 @@ async function refresh(req, res) {
   const newRefreshToken = await prisma.userToken.create({
     data: {
       userId: refreshToken.userId,
-      refreshToken: randomStr(64),
+      refreshToken: randomStr(100),
       expired_at: expires
     }
   })
@@ -79,7 +79,7 @@ async function refresh(req, res) {
     expires,
   })
 
-  const accessToken = jwt.sign({}, process.env.SECRET_KEY, {
+  const accessToken = jwt.sign({}, process.env.SECRET_CODE, {
     expiresIn: '15m',
     subject: newRefreshToken.userId.toString()
   })

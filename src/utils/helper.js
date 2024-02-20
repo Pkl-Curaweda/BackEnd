@@ -718,8 +718,13 @@ const generateDeleteDate = (param) => {
   }
   return currentDate.toISOString()
 }
+
+const convertBooleanToEmoji = (bool) => {
+  return bool ? "✔️" : "✖️"
+}
 module.exports = {
   splitDateTime,
+  convertBooleanToEmoji,
   countNotificationTime,
   countISORange,
   loginPath,

@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, loginPath } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
@@ -15,7 +15,8 @@ const UserLogin = async (email, password) => {
         password: true,
         role: {
           select: {
-            name: true
+            name: true,
+            defaultPath: true
           }
         }
       }
@@ -23,7 +24,7 @@ const UserLogin = async (email, password) => {
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
-    const path = loginPath(user.role.name)
+    const path = user.role.defaultPath
     return { user, createdToken, path }
   } catch (err) {
     ThrowError(err);
