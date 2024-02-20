@@ -1,3 +1,4 @@
+const { date } = require("zod");
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateRandomString, generateExpire } = require("../../utils/helper");
 
@@ -73,17 +74,9 @@ const CreateAndAssignToken = async (type, data) => {
 const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
-    await tokenClient.findFirstOrThrow({ where: { refreshToken } })
-    const deletedToken = await tokenClient.delete({ where: { refreshToken } });
-    const generatedRefreshToken = await generateRefreshToken(tokenClient)
-    const newRefreshToken = await tokenClient.create({
-      data: {
-        userId: deletedToken.userId,
-        refreshToken: generatedRefreshToken,
-        expired_at
-      }
-    })
-    return newRefreshToken;
+    const token = await tokenClient.findFirstOrThrow({ where: { refreshToken } })
+    if(new Date().toISOString() >= token.expire_at) await RemoveToken("user", refreshToken)
+    return token
   } catch (err) {
     ThrowError(err);
   } finally {
