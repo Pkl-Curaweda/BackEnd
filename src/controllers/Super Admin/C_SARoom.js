@@ -10,6 +10,21 @@ const get = async (req, res) => {
     }
 }
 
+const getHelper = async (req, res) => {
+    let { ident, id } = req.params, data
+    try{
+        switch(ident){
+            case "room-type":
+                break;
+            default:
+                throw Error('No Identifier Match')
+        }
+        return success(res, 'Helper Running', data)
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+
 const postAddEdit = async (req, res) => {
     let { item, action } = req.params, payload
     try {

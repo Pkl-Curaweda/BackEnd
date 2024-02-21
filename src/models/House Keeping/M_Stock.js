@@ -12,6 +12,36 @@ const reduceRemainingStock = async (articleTypeId, used) => {
     } finally { await PrismaDisconnect() }
 }
 
+const createNewStock = async (articleId, realStock) => {
+    try {
+        await prisma.articleType.findFirstOrThrow({ where: { id: +articleId } })
+        return await prisma.stock.upsert({
+            where: { articleTypeId: +articleId },
+            create: {
+                data: {
+                    articleType: { connect: { id: +articleId } },
+                    remain: +realStock,
+                    rStock: +realStock
+                }
+            },
+            update: { rStock: +realStock }
+        })
+    } catch (err) {
+        ThrowError(err)
+    } finally { await PrismaDisconnect() }
+}
+
+const updateRealStock = async (stockId, realStock) => {
+    try {
+        const stock = await prisma.stock.findFirstOrThrow({ where: { id: +stockId } })
+        return await prisma.stock.update({ where: { id: stock.id }, data: { rStock: +realStock } })
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const getAvailableArticleAndStock = async (perPage = 5, page = 1) => {
     try {
         const listOfArticle = []
@@ -32,4 +62,4 @@ const getAvailableArticleAndStock = async (perPage = 5, page = 1) => {
     }
 }
 
-module.exports = { reduceRemainingStock, getAvailableArticleAndStock }
+module.exports = { reduceRemainingStock, getAvailableArticleAndStock, createNewStock, updateRealStock }

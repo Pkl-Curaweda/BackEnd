@@ -24,6 +24,25 @@ const getSARoom = async () => {
     }
 }
 
+const getEditRoomTypeHelper = async (id) => {
+    let detail = { }
+    try {
+        const roomType = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { id: true, longDesc: true, bedSetup: true,  ArrangmentCode: {  select: { rate: true }} } })
+        console.log(roomType)
+        detail[longDescription] =  roomType.longDesc
+        detail[shortDesc]= roomType.id
+        detail[bedSetup] = roomType.bedSetup
+        for(let arr of roomType.ArrangmentCode){
+            
+        }
+        return detail
+    } catch (err) {
+        ThrowError(err.message)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const addEditRoom = async (body, act) => {
     try {
         const data = {
