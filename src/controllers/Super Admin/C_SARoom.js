@@ -1,4 +1,4 @@
-const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType } = require("../../models/Super Admin/M_SARoom")
+const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, getEditRoomTypeHelper, getAddArrangmentHelper, getEditArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
 const { error, success } = require("../../utils/response")
 
 const get = async (req, res) => {
@@ -11,16 +11,23 @@ const get = async (req, res) => {
 }
 
 const getHelper = async (req, res) => {
-    let { ident, id } = req.params, data
-    try{
-        switch(ident){
+    let { ident, act, id } = req.params, data
+    try {
+        switch (ident) {
             case "room-type":
+                data = await getEditRoomTypeHelper(+id)
                 break;
+            case "arr":
+                if(act != "add"){
+                    data = await getAddArrangmentHelper(+id)
+                }else{
+                    data = await getEditArrangmentHelper(+id)
+                }
             default:
                 throw Error('No Identifier Match')
         }
         return success(res, 'Helper Running', data)
-    }catch(err){
+    } catch (err) {
         return error(res, err.message)
     }
 }
@@ -45,7 +52,7 @@ const postAddEdit = async (req, res) => {
 const postAddRoom = async (req, res) => {
     const { action } = req.params
     try {
-        req.body.image =  process.env.BASE_URL + '/assets/lost-found/' + req.file.filename
+        req.body.image = process.env.BASE_URL + '/assets/lost-found/' + req.file.filename
         const payload = await addEditRoom(req.body, action)
         return success(res, payload.message, payload.data)
     } catch (err) {
@@ -56,9 +63,9 @@ const postAddRoom = async (req, res) => {
 const deleteData = async (req, res) => {
     let { id, item } = req.params, deleted
     try {
-        switch(item){
+        switch (item) {
             case "room-type":
-                deleted  = await deleteRoomType(id)
+                deleted = await deleteRoomType(id)
                 break;
             case "arr":
                 break;
@@ -69,4 +76,4 @@ const deleteData = async (req, res) => {
         return error(res, err.message)
     }
 }
-module.exports = { get, postAddEdit, deleteData, postAddRoom }
+module.exports = { get, postAddEdit, deleteData, postAddRoom, getHelper }

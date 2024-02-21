@@ -36,7 +36,6 @@ const addEditArticle = async (body, act) => {
         const exist = await prisma.articleType.findFirst({ where: { id: artNo } })
         if (!(act != "add")) {
             if (exist != null) throw Error('Article already exist')
-            await createNewStock(+artNo, stock)
             message = `Create article ${artNo} success`
         } else {
             const stockData = await prisma.stock.findFirst({ where: { articleTypeId: +artNo } })
@@ -47,6 +46,7 @@ const addEditArticle = async (body, act) => {
             }
         }
         const data = await prisma.articleType.upsert({ where: { id: artNo }, update: { price, description }, create: { id: artNo, price, description } })
+        if(act === "add") await createNewStock(data.id, stock)
         return { message, data }
     } catch (err) {
         ThrowError(err)

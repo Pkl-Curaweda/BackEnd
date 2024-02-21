@@ -42,6 +42,30 @@ const getEditRoomTypeHelper = async (id) => {
     }
 }
 
+const getEditArrangmentHelper = async (id) => {
+    try{
+        return await prisma.arrangmentCode.findFirstOrThrow({ where: { id }, select: { id: true, rate: true }})
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
+const getAddArrangmentHelper = async (id) => {
+    try{
+        const exist = await prisma.roomType.findFirstOrThrow({ where: { id } })
+        return {
+            rbName: `${exist.id}-RB`,
+            roName: `${exist.id}-RO`
+        }
+    }catch(err){
+        ThrowError(err)
+    }finally{
+        await PrismaDisconnect()
+    }
+}
+
 const addEditRoom = async (body, act) => {
     try {
         const data = {
@@ -214,4 +238,4 @@ const deleteRoom = async (id) => {
     }
 }
 
-module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, deleteArrangment }
+module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, deleteArrangment, getEditArrangmentHelper, getAddArrangmentHelper, getEditRoomTypeHelper }
