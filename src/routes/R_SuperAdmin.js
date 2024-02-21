@@ -59,6 +59,7 @@ R_SA.delete('/article/:id', SAArticle.deleteArticle)
 
 //? START ACCESS PAGE
 R_SA.get('/access', SAAccess.get)
+R_SA.get('/access/helper/:ident/:firstId?/:secondId?/:act?')
 R_SA.post('/access/role', SAAccess.postNewRole)
 // R_SA.post('/access/user/add', upload.single('picture'), (req, res, next) => {
 //     if (req.fileValidationError) {

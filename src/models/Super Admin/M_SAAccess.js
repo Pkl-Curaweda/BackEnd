@@ -45,7 +45,8 @@ const getData = async (query) => {
     }
 }
 
-const getEditRoleHelper = async (id) => {
+const getEditRoleHelper = async (query) => {
+    const { id } = query
     let sendedHelper = {
         name: undefined, defaultPath: undefined, access: {
             showSuperAdmin: false,
@@ -59,7 +60,7 @@ const getEditRoleHelper = async (id) => {
         }
     }
     try {
-        const exist = await prisma.role.findFirstOrThrow({ where: { id } })
+        const exist = await prisma.role.findFirstOrThrow({ where: { id: +id } })
         exist.access.keys(key => { sendedHelper[key] = sendedHelper[key] })
         sendedHelper.name = exist.name
         sendedHelper.defaultPath = exist.defaultPath
@@ -69,8 +70,9 @@ const getEditRoleHelper = async (id) => {
     } finally { await PrismaDisconnect() }
 }
 
-const getEditUser = async (id, roleId) => {
-    const accessKeys = {
+const getAddEditUserHelper = async (query) => {
+    const { firstId, secondId, act } = query
+    let accessKeys = {
         access: {
             showSuperAdmin: false,
             createSuperAdmin: false,
@@ -81,14 +83,15 @@ const getEditUser = async (id, roleId) => {
             showSupervisor: false,
             createSupervisor: false
         }
-    }
+    }, sendedHelper
     try {
-        const exist = await prisma.user.findFirstOrThrow({ where: { id }, select: { name: true, picture: true, phone: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
-        sendedHelper = { ...exist }
-        const listRoles = await prisma.role.findMany({ where: { NOT: [{ AND: [{ id: 'REMOVED' }, { id: 'UNKNOWN' }] }] } })
-        if (roleId === 0) roleId = exist.role.id
-
-        const shownRoles = await prisma.role.findFirstOrThrow({ where: { id: +roleId } })
+        const listRoles = await prisma.role.findMany({ where: { NOT: [{ AND: [{ id: 'REMOVED' }, { id: 'UNKNOWN' }] }] }, select: { id: true, name: true } })
+        if (act != "add") {
+            const exist = await prisma.user.findFirstOrThrow({ where: { id: +firstId }, select: { name: true, picture: true, phone: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
+            sendedHelper = { ...exist }
+            if (roleId === 0) roleId = exist.role.id
+        } else if (+secondId === 0) secondId = listRoles[0].id
+        const shownRoles = await prisma.role.findFirstOrThrow({ where: { id: +secondId } })
         accessKeys.access.keys(key => { shownRoles.access[key] = shownRoles.access[key] || false })
         return { accessKeys, listRole, shownRoles }
     } catch (err) {
@@ -98,11 +101,22 @@ const getEditUser = async (id, roleId) => {
     }
 }
 
-const getEditRoomBoy = async (maidId) => {
+const getEditRoomBoyHelper = async (query) => {
+    const { firstId } = query
     try {
-        let listMaid = await prisma.roomMaid.findMany({ select: { id: true, aliases: true, user: { select: { name: true } } } })
-        if (maidId === "0") maidId = listMaid[0].id
-        let shownMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +maidId }, select: { shiftId: true, aliases: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
+        let listMaid = await prisma.roomMaid.findMany({ select: { id: true, user: { select: { name: true } } } })
+        listMaid.map(maid => ({
+            id: maid.id,
+            label: maid.user.name
+        }))
+        let listShift = await prisma.shift.findMany({ select: { id: true, description: true, startTime: true, endTime: true } })
+        listShift.map(shift => ({
+            id: shift.id,
+            label: `${shift.description} | ${shift.startTime} - ${shift.endTime}`
+        }))
+        let listDepartment = await prisma.department.findMany({ select: { id: true, longDesc: true } })
+        if (+firstId === 0) firstId = listMaid[0].id
+        let shownMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +firstId }, select: { shiftId: true, aliases: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
         shownMaid = {
             name: shownMaid.user.name,
             email: shownMaid.user.email,
@@ -110,6 +124,30 @@ const getEditRoomBoy = async (maidId) => {
             shiftId: shownMaid.shiftId,
             aliases: shownMaid.aliases
         }
+        return { listMaid, listShift, listDepartment, shownMaid }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getAddRoomBoyHelper = async () => {
+    try {
+        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: true }}, select: { id: true, name: true, email: true, role: { select: { name: true } } } })
+        listUser.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role.name
+        }))
+        let listShift = await prisma.shift.findMany({ select: { id: true, description: true, startTime: true, endTime: true } })
+        listShift.map(shift => ({
+            id: shift.id,
+            label: `${shift.description} | ${shift.startTime} - ${shift.endTime}`
+        }))
+        let listDepartment = await prisma.department.findMany({ select: { id: true, longDesc: true } })
+        return { listUser, listShift, listDepartment }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -226,4 +264,4 @@ const deleteRole = async (id) => {
     }
 }
 
-module.exports = { getData, addNewRole, editRoleById, addNewRoomBoy, editRoomBoy, deleteRole, addEditUser }
+module.exports = { getData, addNewRole, editRoleById, addNewRoomBoy, editRoomBoy, deleteRole, addEditUser, getEditRoleHelper, getAddEditUserHelper, getAddRoomBoyHelper, getEditRoomBoyHelper }

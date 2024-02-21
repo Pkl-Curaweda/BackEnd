@@ -1,12 +1,39 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const { error, success } = require("../../utils/response")
 const modelSAAcess = require('../../models/Super Admin/M_SAAccess')
-const { mode } = require("mathjs")
+const { mode, help } = require("mathjs")
+const { getEditArrangmentHelper, getAddArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
 
 const get = async (req, res) => {
     try {
         const data = await modelSAAcess.getData(req.query)
         return success(res, 'Showing Access Page', data)
+    } catch (err) {
+        return error(res, err.message)
+    }
+}
+
+const getHelper = async (req, res) => {
+    let { ident, act } = req.query, helper
+    try {
+        switch (ident) {
+            case "role":
+                helper = await modelSAAcess.getEditRoleHelper(req.query)
+                break;
+            case "room-boy":
+                if (act != "add") {
+                    helper = await modelSAAcess.getEditRoomBoyHelper(req.query)
+                } else {
+                    helper = await modelSAAcess.getAddRoomBoyHelper(req.query)
+                }
+                break;
+            case "user":
+                helper = await modelSAAcess.getAddEditUserHelper(req.query)
+                break;
+            default:
+                throw Error('No Identifier Match')
+        }
+        return success(res, 'Helper Running', helper)
     } catch (err) {
         return error(res, err.message)
     }
@@ -84,4 +111,4 @@ const deleteRole = async (req, res) => {
     }
 }
 
-module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, deleteRole, postAddEditUser }
+module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, deleteRole, postAddEditUser, getHelper }
