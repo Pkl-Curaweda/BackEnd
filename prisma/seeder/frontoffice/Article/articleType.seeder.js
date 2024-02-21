@@ -115,6 +115,7 @@ const art = [
 ]
 
 async function articleTypeSeed() {
+    art.reverse()
     for(artType of art){
         await prisma.articleType.upsert({
             where: { id: artType.id },

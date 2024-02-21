@@ -264,6 +264,8 @@ model ArticleType {
   id          Int       @id @unique
   description String    @db.Text
   price       Float
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
   Invoice     Invoice[]
   Stock       Stock[]
 }

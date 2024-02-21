@@ -5,7 +5,7 @@ const { createNewStock, updateRealStock } = require("../House Keeping/M_Stock")
 const getSAArticleData = async (query) => {
     let { search = undefined, art = "0" } = query, sendedData = { table: undefined, detail: undefined }
     try {
-        const articles = await prisma.articleType.findMany({ where: { description: { contains: search } }, select: { id: true, description: true, price: true, Stock: { select: { rStock: true, remain: true } } } })
+        const articles = await prisma.articleType.findMany({ where: { description: { contains: search }, NOT: [ { id: { gte: 998 } }] }, select: { id: true, description: true, price: true, Stock: { select: { rStock: true, remain: true } } }, orderBy: { updated_at: 'desc' } })
         sendedData.table = articles.map(article => ({
             artNo: article.id,
             description: article.description,

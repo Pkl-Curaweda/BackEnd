@@ -2,10 +2,9 @@ const { prisma } = require("../../../prisma/seeder/config")
 const bcrypt = require("bcrypt");
 const M_User = require('../Authorization/M_User')
 const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToEmoji } = require("../../utils/helper");
-const { Gender } = require("@prisma/client");
 
 const getData = async (query) => {
-    let { role } = query, sendedData = { listRole: [], listUser: undefined }
+    let { roleId } = query, sendedData = { listRole: [], listUser: undefined }
     try {
         const roles = await prisma.role.findMany({ select: { id: true, name: true, access: true } })
         for (let role of roles) {
@@ -30,14 +29,87 @@ const getData = async (query) => {
                 },
             })
         }
-        const users = await prisma.user.findMany({ where: { ...(role != "ALL" && { name: role }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
+        const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
         sendedData.listUser = users.map(user => ({
             id: user.id,
+            name: user.name,
             email: user.email,
             role: user.role.name,
             isRoomBoy: user.roomMaids.length <= 0 ? "✖️" : "✔️"
         }))
         return sendedData
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getEditRoleHelper = async (id) => {
+    let sendedHelper = {
+        name: undefined, defaultPath: undefined, access: {
+            showSuperAdmin: false,
+            createSuperAdmin: false,
+            showAdmin: false,
+            createAdmin: false,
+            showMaid: false,
+            createMaid: false,
+            showSupervisor: false,
+            createSupervisor: false
+        }
+    }
+    try {
+        const exist = await prisma.role.findFirstOrThrow({ where: { id } })
+        exist.access.keys(key => { sendedHelper[key] = sendedHelper[key] })
+        sendedHelper.name = exist.name
+        sendedHelper.defaultPath = exist.defaultPath
+        return sendedHelper
+    } catch (err) {
+        ThrowError(err)
+    } finally { await PrismaDisconnect() }
+}
+
+const getEditUser = async (id, roleId) => {
+    const accessKeys = {
+        access: {
+            showSuperAdmin: false,
+            createSuperAdmin: false,
+            showAdmin: false,
+            createAdmin: false,
+            showMaid: false,
+            createMaid: false,
+            showSupervisor: false,
+            createSupervisor: false
+        }
+    }
+    try {
+        const exist = await prisma.user.findFirstOrThrow({ where: { id }, select: { name: true, picture: true, phone: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
+        sendedHelper = { ...exist }
+        const listRoles = await prisma.role.findMany({ where: { NOT: [{ AND: [{ id: 'REMOVED' }, { id: 'UNKNOWN' }] }] } })
+        if (roleId === 0) roleId = exist.role.id
+
+        const shownRoles = await prisma.role.findFirstOrThrow({ where: { id: +roleId } })
+        accessKeys.access.keys(key => { shownRoles.access[key] = shownRoles.access[key] || false })
+        return { accessKeys, listRole, shownRoles }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const getEditRoomBoy = async (maidId) => {
+    try {
+        let listMaid = await prisma.roomMaid.findMany({ select: { id: true, aliases: true, user: { select: { name: true } } } })
+        if (maidId === "0") maidId = listMaid[0].id
+        let shownMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +maidId }, select: { shiftId: true, aliases: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
+        shownMaid = {
+            name: shownMaid.user.name,
+            email: shownMaid.user.email,
+            role: shownMaid.user.role.name,
+            shiftId: shownMaid.shiftId,
+            aliases: shownMaid.aliases
+        }
     } catch (err) {
         ThrowError(err)
     } finally {
