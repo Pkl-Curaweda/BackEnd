@@ -29,11 +29,10 @@ const getEditRoomTypeHelper = async (id) => {
     try {
         listArr = ["RB", "RO"]
         const roomType = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { id: true, longDesc: true, bedSetup: true,  ArrangmentCode: {  select: {  id: true, rate: true }} } })
-        console.log(roomType)
-        detail[longDescription] =  roomType.longDesc
-        detail[shortDesc]= roomType.id
-        detail[bedSetup] = roomType.bedSetup
-        for(let arr of roomType.ArrangmentCode) detail[`${arr.id.split('-')[0]}Price`] = arr.rate
+        detail.longDescription =  roomType.longDesc
+        detail.shortDesc= roomType.id
+        detail.bedSetup = roomType.bedSetup
+        for(let arr of roomType.ArrangmentCode) detail[`${arr.id.split('-')[1]}Price`] = arr.rate
         return detail
     } catch (err) {
         ThrowError(err.message)
@@ -44,7 +43,7 @@ const getEditRoomTypeHelper = async (id) => {
 
 const getEditArrangmentHelper = async (id) => {
     try{
-        return await prisma.arrangmentCode.findFirstOrThrow({ where: { id }, select: { id: true, rate: true }})
+        return await prisma.arrangmentCode.findFirstOrThrow({ where: { id }, select: { id: true, rate: true, matchTypeId: true }})
     }catch(err){
         ThrowError(err)
     }finally{
@@ -141,6 +140,7 @@ const addEditArrangment = async (body, act) => {
     try {
         const listArr = []
         for (let arrangment of body) {
+            await prisma.roomType.findFirstOrThrow({ where: { id: arrangment.matchTypeId } })
             let alreadyExist = false
             if (act === "add") {
                 messageAction = "Created"

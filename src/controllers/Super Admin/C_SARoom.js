@@ -13,16 +13,18 @@ const get = async (req, res) => {
 const getHelper = async (req, res) => {
     let { ident, act, id } = req.params, data
     try {
+        console.log(ident, id, act)
         switch (ident) {
             case "room-type":
-                data = await getEditRoomTypeHelper(+id)
+                data = await getEditRoomTypeHelper(id)
                 break;
             case "arr":
                 if(act != "add"){
-                    data = await getAddArrangmentHelper(+id)
+                    data = await getEditArrangmentHelper(id)
                 }else{
-                    data = await getEditArrangmentHelper(+id)
+                    data = await getAddArrangmentHelper(id)
                 }
+                break;
             default:
                 throw Error('No Identifier Match')
         }
