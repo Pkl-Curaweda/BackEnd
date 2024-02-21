@@ -11,7 +11,7 @@ const getSAArticleData = async (query) => {
             price: formatCurrency(article.price)
         }))
         if (art != "0") {
-            const detailArt = await prisma.articleType.findFirstOrThrow({ where: { id: true, price: true, description: true } })
+            const detailArt = await prisma.articleType.findFirstOrThrow({ where: { id: +art }, select: { id: true, price: true, description: true } })
             sendedData.detail = {
                 artNo: detailArt.id,
                 price: detailArt.price,
