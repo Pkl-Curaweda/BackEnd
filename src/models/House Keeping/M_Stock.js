@@ -14,18 +14,15 @@ const reduceRemainingStock = async (articleTypeId, used) => {
 
 const createNewStock = async (articleId, realStock) => {
     try {
-        await prisma.articleType.findFirstOrThrow({ where: { id: +articleId } })
-        return await prisma.stock.upsert({
-            where: { articleTypeId: +articleId },
-            create: {
-                data: {
-                    articleType: { connect: { id: +articleId } },
-                    remain: +realStock,
-                    rStock: +realStock
-                }
-            },
-            update: { rStock: +realStock }
+        const alreadyExist = await prisma.stock.findFirst({ where: { articleTypeId: +articleId } })
+        if (alreadyExist != null) return await prisma.stock.create({
+            data: {
+                articleType: { connect: { id: +articleId } },
+                remain: +realStock,
+                rStock: +realStock
+            }
         })
+        return null
     } catch (err) {
         ThrowError(err)
     } finally { await PrismaDisconnect() }

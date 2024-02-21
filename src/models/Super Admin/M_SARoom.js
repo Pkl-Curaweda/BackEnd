@@ -27,14 +27,13 @@ const getSARoom = async () => {
 const getEditRoomTypeHelper = async (id) => {
     let detail = { }
     try {
-        const roomType = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { id: true, longDesc: true, bedSetup: true,  ArrangmentCode: {  select: { rate: true }} } })
+        listArr = ["RB", "RO"]
+        const roomType = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { id: true, longDesc: true, bedSetup: true,  ArrangmentCode: {  select: {  id: true, rate: true }} } })
         console.log(roomType)
         detail[longDescription] =  roomType.longDesc
         detail[shortDesc]= roomType.id
         detail[bedSetup] = roomType.bedSetup
-        for(let arr of roomType.ArrangmentCode){
-            
-        }
+        for(let arr of roomType.ArrangmentCode) detail[`${arr.id.split('-')[0]}Price`] = arr.rate
         return detail
     } catch (err) {
         ThrowError(err.message)
@@ -92,7 +91,6 @@ const addEditRoomType = async (body, act) => {
         })
 
         if (body.generateArr && act === "add") {
-            console.log('Sampe sini?')
             const RbRo = [`${data.id}-RB`, `${data.id}-RO`]
             const priceRbRo = [body.priceRB, body.priceRO]
             const arrangmentData = []
