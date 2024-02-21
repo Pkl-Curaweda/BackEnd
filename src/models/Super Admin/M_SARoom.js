@@ -4,7 +4,7 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 const getSARoom = async () => {
     try {
         let [rooms, roomTypes, arrangment] = await prisma.$transaction([
-            prisma.room.findMany({ select: { id: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
+            prisma.room.findMany({ select: { id: true, description: true, floor: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
             prisma.roomType.findMany({ select: { id: true }, orderBy: { id: 'asc' } }),
             prisma.arrangmentCode.findMany({ select: { id: true }, orderBy: { matchTypeId: 'asc' } })
         ])
@@ -14,6 +14,8 @@ const getSARoom = async () => {
             arrangment: room.roomType.ArrangmentCode,
             roomStatus: room.roomStatus.longDescription,
             bedSetup: room.roomType.bedSetup,
+            description: room.description,
+            floor: room.floor,
             image: room.roomImage
         }))
         return { rooms, roomTypes, arrangment }
