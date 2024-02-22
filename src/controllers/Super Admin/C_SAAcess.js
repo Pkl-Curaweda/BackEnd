@@ -14,21 +14,23 @@ const get = async (req, res) => {
 }
 
 const getHelper = async (req, res) => {
-    let { ident, act } = req.query, helper
+    console.log(req.query)
+    let { ident, act } = req.params, helper
     try {
+        console.log(req.params)
         switch (ident) {
             case "role":
-                helper = await modelSAAcess.getEditRoleHelper(req.query)
+                helper = await modelSAAcess.getEditRoleHelper(req.params)
                 break;
             case "room-boy":
                 if (act != "add") {
-                    helper = await modelSAAcess.getEditRoomBoyHelper(req.query)
+                    helper = await modelSAAcess.getEditRoomBoyHelper(req.params)
                 } else {
-                    helper = await modelSAAcess.getAddRoomBoyHelper(req.query)
+                    helper = await modelSAAcess.getAddRoomBoyHelper(req.params)
                 }
                 break;
             case "user":
-                helper = await modelSAAcess.getAddEditUserHelper(req.query)
+                helper = await modelSAAcess.getAddEditUserHelper(req.params)
                 break;
             default:
                 throw Error('No Identifier Match')

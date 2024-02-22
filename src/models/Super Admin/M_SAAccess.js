@@ -6,7 +6,7 @@ const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToEmoji } = 
 const getData = async (query) => {
     let { roleId } = query, sendedData = { listRole: [], listUser: undefined }
     try {
-        const roles = await prisma.role.findMany({ select: { id: true, name: true, access: true } })
+        const roles = await prisma.role.findMany({ where: { NOT: [{ id: 1 }, { id: 2 }] }, select: { id: true, name: true, access: true } })
         for (let role of roles) {
             sendedData.listRole.push({
                 id: role.id,
@@ -29,14 +29,18 @@ const getData = async (query) => {
                 },
             })
         }
-        const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
-        sendedData.listUser = users.map(user => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role.name,
-            isRoomBoy: user.roomMaids.length <= 0 ? "✖️" : "✔️"
-        }))
+        if(+roleId != 0){
+            const roleExist = await prisma.role.findFirst({ where: { id: +roleId } })
+            const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
+            if(users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
+            sendedData.listUser = users.map(user => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role.name,
+                isRoomBoy: user.roomMaids.length <= 0 ? "✖️" : "✔️"
+            }))
+        } 
         return sendedData
     } catch (err) {
         ThrowError(err)
@@ -46,7 +50,7 @@ const getData = async (query) => {
 }
 
 const getEditRoleHelper = async (query) => {
-    const { id } = query
+    const { firstId } = query
     let sendedHelper = {
         name: undefined, defaultPath: undefined, access: {
             showSuperAdmin: false,
@@ -60,8 +64,9 @@ const getEditRoleHelper = async (query) => {
         }
     }
     try {
-        const exist = await prisma.role.findFirstOrThrow({ where: { id: +id } })
-        exist.access.keys(key => { sendedHelper[key] = sendedHelper[key] })
+        const exist = await prisma.role.findFirstOrThrow({ where: { id: +firstId } })
+        console.log(exist.access)
+        Object.keys(exist.access).forEach(key => { sendedHelper.access[key] = exist.access[key] })
         sendedHelper.name = exist.name
         sendedHelper.defaultPath = exist.defaultPath
         return sendedHelper
@@ -71,7 +76,7 @@ const getEditRoleHelper = async (query) => {
 }
 
 const getAddEditUserHelper = async (query) => {
-    const { firstId, secondId, act } = query
+    let { firstId, secondId, act } = query
     let accessKeys = {
         access: {
             showSuperAdmin: false,
@@ -83,17 +88,17 @@ const getAddEditUserHelper = async (query) => {
             showSupervisor: false,
             createSupervisor: false
         }
-    }, sendedHelper
+    }, shownUser
     try {
-        const listRoles = await prisma.role.findMany({ where: { NOT: [{ AND: [{ id: 'REMOVED' }, { id: 'UNKNOWN' }] }] }, select: { id: true, name: true } })
+        const listRoles = await prisma.role.findMany({ where: { NOT: [{ name: "REMOVED" }, { name: "UNKNOWN" }] }, select: { id: true, name: true } })
         if (act != "add") {
             const exist = await prisma.user.findFirstOrThrow({ where: { id: +firstId }, select: { name: true, picture: true, phone: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
-            sendedHelper = { ...exist }
-            if (roleId === 0) roleId = exist.role.id
+            shownUser = { ...exist }
+            if (+secondId === 0) secondId = exist.role.id
         } else if (+secondId === 0) secondId = listRoles[0].id
         const shownRoles = await prisma.role.findFirstOrThrow({ where: { id: +secondId } })
-        accessKeys.access.keys(key => { shownRoles.access[key] = shownRoles.access[key] || false })
-        return { accessKeys, listRole, shownRoles }
+        Object.keys(accessKeys.access).forEach(key => { shownRoles.access[key] = shownRoles.access[key] || false })
+        return { listRoles, shownRoles, shownUser }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -134,7 +139,7 @@ const getEditRoomBoyHelper = async (query) => {
 
 const getAddRoomBoyHelper = async () => {
     try {
-        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: true }}, select: { id: true, name: true, email: true, role: { select: { name: true } } } })
+        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: {} }, NOT: [{ roleId: 1 }, { roleId: 2 }, { roleId: 8 }] }, select: { id: true, name: true, email: true, role: { select: { name: true } } } })
         listUser.map(user => ({
             id: user.id,
             name: user.name,
