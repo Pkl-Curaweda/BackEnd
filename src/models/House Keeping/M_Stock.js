@@ -42,7 +42,7 @@ const updateRealStock = async (stockId, realStock) => {
 const getAvailableArticleAndStock = async (perPage = 5, page = 1) => {
     try {
         const listOfArticle = []
-        const article = await prisma.articleType.findMany({ where: { NOT: [{ id: { gte: 998 } }] }, select: { id: true, price: true, description: true, Stock: { select: { remain: true } } }, orderBy: { id: 'asc' }, take: +perPage, skip: (+page - 1) * perPage })
+        const article = await prisma.articleType.findMany({ where: { NOT: [{ id: { gte: 998 }, deleted: false }] }, select: { id: true, price: true, description: true, Stock: { select: { remain: true } } }, orderBy: { id: 'asc' }, take: +perPage, skip: (+page - 1) * perPage })
         for (let art of article) {
             listOfArticle.push({
                 id: art.id,

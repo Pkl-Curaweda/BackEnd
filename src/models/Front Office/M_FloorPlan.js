@@ -7,6 +7,7 @@ const getAllStatus = async () => {
     const currDate = new Date().toISOString().split('T')[0]
     const [rooms, resv] = await prisma.$transaction([
       prisma.room.findMany({
+        where: { deleted: false },
         select: {
           id: true,
           roomStatus: {
@@ -43,7 +44,7 @@ const getAllStatus = async () => {
 const getFloorPlanByDate = async (dateRange) => {
   try {
     let listRoom = [], [startTime, endTime] = dateRange.split(' ')
-    const rooms = await prisma.room.findMany()
+    const rooms = await prisma.room.findMany({ where: { deleted: false } })
     for (let room of rooms) {
       listRoom.push({
         id: `${room.id}`,

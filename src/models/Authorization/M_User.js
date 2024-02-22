@@ -6,7 +6,7 @@ const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
 const UserLogin = async (email, password) => {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email }, select: {
+      where: { email, deleted: false }, select: {
         id: true,
         name: true,
         username: true,
@@ -47,6 +47,7 @@ const UserLogout = async (RefreshToken) => {
 const GetAllUsers = async () => {
   try {
     const user = await prisma.user.findMany({
+      where: { deleted: false },
       select: {
         username: true,
         email: true,
@@ -150,7 +151,7 @@ async function all(option) {
 async function get(id) {
   return await prisma.user.findUniqueOrThrow({
     where: {
-      id: parseInt(id)
+      id: parseInt(id), deleted: false
     },
     select
   })

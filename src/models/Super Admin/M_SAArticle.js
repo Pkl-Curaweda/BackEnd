@@ -5,7 +5,7 @@ const { createNewStock, updateRealStock } = require("../House Keeping/M_Stock")
 const getSAArticleData = async (query) => {
     let { search = undefined, art = "0" } = query, sendedData = { table: undefined, detail: undefined }
     try {
-        const articles = await prisma.articleType.findMany({ where: { description: { contains: search }, NOT: [ { id: { gte: 998 } }] }, select: { id: true, description: true, price: true, Stock: { select: { rStock: true, remain: true } } }, orderBy: { updated_at: 'desc' } })
+        const articles = await prisma.articleType.findMany({ where: { description: { contains: search }, NOT: [ { id: { gte: 998 } }], deleted: false }, select: { id: true, description: true, price: true, Stock: { select: { rStock: true, remain: true } } }, orderBy: { updated_at: 'desc' } })
         sendedData.table = articles.map(article => ({
             artNo: article.id,
             description: article.description,
@@ -58,7 +58,7 @@ const addEditArticle = async (body, act) => {
 const deleteArticleById = async (id) => {
     try {
         const exist = await prisma.articleType.findFirstOrThrow({ where: { id } })
-        return await prisma.articleType.delete({ where: { id } })
+        return await prisma.articleType.update({ where: { id }, data: { deleted: true } })
     } catch (err) {
         ThrowError(err)
     } finally {

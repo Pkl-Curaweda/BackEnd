@@ -6,7 +6,7 @@ const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToEmoji } = 
 const getData = async (query) => {
     let { roleId } = query, sendedData = { listRole: [], listUser: undefined }
     try {
-        const roles = await prisma.role.findMany({ where: { NOT: [{ id: 1 }, { id: 2 }] }, select: { id: true, name: true, access: true } })
+        const roles = await prisma.role.findMany({ where: { NOT: [{ id: 1 }, { id: 2 }], deleted: false }, select: { id: true, name: true, access: true } })
         for (let role of roles) {
             sendedData.listRole.push({
                 id: role.id,
@@ -29,10 +29,10 @@ const getData = async (query) => {
                 },
             })
         }
-        if(+roleId != 0){
+        if (+roleId != 0) {
             const roleExist = await prisma.role.findFirst({ where: { id: +roleId } })
             const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
-            if(users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
+            if (users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
             sendedData.listUser = users.map(user => ({
                 id: user.id,
                 name: user.name,
@@ -40,7 +40,7 @@ const getData = async (query) => {
                 role: user.role.name,
                 isRoomBoy: user.roomMaids.length <= 0 ? "✖️" : "✔️"
             }))
-        } 
+        }
         return sendedData
     } catch (err) {
         ThrowError(err)
@@ -65,7 +65,6 @@ const getEditRoleHelper = async (query) => {
     }
     try {
         const exist = await prisma.role.findFirstOrThrow({ where: { id: +firstId } })
-        console.log(exist.access)
         Object.keys(exist.access).forEach(key => { sendedHelper.access[key] = exist.access[key] })
         sendedHelper.name = exist.name
         sendedHelper.defaultPath = exist.defaultPath
@@ -90,9 +89,9 @@ const getAddEditUserHelper = async (query) => {
         }
     }, shownUser
     try {
-        const listRoles = await prisma.role.findMany({ where: { NOT: [{ name: "REMOVED" }, { name: "UNKNOWN" }] }, select: { id: true, name: true } })
+        const listRoles = await prisma.role.findMany({ where: { NOT: [{ name: "REMOVED" }, { name: "UNKNOWN" }],deleted: false }, select: { id: true, name: true } })
         if (act != "add") {
-            const exist = await prisma.user.findFirstOrThrow({ where: { id: +firstId }, select: { name: true, picture: true, phone: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
+            const exist = await prisma.user.findFirstOrThrow({ where: { id: +firstId, deleted: false }, select: { name: true, picture: true, phone: true, email: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
             shownUser = { ...exist }
             if (+secondId === 0) secondId = exist.role.id
         } else if (+secondId === 0) secondId = listRoles[0].id
@@ -109,7 +108,7 @@ const getAddEditUserHelper = async (query) => {
 const getEditRoomBoyHelper = async (query) => {
     const { firstId } = query
     try {
-        let listMaid = await prisma.roomMaid.findMany({ select: { id: true, user: { select: { name: true } } } })
+        let listMaid = await prisma.roomMaid.findMany({ where: { deleted: false, }, select: { id: true, user: { select: { name: true } } } })
         listMaid.map(maid => ({
             id: maid.id,
             label: maid.user.name
@@ -121,7 +120,7 @@ const getEditRoomBoyHelper = async (query) => {
         }))
         let listDepartment = await prisma.department.findMany({ select: { id: true, longDesc: true } })
         if (+firstId === 0) firstId = listMaid[0].id
-        let shownMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +firstId }, select: { shiftId: true, aliases: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
+        let shownMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +firstId, deleted: false }, select: { shiftId: true, aliases: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
         shownMaid = {
             name: shownMaid.user.name,
             email: shownMaid.user.email,
@@ -139,10 +138,11 @@ const getEditRoomBoyHelper = async (query) => {
 
 const getAddRoomBoyHelper = async () => {
     try {
-        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: {} }, NOT: [{ roleId: 1 }, { roleId: 2 }, { roleId: 8 }] }, select: { id: true, name: true, email: true, role: { select: { name: true } } } })
+        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: {} }, deleted: false, NOT: [{ roleId: 1 }, { roleId: 2 }, { roleId: 8 }] }, select: { id: true, name: true,  picture: true, email: true, role: { select: { name: true } } } })
         listUser.map(user => ({
             id: user.id,
             name: user.name,
+            picture: user.picture,
             email: user.email,
             role: user.role.name
         }))
@@ -162,7 +162,6 @@ const getAddRoomBoyHelper = async () => {
 
 const addEditUser = async (body, act, userId = undefined) => {
     try {
-        console.log(body)
         if (body.email) {
             const emailUssed = await prisma.user.findFirst({ where: { email: body.email } })
             if (emailUssed != null) throw Error(`Email already exist, for user ${emailUssed.name}`)
@@ -257,11 +256,11 @@ const editRoomBoy = async (maidId, body) => {
 
 const deleteRole = async (id) => {
     try {
-        const exist = await prisma.role.findFirstOrThrow({ where: { id }, select: { users: true } })
-        for (let user of exist.users) {
-            await prisma.user.update({ where: { id: user.id }, data: { roleId: 1 } }) //Change to REMOVED
-        }
-        return await prisma.role.delete({ where: { id } })
+        const [exist, deletedData] = await prisma.$transaction([
+            prisma.role.findFirstOrThrow({ where: { id } }),
+            prisma.role.update({ where: { id }, data: { deleted: true } })
+        ])
+        return { message: `Role ${exist.name} successfully deleted`, data: deletedData }
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -269,4 +268,31 @@ const deleteRole = async (id) => {
     }
 }
 
-module.exports = { getData, addNewRole, editRoleById, addNewRoomBoy, editRoomBoy, deleteRole, addEditUser, getEditRoleHelper, getAddEditUserHelper, getAddRoomBoyHelper, getEditRoomBoyHelper }
+const deleteUser = async (id) => {
+    try {
+        const [exist, deletedData] = await prisma.$transaction([
+            prisma.user.findFirstOrThrow({ where: { id } }),
+            prisma.user.update({ where: { id }, data: { deleted: true } })
+        ])
+        return { message: `User ${exist.name} successfully deleted`, data: deletedData }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const deleteRoomMaid = async (id) => {
+    try {
+        const [exist, deletedData] = await prisma.$transaction([
+            prisma.roomMaid.findFirstOrThrow({ where: { id } }),
+            prisma.roomMaid.update({ where: { id }, data: { deleted: true } })
+        ])
+        return { message: `Room Maid ${exist.aliases} successfully deleted`, data: deletedData }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+module.exports = { getData, addNewRole, editRoleById, addNewRoomBoy, editRoomBoy, deleteRole, addEditUser, getEditRoleHelper, getAddEditUserHelper, getAddRoomBoyHelper, getEditRoomBoyHelper, deleteRole, deleteUser, deleteRoomMaid }

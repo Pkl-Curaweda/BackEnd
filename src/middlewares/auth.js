@@ -17,6 +17,7 @@ const auth = (access) => async (req, res, next) => {
         const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
         const userData = await prisma.user.findUniqueOrThrow({
             where: {
+                deleted: false,
                 id: +decoded.sub
             },
             select: {

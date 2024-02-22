@@ -46,7 +46,7 @@ const getSupervisorData = async (q) => {
                 comments: task.comment ? task.comment : "-"
             };
         })
-        const listRoom = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { id: true } })
+        const listRoom = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] ,deleted: false}, select: { id: true } })
         const listStatus = await prisma.roomStatus.findMany({ select: { longDescription: true, shortDescription: true } })
         return { listTask, listStatus, listRoom }
     } catch (err) {
@@ -61,7 +61,7 @@ const helperAddTask = async (query) => {
     try {
         if (roomNo === "0" && roomBoy === "0") {
             [sendedData.list.room, maids] = await prisma.$transaction([
-                prisma.room.findMany({ where: { NOT: { id: 0 } }, select: { id: true }, orderBy: { id: 'asc' } }),
+                prisma.room.findMany({ where: { NOT: [{ id: 0 }], deleted: false }, select: { id: true }, orderBy: { id: 'asc' } }),
                 prisma.roomMaid.findMany({ where: { workload: { lt: 480 } }, select: { id: true, aliases: true, shiftId: true } })
             ])
             sendedData.list.maid = maids.map(maid => ({
@@ -171,7 +171,6 @@ const helperUnavailableRoomBoy = async (query) => {
 const addUnavailableRoomBoy = async (b) => {
     let { unAvailableId, assigneId } = b, assigned = [], totalAssigned = 0, totalAssignedToOtherMaid = 0
     const currentDate = splitDateTime(new Date().toISOString()).date
-    console.log(currentDate)
     try {
         const [unavailExist, assigneExist] = await prisma.$transaction([
             prisma.roomMaid.findFirstOrThrow({
@@ -186,7 +185,6 @@ const addUnavailableRoomBoy = async (b) => {
             }),
             prisma.roomMaid.findFirstOrThrow({ where: { id: +assigneId } })
         ])
-        console.log(unavailExist, assigneExist)
         const sortTask = unavailExist.MaidTask.sort((a, b) => {
             if (a.customWorkload) {
                 if (b.customWorkload) {
@@ -224,7 +222,6 @@ const changeAssigne = async (taskId, toMaidId) => {
             prisma.roomMaid.findFirstOrThrow({ where: { id: +toMaidId }, select: { aliases: true, workload: true, id: true } })
         ])
         const taskWorkload = taskExist.customWorkload != null ? taskExist.customWorkload : taskExist.type.standardTime
-        console.log(maidExist.workload + taskWorkload)
         const canWorkOnTask = maidExist.workload + taskWorkload < 480 ? true : false
         if (canWorkOnTask) {
             updatedTask = await prisma.maidTask.update({ where: { id: +taskId }, data: { assignToAnotherMaid: true, assignedBeforeId: taskExist.roomMaid.id, roomMaidId: maidExist.id } })
@@ -259,7 +256,7 @@ const addNewSupervisorTask = async (body) => {
 
 const isSupervisor = async (supervisorId) => {
     try {
-        return await prisma.user.findFirstOrThrow({ where: { role: { name: "Supervisor" }, id: +supervisorId } })
+        return await prisma.user.findFirstOrThrow({ where: { role: { name: "Supervisor" }, id: +supervisorId, deleted: false } })
     } catch (err) {
         ThrowError(err)
     } finally {

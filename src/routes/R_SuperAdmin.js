@@ -76,6 +76,6 @@ R_SA.post('/access/user/:action/:id?', upload.single('picture'), (req, res, next
     }
     next()
 }, SAAccess.postAddEditUser)
-R_SA.delete('/access/role/:id', SAAccess.deleteRole)
+R_SA.delete('/access/:ident/:id', SAAccess.deleteData)
 //? END ACCESS PAGE
 module.exports = R_SA

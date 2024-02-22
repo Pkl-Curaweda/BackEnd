@@ -266,7 +266,7 @@ model ArticleType {
   id          Int       @id @unique
   description String    @db.Text
   price       Float
-  deleted     Boolean @default(false)
+  deleted     Boolean   @default(false)
   updated_at  DateTime  @updatedAt
   created_at  DateTime  @default(now())
   Invoice     Invoice[]
@@ -380,6 +380,7 @@ model RoomMaid {
   workload      Int        @default(0)
   department    Department @relation(fields: [departmentId], references: [id])
   departmentId  Int
+  deleted       Boolean    @default(false)
   ResvRoom      ResvRoom[]
   updated_at    DateTime   @updatedAt
   MaidTask      MaidTask[] @relation("assignTo")

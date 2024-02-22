@@ -61,7 +61,7 @@ const get = async (page, perPage, date) => {
 const getChart = async () => {
     let resvChart = {}, hkChart = { }
     try {
-        const rooms = await prisma.room.findMany({ select: { id: true } })
+        const rooms = await prisma.room.findMany({ select: { deleted: false, id: true } })
         for(let room of rooms) hkChart[room.id] = 0 
         const dts = generateDateBetweenNowBasedOnDays('future', 7)
         const resvRoom = await prisma.resvRoom.findMany({
@@ -149,7 +149,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
         recResv.checkIn = ci
         recResv.checkOut = co
         recResv.newReservation = nw
-        recResv.occRate = (ttlRoom - recResv.availableRoom) / ttlRoom * 100
+        recResv.occRate = parseInt((ttlRoom - recResv.availableRoom) / ttlRoom * 100)
         return recResv
     } catch (err) {
         ThrowError(err)
@@ -161,7 +161,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
 const getHouseKeepingRoomData = async () => {
     let status = { vc: 0, vcu: 0, vd: 0, oc: 0, od: 0, ttl: 0 };
     try {
-        const rooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { roomStatus: { select: { shortDescription: true } } } })
+        const rooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }], deleted: false }, select: { roomStatus: { select: { shortDescription: true } } } })
         for (room of rooms) {
             const shtDesc = room.roomStatus.shortDescription
             switch (shtDesc) {

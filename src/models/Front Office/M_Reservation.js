@@ -115,9 +115,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           ]
         }
     }
-    console.log('Suck ma')
     if (sortAndOrder != "") orderBy = orderReservationByIdentifier(sortAndOrder);
-    console.log(sortAndOrder, orderBy)
     const { reservations, meta } = await paginateFO(prisma.resvRoom, { page, name: "reservations", perPage }, {
       where: {
         reservation: { reserver: { guest: { name: { contains: name } } } },
@@ -188,7 +186,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
     })
 
     const roomBoys = await prisma.user.findMany({
-      where: { roleId: 5 },
+      where: { roleId: 5, deleted: false },
       select: { name: true }
     })
 
@@ -337,7 +335,7 @@ const DetailCreateReservationHelper = async () => {
   try {
     const availableRooms = await prisma.room.findMany({ where: { NOT: [ { id: 0 }] }, select: {id: true, roomType: true }, orderBy: { id: 'asc' } });
     const arrangmentCode = await prisma.arrangmentCode.findMany({
-      where: { NOT: [ { id: `REMOVED` }] },
+      where: { NOT: [ { id: `REMOVED` }], deleted: false },
       select: {
         id: true,
         rate: true

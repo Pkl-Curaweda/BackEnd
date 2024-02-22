@@ -27,7 +27,7 @@ const getAllRoomMaid = async () => {
 const assignRoomMaid = async (resvRoomId) => {
     try {
         const users = await prisma.user.findMany({
-            where: { role: { id: 3 } },
+            where: { role: { id: 3 }, deleted: false },
             select: { id: true }
         })
 
@@ -117,7 +117,7 @@ const getRoomMaidReport = async (q) => {
         const roomOrderBy = sortOrder === "roomType" ? { roomType: 'asc' } : { id: 'asc' }
         const [total, rooms] = await prisma.$transaction([
             prisma.room.count(),
-            prisma.room.findMany({ select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } }, orderBy: { ...roomOrderBy } })
+            prisma.room.findMany({ where: { deleted: false },select: { id: true, roomType: true, roomStatus: { select: { longDescription: true } } }, orderBy: { ...roomOrderBy } })
         ])
         const reports = []
         let startIndex = (page - 1) * perPage;
@@ -264,7 +264,7 @@ const resetRoomMaid = async () => {
 
 const createRoomMaid = async (b) => {
     try {
-        await prisma.user.findFirstOrThrow({ where: { id: b.userId } })
+        await prisma.user.findFirstOrThrow({ where: { id: b.userId, deleted: false } })
         return await prisma.roomMaid.create({ data: { ...b } })
     } catch (err) {
         ThrowError(err)

@@ -11,7 +11,7 @@ const { encrypt, decrypt } = require('../utils/encryption.js');
 async function login(req, res) {
   const { email, password } = req.body
 
-  const user = await prisma.user.findUnique({ where: { email } })
+  const user = await prisma.user.findUnique({ where: { email, deleted: false } })
   if (!user) return error(res, 'Email not found', 404)
   const match = await bcrypt.compare(password, user.password)
   if (!match) return error(res, 'Wrong password', 401)

@@ -638,7 +638,7 @@ async function isArrangementMatch(roomId, checkArrangment) {
   try {
     if (roomId === undefined) throw Error('Sorry you didnt specify the Room Number')
     if (checkArrangment === undefined) throw Error('Please send your Arrangment Code')
-    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId }, select: { roomType: { select: { ArrangmentCode: { select: { matchTypeId: true } } } } } })
+    const room = await prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false }, select: { roomType: { select: { ArrangmentCode: { select: { matchTypeId: true } } } } } })
     if (checkArrangment.split('-')[0] != room.roomType.ArrangmentCode[0].matchTypeId) throw Error('Unmatched Arrangment Code')
     return
   } catch (err) {
@@ -649,15 +649,11 @@ async function isArrangementMatch(roomId, checkArrangment) {
 }
 
 function reverseObject(obj) {
-  console.log('===============================================')
   const reversedObject = {};
   const keys = Object.keys(obj).reverse();
-  console.log(keys)
   for (const key of keys) {
-    console.log(key)
     reversedObject[key] = obj[key];
   }
-  console.log(reversedObject)
   return reversedObject;
 }
 

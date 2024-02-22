@@ -5,7 +5,7 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const getAllAvailableRoom = async () => {
     try {
         const availableRooms = await prisma.room.findMany({
-            where: { occupied_status: false, NOT:[ { id: 0 }] }, select: {
+            where: { occupied_status: false, deleted: false, NOT:[ { id: 0 }] }, select: {
                 id: true,
                 roomType: true
             }
@@ -20,7 +20,7 @@ const getAllAvailableRoom = async () => {
 
 const getAllRoomStatus = async () => {
     try {
-        const rooms = await prisma.room.findMany({ select: { id: true, roomStatus: { select: { id: true, shortDescription: true, longDescription: true } } } })
+        const rooms = await prisma.room.findMany({ where: { deleted: false },select: { id: true, roomStatus: { select: { id: true, shortDescription: true, longDescription: true } } } })
         return rooms
     } catch (err) {
         ThrowError(err)
@@ -32,7 +32,7 @@ const getAllRoomStatus = async () => {
 const getRoomStatWithId = async (id) => {
     let room, allStat;
     try {
-        if (id) room = await prisma.room.findFirstOrThrow({ where: { id: parseInt(id) }, select: { roomStatus: true } })
+        if (id) room = await prisma.room.findFirstOrThrow({ where: { id: parseInt(id), deleted: false }, select: { roomStatus: true } })
         allStat = await prisma.roomStatus.findMany()
         return { room, allStat }
     } catch (err) {
@@ -45,7 +45,7 @@ const getRoomStatWithId = async (id) => {
 const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
     try {
         const roomStatusExist = await prisma.roomStatus.findFirstOrThrow({ where: { shortDescription }, select: { id: true, shortDescription: true } })
-        await prisma.room.findFirstOrThrow({ where: { id: roomId } })
+        await prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false } })
         return await prisma.room.update({ where: { id: roomId }, data: { roomStatus: { connect: { id: roomStatusExist.id } } }, include: { roomStatus: { select: { shortDescription: true, longDescription: true } } } })
     } catch (err) {
         ThrowError(err)
@@ -56,7 +56,7 @@ const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
 
 const changeOccupied = async (roomId, value) => {
     try {
-        return await prisma.room.update({ where: { id: roomId }, data: { occupied_status: value } })
+        return await prisma.room.update({ where: { id: roomId, deleted: false }, data: { occupied_status: value } })
     } catch (err) {
         ThrowError(err)
     } finally {

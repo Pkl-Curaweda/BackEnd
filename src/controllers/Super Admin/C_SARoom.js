@@ -13,7 +13,6 @@ const get = async (req, res) => {
 const getHelper = async (req, res) => {
     let { ident, act, id } = req.params, data
     try {
-        console.log(ident, id, act)
         switch (ident) {
             case "room-type":
                 data = await getEditRoomTypeHelper(id)

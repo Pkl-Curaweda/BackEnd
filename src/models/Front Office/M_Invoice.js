@@ -208,7 +208,7 @@ const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
     for (let body of b) {
       if (!(body.qty <= 0)) {
         if (body.articleId != 998) {
-          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId }, select: { price: true, id: true } })
+          const art = await prisma.articleType.findFirstOrThrow({ where: { id: body.articleId, deleted: false }, select: { price: true, id: true } })
           dateUsed = resvRoom.reservation.arrivalDate;
           dateReturn = resvRoom.reservation.departureDate;
           rate = art.price
@@ -306,7 +306,7 @@ const putInvoiceData = async (reservationId, resvRoomId, args, data) => {
   try {
     await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId } })
     if (id >= 998) throw Error('Cannot Be Changed')
-    const artList = await prisma.articleType.findMany({ select: { id: true } })
+    const artList = await prisma.articleType.findMany({ where:{ deleted: false }, select: { id: true } })
     const arts = artList.map(art => art.id)
     if (arts.includes(id)) {
       const [exist, resvArt] = await prisma.$transaction([

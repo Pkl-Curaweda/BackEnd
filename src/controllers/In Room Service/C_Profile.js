@@ -15,6 +15,7 @@ async function getData(req, res) {
     const decoded = verifyToken(accessToken);
     const data = await prisma.user.findUnique({
       where: {
+        deleted: false,
         id: decoded,
       },
       select: {

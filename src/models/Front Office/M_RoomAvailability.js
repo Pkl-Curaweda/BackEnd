@@ -25,7 +25,7 @@ const filterRoomHistory = (roomHistory, filter) => {
 
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
-        let logData = [], startDate, endDate, dates, roomAverage = { total_101: 0, total_102: 0, total_103: 0, total_104: 0, total_105: 0, total_106: 0, total_107: 0, total_108: 0, total_109: 0, total_110: 0 }
+        let logData = [], startDate, endDate, dates, roomAverage = { total_101: 0, total_102: 0, total_103: 0, total_104: 0, total_105: 0, total_106: 0, total_107: 0, total_108: 0, total_109: 0, total_110: 0 }, roomsList = [], rawRoomHistory = []
         if (dateQuery === undefined) {
             const dateNew = new Date();
             startDate = dateNew.toISOString().split('T')[0]
@@ -33,7 +33,12 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             endDate.setDate(endDate.getDate() + 6);
             endDate = endDate.toISOString().split('T')[0]
         } else[startDate, endDate] = dateQuery.split(' ')
-
+        const rooms = await prisma.room.findMany({ where: {  deleted: true},select: { id: true, roomType: true } })
+        for(let room of rooms){
+            roomAverage[`total_${room.id}`] = 0
+            roomsList.push(room.id)
+            rawRoomHistory[`room_${room.id}`] = { data: '', style: {} }
+        }
         const reservation = await prisma.resvRoom.findMany({
             where: {
                 reservation: {
@@ -73,15 +78,14 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             }
         })
         dates = generateDateBetweenStartAndEnd(startDate, endDate)
-        let listShown = [101, 102, 103, 104, 105, 106, 107, 108, 109, 110]
+        let listShown = roomsList
         for (let date of dates) {
-            let rmHist = { room_101: { data: '', style: {}, }, room_102: { data: '', style: {} }, room_103: { data: '', style: {}, }, room_104: { data: '', style: {}, }, room_105: { data: '', style: {}, }, room_106: { data: '', style: {}, }, room_107: { data: '', style: {}, }, room_108: { data: '', style: {} }, room_109: { data: '', style: {}, }, room_110: { data: '', style: {}, } }
+            let rmHist = rawRoomHistory
             let data = reservation.filter(rsv => {
                 let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
                 return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
             })
             if (filter != undefined) {
-                // data = filterRoomHistory(data, filter)
                 const type = filter.split('_')[1]
                 switch (type) {
                     case "STANDARD":
@@ -143,7 +147,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             }
         });
         if(filter === "R_DESC") roomAverage = reverseObject(roomAverage)
-        console.log(roomAverage)
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             logData, roomAverage, meta: {
@@ -166,7 +169,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
 const createNewLogAvailable = async () => {
     try {
         let roomHistory = {};
-        const rooms = await prisma.room.findMany({ select: { id: true, roomType: true, bedSetup: true }, orderBy: { id: 'asc' } });
+        const rooms = await prisma.room.findMany({where: { deleted: false }, select: { id: true, roomType: true, bedSetup: true }, orderBy: { id: 'asc' } });
         for (const room of rooms) {
             const resvRoom = await prisma.resvRoom.findFirst({
                 where: {

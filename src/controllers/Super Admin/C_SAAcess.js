@@ -14,10 +14,8 @@ const get = async (req, res) => {
 }
 
 const getHelper = async (req, res) => {
-    console.log(req.query)
     let { ident, act } = req.params, helper
     try {
-        console.log(req.params)
         switch (ident) {
             case "role":
                 helper = await modelSAAcess.getEditRoleHelper(req.params)
@@ -104,13 +102,26 @@ const putEditRoomBoy = async (req, res) => {
     }
 }
 
-const deleteRole = async (req, res) => {
+const deleteData = async (req, res) => {
+    let { ident, id } = req.params, deleted
     try {
-        const deletedRole = await modelSAAcess.deleteRole(+req.params.id)
-        return success(res, `${deletedRole.name} Deleted Succesfully`, deletedRole)
+        switch(ident){
+            case "role":
+                deleted = await modelSAAcess.deleteRole(+id)
+                break;
+            case "room-boy":
+                deleted = await modelSAAcess.deleteRoomMaid(+id)
+                break;
+            case "user":
+                deleted = await modelSAAcess.deleteUser(+id)
+                break;
+            default:
+                throw Error('Data cannot be deleted')
+        }
+        return success(res, `${deleted.message} Deleted Succesfully`, deleted.data)
     } catch (err) {
         return error(res, err.message)
     }
 }
 
-module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, deleteRole, postAddEditUser, getHelper }
+module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, postAddEditUser, getHelper, deleteData }

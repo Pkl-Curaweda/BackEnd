@@ -4,9 +4,9 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 const getSARoom = async () => {
     try {
         let [rooms, roomTypes, arrangment] = await prisma.$transaction([
-            prisma.room.findMany({ where: { deleted: false, AND: [ { id: 0 }] }, select: { id: true, description: true, floor: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
-            prisma.roomType.findMany({ where: { deleted: false, AND: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { id: 'asc' } }),
-            prisma.arrangmentCode.findMany({ where: { deleted: false, AND: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { matchTypeId: 'asc' } })
+            prisma.room.findMany({ where: { deleted: false, NOT: [ { id: 0 }] }, select: { id: true, description: true, floor: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
+            prisma.roomType.findMany({ where: { deleted: false, NOT: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { id: 'asc' } }),
+            prisma.arrangmentCode.findMany({ where: { deleted: false, NOT: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { matchTypeId: 'asc' } })
         ])
         rooms = rooms.map(room => ({
             roomNo: room.id,
@@ -30,14 +30,14 @@ const getEditRoomTypeHelper = async (id) => {
     let detail = {}
     try {
         listArr = ["RB", "RO"]
-        const roomType = await prisma.roomType.findFirstOrThrow({ where: { id }, select: { id: true, longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true, rate: true } } } })
+        const roomType = await prisma.roomType.findFirstOrThrow({ where: { id, deleted: false }, select: { id: true, longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true, rate: true } } } })
         detail.longDescription = roomType.longDesc
         detail.shortDesc = roomType.id
         detail.bedSetup = roomType.bedSetup
         for (let arr of roomType.ArrangmentCode) detail[`${arr.id.split('-')[1]}Price`] = arr.rate
         return detail
     } catch (err) {
-        ThrowError(err.message)
+        ThrowError(err)
     } finally {
         await PrismaDisconnect()
     }
@@ -45,7 +45,7 @@ const getEditRoomTypeHelper = async (id) => {
 
 const getEditArrangmentHelper = async (id) => {
     try {
-        return await prisma.arrangmentCode.findFirstOrThrow({ where: { id }, select: { id: true, rate: true, matchTypeId: true } })
+        return await prisma.arrangmentCode.findFirstOrThrow({ where: { id, deleted: false }, select: { id: true, rate: true, matchTypeId: true } })
     } catch (err) {
         ThrowError(err)
     } finally {
@@ -55,7 +55,7 @@ const getEditArrangmentHelper = async (id) => {
 
 const getAddArrangmentHelper = async (id) => {
     try {
-        const exist = await prisma.roomType.findFirstOrThrow({ where: { id } })
+        const exist = await prisma.roomType.findFirstOrThrow({ where: { id, deleted: false } })
         return {
             rbName: `${exist.id}-RB`,
             roName: `${exist.id}-RO`
@@ -108,6 +108,7 @@ const addEditRoomType = async (body, act) => {
         if (act === "add") {
             message = `Room Type ${data.id} Created Succesfully`
             const exist = await prisma.roomType.findFirst({ where: { id: data.id } })
+            if(exist != null && exist.deleted != false) 
             if (exist != null) throw Error('Type already exist')
         }
         const createdtype = await prisma.roomType.upsert({
@@ -165,33 +166,33 @@ const addEditArrangment = async (body, act) => {
 }
 
 
-const deleteSARoom = async (id, ident) => {
-    let prismaClient, message
-    try {
-        switch (ident) {
-            case "room":
-                message = `Room ${id} Deleted Successfully`
-                prismaClient = prisma.room
-                break;
-            case "room-type":
-                message = `Room Type ${id} Deleted Successfully`
-                prismaClient = prisma.roomType
-                break;
-            case "arr":
-                message = `Arrangment ${id} Deleted Successfully`
-                prismaClient = prisma.arrangmentCode
-                break;
-            default:
-                throw Error('Cannot be deleted')
-        }
-        const data = await prismaClient.delete({ where: { id } })
-        return { message, data }
-    } catch (err) {
-        ThrowError(err)
-    } finally {
-        await PrismaDisconnect()
-    }
-}
+// const deleteSARoom = async (id, ident) => {
+//     let prismaClient, message
+//     try {
+//         switch (ident) {
+//             case "room":
+//                 message = `Room ${id} Deleted Successfully`
+//                 prismaClient = prisma.room
+//                 break;
+//             case "room-type":
+//                 message = `Room Type ${id} Deleted Successfully`
+//                 prismaClient = prisma.roomType
+//                 break;
+//             case "arr":
+//                 message = `Arrangment ${id} Deleted Successfully`
+//                 prismaClient = prisma.arrangmentCode
+//                 break;
+//             default:
+//                 throw Error('Cannot be deleted')
+//         }
+//         const data = await prismaClient.delete({ where: { id } })
+//         return { message, data }
+//     } catch (err) {
+//         ThrowError(err)
+//     } finally {
+//         await PrismaDisconnect()
+//     }
+// }
 
 const deleteRoomType = async (id) => {
     try {
@@ -235,4 +236,4 @@ const deleteRoom = async (id) => {
     }
 }
 
-module.exports = { getSARoom, addEditRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, deleteArrangment, getEditArrangmentHelper, getAddArrangmentHelper, getEditRoomTypeHelper, deleteRoom }
+module.exports = { getSARoom, addEditRoom, addEditRoomType, addEditArrangment, deleteRoomType, deleteArrangment, getEditArrangmentHelper, getAddArrangmentHelper, getEditRoomTypeHelper, deleteRoom }

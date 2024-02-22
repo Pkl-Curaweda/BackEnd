@@ -10,7 +10,7 @@ async function get(req, res) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
       where: {
-        id: parseInt(req.params.id, 10),
+        id: parseInt(req.params.id, 10), deleted: false
       },
     });
 

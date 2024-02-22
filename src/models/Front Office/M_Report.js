@@ -56,7 +56,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     endIndex = Math.min(dates.length - 1, endIndex);
 
     const [rms, resvRooms] = await prisma.$transaction([
-      prisma.room.findMany({ select: { id: true } }),
+      prisma.room.findMany({ select: { id: true, deleted: false} }),
       prisma.resvRoom.findMany({
         where: {
           deleted: false,
@@ -368,7 +368,7 @@ const getReportDetailData = async (date, displayOption) => {
           }
         }
       }),
-      prisma.room.findMany({ select: { id: true, roomType: true } })
+      prisma.room.findMany({ where: { deleted: false } ,select: { id: true, roomType: true } })
     ])
 
     for (let room of rooms) percentages[`room_${room.id}`] = 0

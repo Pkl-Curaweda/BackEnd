@@ -9,7 +9,7 @@ const ChangeRoom = async (id, reservationId, body) => {
         where: { id, reservationId },
         select: { room: { select: { id: true} } },
       }),
-      prisma.room.findFirstOrThrow({ where: { id: body.roomId } })
+      prisma.room.findFirstOrThrow({ where: { id: body.roomId, deleted: false } })
     ])
     if (body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
     await isArrangementMatch(body.roomId, body.arrangmentCodeId)

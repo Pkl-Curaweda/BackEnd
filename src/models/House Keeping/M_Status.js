@@ -28,10 +28,12 @@ const sortingStatusPage = (q) => {
 const getStatusData = async (q) => {
     let { roomPage = 1, roomPerPage = 10, roomSortOrder } = q
     try {
+        const where ={ deleted: false }
         roomSortOrder = sortingStatusPage(roomSortOrder)
         const [roomTotal, roomStatus, latestChange] = await prisma.$transaction([
-            prisma.room.count(),
+            prisma.room.count(where),
             prisma.room.findMany({
+                where,
                 select: {
                     id: true,
                     roomType: true,
@@ -43,7 +45,7 @@ const getStatusData = async (q) => {
                 take: +roomPerPage,
                 orderBy: { ...roomSortOrder }
             }),
-            prisma.room.findFirst({ select: { id: true, roomStatus: { select: { longDescription: true } } }, orderBy: { updatedAt: 'desc' } }),
+            prisma.room.findFirst({ where, select: { id: true, roomStatus: { select: { longDescription: true } } }, orderBy: { updatedAt: 'desc' } }),
         ])
         const roomLastPage = Math.ceil(roomTotal / roomPerPage);
         return {

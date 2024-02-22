@@ -100,15 +100,15 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
         switch (action) {
             case "GUEREQ":
                 const [artType, roomExist] = await prisma.$transaction([
-                    prisma.articleType.findFirstOrThrow({ where: { id: article }, select: { description: true } }),
-                    prisma.room.findFirstOrThrow({ where: { id: +roomId } })
+                    prisma.articleType.findFirstOrThrow({ where: { id: article, deleted: false }, select: { description: true } }),
+                    prisma.room.findFirstOrThrow({ where: { id: +roomId, deleted: false } })
                 ])
                 request = `Room ${roomId} ${article ? `need ${articleQty} ${artType.description}` : `send a request "${request}"`}`
                 assigne = await assignTask([{ action, roomId, request, workload: taskWorkload['GREQ'], typeId: `GREQ` }])
                 break;
             case "DLYCLEAN":
                 const listTask = []
-                const rooms = await prisma.room.findMany()
+                const rooms = await prisma.room.findMany({ where: { deleted: false } })
                 for (let room of rooms) {
                     const tt = room.occupied_status != false ? `FCLN-${room.roomType}` : 'CLN'
                     listTask.push({ action, roomId: room.id, request: "Need to be cleaned", workload: taskWorkload[tt], typeId: tt })
@@ -187,10 +187,9 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
         const [hours, minutes] = time.split(':')
         const currentTime = `${hours}:${minutes}`
         const [roomMaid, room] = await prisma.$transaction([
-            prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId } }),
-            prisma.room.findFirstOrThrow({ where: { id: roomId} })
+            prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId, deleted: false } }),
+            prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false} })
         ])
-        console.log(roomMaid.workload + data.customWorkload)
         const canWorkOnTask = roomMaid.workload + data.customWorkload < 480
         const scheduleEnd = formatToSchedule(currentTime, data.customWorkload)
         data.schedule = `${currentTime}-${scheduleEnd}`

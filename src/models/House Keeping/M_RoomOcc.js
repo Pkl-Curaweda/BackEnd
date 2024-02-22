@@ -13,6 +13,7 @@ const getRoomOccupancyData = async (q) => {
         const roomType = filt ? { roomType: { id: filt } } : undefined
         const roomStatus = await prisma.room.findMany({
             where: {
+                deleted: false,
                 ...(roomType != undefined && roomType)
             }, select: {
                 id: true,
@@ -63,7 +64,6 @@ const getRoomOccupancyData = async (q) => {
             }
         }
         percData = { ...currData }
-        console.log(percData)
         let startDate, endDate
         const currentYear = currentDate.getFullYear()
 
@@ -138,13 +138,11 @@ const getRoomOccupancyData = async (q) => {
         percData.om.room += om
         let roomPerc = [], personPerc = [], graph = { room: 0, person: 0 }
         Object.values(percData).forEach((data, ind) => {
-            console.log(data.room)
             roomPerc[ind] = data.room
             personPerc[ind] = data.person
             graph.room += data.room
             graph.person += data.person
         })
-        console.log(percData, currData)
         return { currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
         ThrowError(err)

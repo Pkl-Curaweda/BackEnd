@@ -53,7 +53,7 @@ async function login(req, res) {
   try {
     const user = await prisma.user.findUniqueOrThrow({
       where: {
-        email: req.body.email,
+        email: req.body.email, deleted: false
       },
       select: {
         id: true,
