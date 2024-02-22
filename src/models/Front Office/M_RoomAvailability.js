@@ -25,7 +25,7 @@ const filterRoomHistory = (roomHistory, filter) => {
 
 const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) => {
     try {
-        let logData = [], startDate, endDate, dates, roomAverage = { total_101: 0, total_102: 0, total_103: 0, total_104: 0, total_105: 0, total_106: 0, total_107: 0, total_108: 0, total_109: 0, total_110: 0 }, roomsList = [], rawRoomHistory = []
+        let logData = [], startDate, endDate, dates, roomAverage = { }, roomsList = [], rawRoomHistory = []
         if (dateQuery === undefined) {
             const dateNew = new Date();
             startDate = dateNew.toISOString().split('T')[0]
@@ -33,8 +33,8 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             endDate.setDate(endDate.getDate() + 6);
             endDate = endDate.toISOString().split('T')[0]
         } else[startDate, endDate] = dateQuery.split(' ')
-        const rooms = await prisma.room.findMany({ where: {  deleted: true},select: { id: true, roomType: true } })
-        for(let room of rooms){
+        const rooms = await prisma.room.findMany({ where: { deleted: false }, select: { id: true, roomType: true } })
+        for (let room of rooms) {
             roomAverage[`total_${room.id}`] = 0
             roomsList.push(room.id)
             rawRoomHistory[`room_${room.id}`] = { data: '', style: {} }
@@ -134,19 +134,22 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                     }
                 }
                 if (filter === "R_DESC") rmHist = reverseObject(rmHist)
+                console.log(rmHist)
             }
             logData.push({
                 date, rmHist
             })
         }
+        console.log(logData)
         Object.keys(roomAverage).forEach(avgKey => {
+            console.log(avgKey)
             avgKey.replace('total_', '');
             roomAverage[avgKey] = {
-                data: { label: roomAverage[avgKey] > 0 ? `${parseInt(roomAverage[avgKey] / (dates.length * 100) * 100)}%` : "0%"},
+                data: { label: roomAverage[avgKey] > 0 ? `${parseInt(roomAverage[avgKey] / (dates.length * 100) * 100)}%` : "0%" },
                 style: {}
             }
         });
-        if(filter === "R_DESC") roomAverage = reverseObject(roomAverage)
+        if (filter === "R_DESC") roomAverage = reverseObject(roomAverage)
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             logData, roomAverage, meta: {
@@ -169,7 +172,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
 const createNewLogAvailable = async () => {
     try {
         let roomHistory = {};
-        const rooms = await prisma.room.findMany({where: { deleted: false }, select: { id: true, roomType: true, bedSetup: true }, orderBy: { id: 'asc' } });
+        const rooms = await prisma.room.findMany({ where: { deleted: false }, select: { id: true, roomType: true, bedSetup: true }, orderBy: { id: 'asc' } });
         for (const room of rooms) {
             const resvRoom = await prisma.resvRoom.findFirst({
                 where: {

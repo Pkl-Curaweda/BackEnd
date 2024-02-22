@@ -147,7 +147,7 @@ const getAddRoomBoyHelper = async () => {
             role: user.role.name
         }))
         let listShift = await prisma.shift.findMany({ select: { id: true, description: true, startTime: true, endTime: true } })
-        listShift.map(shift => ({
+        listShift = listShift.map(shift => ({
             id: shift.id,
             label: `${shift.description} | ${shift.startTime} - ${shift.endTime}`
         }))
