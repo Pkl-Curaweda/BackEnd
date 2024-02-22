@@ -1,4 +1,4 @@
-const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, getEditRoomTypeHelper, getAddArrangmentHelper, getEditArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
+const { addEditRoom, getSARoom, deleteRoom, deleteSARoom, addEditRoomType, addEditArrangment, deleteRoomType, getEditRoomTypeHelper, getAddArrangmentHelper, getEditArrangmentHelper, deleteArrangment } = require("../../models/Super Admin/M_SARoom")
 const { error, success } = require("../../utils/response")
 
 const get = async (req, res) => {
@@ -70,7 +70,13 @@ const deleteData = async (req, res) => {
                 deleted = await deleteRoomType(id)
                 break;
             case "arr":
+                deleted = await deleteArrangment(id)
                 break;
+            case "room":
+                deleted = await deleteRoom(+id)
+                break;
+            default:
+                throw Error('Data cannot be deleted')
         }
         // deleted = await deleteSARoom(id, item)
         return success(res, deleted.message, deleted.data)

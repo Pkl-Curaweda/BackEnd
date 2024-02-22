@@ -59,8 +59,10 @@ const get = async (page, perPage, date) => {
 }
 
 const getChart = async () => {
-    let resvChart = {}, hkChart = { 101: 0, 102: 0, 103: 0, 104: 0, 105: 0, 106: 0, 107: 0, 108: 0, 109: 0, 110: 0 }
+    let resvChart = {}, hkChart = { }
     try {
+        const rooms = await prisma.room.findMany({ select: { id: true } })
+        for(let room of rooms) hkChart[room.id] = 0 
         const dts = generateDateBetweenNowBasedOnDays('future', 7)
         const resvRoom = await prisma.resvRoom.findMany({
             where: {

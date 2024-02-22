@@ -140,7 +140,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 if (task.endTime != null) throw Error('This task needed to be checked first')
                 if (roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
                 if (roomMaid.currentTask != null) throw Error("You need to finish your current task first")
-                if (roomMaid.urgentTask != null) throw Error("You need to finish your urgent task first")
+                if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error("You need to finish your urgent task first")
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", rowColor: "FFFC9B", mainStatus: "ON PROGRESS" } })
                 updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
                 message = `Room Maid ${roomMaid.aliases} | Starting new Task`

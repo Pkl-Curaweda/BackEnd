@@ -71,6 +71,7 @@ model Role {
   name        String
   defaultPath String
   access      Json
+  deleted     Boolean  @default(false)
   users       User[]
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -108,6 +109,7 @@ model User {
   guestId        Int?
   room           Room?        @relation(fields: [roomId], references: [id])
   roomId         Int?
+  deleted        Boolean      @default(false)
   service        Service[]
   productReqs    ProductReq[]
   cleanRooms     CleanRoom[]
@@ -264,8 +266,9 @@ model ArticleType {
   id          Int       @id @unique
   description String    @db.Text
   price       Float
-  updated_at DateTime @updatedAt
-  created_at DateTime @default(now())
+  deleted     Boolean @default(false)
+  updated_at  DateTime  @updatedAt
+  created_at  DateTime  @default(now())
   Invoice     Invoice[]
   Stock       Stock[]
 }
@@ -318,6 +321,7 @@ model Room {
   roomStatusId    Int
   description     String
   floor           Int
+  deleted         Boolean     @default(false)
   occupied_status Boolean     @default(false)
   updatedAt       DateTime    @updatedAt
   order           Order[]
@@ -335,6 +339,7 @@ model RoomType {
   id             String           @id
   longDesc       String           @db.Text
   bedSetup       BedType
+  deleted        Boolean          @default(false)
   updated_at     DateTime         @updatedAt
   created_at     DateTime         @default(now())
   Room           Room[]
@@ -344,6 +349,7 @@ model RoomType {
 model ArrangmentCode {
   id          String     @id
   rate        Float
+  deleted     Boolean    @default(false)
   matchType   RoomType?  @relation(fields: [matchTypeId], references: [id])
   matchTypeId String?
   ResvRoom    ResvRoom[]
