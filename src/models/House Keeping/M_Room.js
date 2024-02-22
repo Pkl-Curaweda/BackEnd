@@ -5,7 +5,7 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const getAllAvailableRoom = async () => {
     try {
         const availableRooms = await prisma.room.findMany({
-            where: { occupied_status: false }, select: {
+            where: { occupied_status: false, NOT:[ { id: 0 }] }, select: {
                 id: true,
                 roomType: true
             }

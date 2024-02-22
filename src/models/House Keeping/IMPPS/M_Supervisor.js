@@ -5,6 +5,7 @@ const { error } = require("../../../utils/response")
 const task = require('./M_MaidTask')
 const { isRoomMaid } = require("./M_RoomMaid")
 const { send } = require("process")
+const { getAllAvailableRoom } = require("../M_Room")
 
 const getSupervisorData = async (q) => {
     const { history = "false" } = q
@@ -106,6 +107,16 @@ const helperAddTask = async (query) => {
     } catch (err) {
         ThrowError(err)
     } finally {
+        await PrismaDisconnect()
+    }
+}
+
+const helperChangeStatus = async () => {
+    try{
+        return await getAllAvailableRoom()
+    }catch(err){
+        ThrowError(err)
+    }finally{
         await PrismaDisconnect()
     }
 }
@@ -256,4 +267,4 @@ const isSupervisor = async (supervisorId) => {
     }
 }
 
-module.exports = { getSupervisorData, isSupervisor, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewSupervisorTask, helperAddTask }
+module.exports = { getSupervisorData, isSupervisor, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewSupervisorTask, helperAddTask,helperChangeStatus }

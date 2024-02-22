@@ -1,5 +1,5 @@
 const { prisma } = require("../../../../prisma/seeder/config")
-const { getSupervisorData, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewTask, helperAddTask, addNewSupervisorTask } = require("../../../models/House Keeping/IMPPS/M_Supervisor")
+const { getSupervisorData, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewTask, helperAddTask, addNewSupervisorTask, helperChangeStatus } = require("../../../models/House Keeping/IMPPS/M_Supervisor")
 const { error, success } = require("../../../utils/response")
 
 const get = async (req, res) =>  {
@@ -21,6 +21,9 @@ const getHelper = async (req, res) => {
                 break;
             case "add":
                 data = await helperAddTask(req.query)
+                break;
+            case "room":
+                data = await helperChangeStatus()
                 break;
             default:
                 throw Error('No Identifier Match')
