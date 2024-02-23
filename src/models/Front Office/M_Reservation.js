@@ -100,7 +100,7 @@ const displayByIdentifier = (disOpt) => {
 
 const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQuery, page, perPage, history) => {
   try {
-    let orderBy, name, whereQuery, arrivalDate, departureDate, whereDate;
+    let orderBy, name, whereQuery, arrivalDate, departureDate, whereDate
     name = nameQuery || "";
     if (displayOption != "") {
       const displayOptionAndQuery = displayByIdentifier(displayOption);
@@ -136,8 +136,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         room: {
           select: {
             id: true,
-            roomType:{
-              select:  { id: true, bedSetup: true }
+            roomType: {
+              select: { id: true, bedSetup: true }
             }
           },
         },
@@ -163,6 +163,8 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
             },
             resvStatus: {
               select: {
+                id: true,
+                description: true,
                 rowColor: true,
                 textColor: true
               }
@@ -190,10 +192,14 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       select: { name: true }
     })
 
+    let roomsData = {}, roomTypes = {}, resvStatus = {}
     const reservationMap = new Map();
     reservations.forEach((resv) => {
       const reservationId = resv.reservationId;
       const reservation = resv.reservation
+      roomsData[resv.room.id] = resv.room.id
+      resvStatus[resv.reservation.resvStatus.description] = { id: resv.reservation.resvStatus.id, desc: resv.reservation.resvStatus.description }
+      roomTypes[resv.room.roomType.id] = { id: resv.room.roomType.id, col: 'RType', val: `room+type+${resv.room.roomType.id}` }
       if (reservation.specialTreatmentId != null) {
         const specialTreatment = reservation.specialTreatment
         resv.reservation.resvStatus.rowColor = specialTreatment.rowColor;
@@ -214,10 +220,29 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
           reservation: []
         });
       }
-
       reservationMap.get(reservationId).reservation.push(resv);
     });
-    return { reservations: Array.from(reservationMap.values()), roomBoys, meta };
+    const rooms = Object.values(roomsData).sort((a, b) => a - b)
+    const sortingRoomNo = {
+      options: [`${rooms[0]}-${rooms[rooms.length - 1]}`, `${rooms[rooms.length - 1]}-${rooms[0]}`],
+      toChange: {
+        [`${rooms[0]}-${rooms[rooms.length - 1]}`]: { col: 'RmNo', val: 'room+id+asc' },
+        [`${rooms[rooms.length - 1]}-${rooms[0]}`]: { col: 'RmNo', val: 'room+id+desc' },
+      }
+    }
+    const resvStat = Object.values(resvStatus)
+    for (let stats of resvStat) {
+      sortingRoomNo.options.push(stats.desc)
+      sortingRoomNo.toChange[stats.desc] = { col: "RmNo", val: `resv+status+${stats.id}` }
+    }
+    let sortingRoomType = { options: [], toChange: {} }
+    const types = Object.values(roomTypes)
+    for (let type of types) {
+      const { col, id, val } = type
+      sortingRoomType.options.push(id)
+      sortingRoomType.toChange[id] = { col, val }
+    }
+    return { sortingRoomNo, sortingRoomType, reservations: Array.from(reservationMap.values()), roomBoys, meta };
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -265,7 +290,7 @@ const getDetailById = async (id, reservationId) => {
           {
             id: true,
             roomType: {
-              select: { id: true, bedSetup: true  }
+              select: { id: true, bedSetup: true }
             },
             roomImage: true,
           },
@@ -333,9 +358,9 @@ const CreateNewReservation = async (data, user) => {
 //?HELPER SIDE
 const DetailCreateReservationHelper = async () => {
   try {
-    const availableRooms = await prisma.room.findMany({ where: { NOT: [ { id: 0 }] }, select: {id: true, roomType: true }, orderBy: { id: 'asc' } });
+    const availableRooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { id: true, roomType: true }, orderBy: { id: 'asc' } });
     const arrangmentCode = await prisma.arrangmentCode.findMany({
-      where: { NOT: [ { id: `REMOVED` }], deleted: false },
+      where: { NOT: [{ id: `REMOVED` }], deleted: false },
       select: {
         id: true,
         rate: true

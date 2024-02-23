@@ -4,8 +4,8 @@ const { success, error } = require("../../utils/response");
 const getArrivalGuestData = async (req, res) => {
   try {
     const { sortOrder = "", disOpt = "", name = "", date = "", page = 1, perPage = 5, history } = req.query;
-    const { reservations, roomBoys, meta } = await getAllReservation(sortOrder, disOpt, name, date, parseInt(page), parseInt(perPage), history);
-    return success(res, "Get Success", {reservations,roomBoys, meta });
+    const data = await getAllReservation(sortOrder, disOpt, name, date, parseInt(page), parseInt(perPage), history);
+    return success(res, "Get Success", data);
   } catch (err) {
     return error(res, err.message)
   }

@@ -7,7 +7,7 @@ const getAllStatus = async () => {
     const currDate = new Date().toISOString().split('T')[0]
     const [rooms, resv] = await prisma.$transaction([
       prisma.room.findMany({
-        where: { deleted: false },
+        where: { deleted: false, id: { in: [101, 102, 103, 104, 105, 106, 107, 108, 109, 110] } },
         select: {
           id: true,
           roomStatus: {

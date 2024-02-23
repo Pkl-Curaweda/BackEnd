@@ -26,8 +26,11 @@ const sortingOrderOOOOffRoom = (so) => {
       case "pic":
         orderBy = { user: { name: 'asc' } }
         break;
-      default:
+      case "roomNumber":
         orderBy = { roomId: 'asc' }
+        break;
+      default:
+        orderBy = { created_at: 'asc'}
         break;
     }
     return orderBy
@@ -77,7 +80,7 @@ async function all(option) {
         }
       ]
     }
-    const listOfDepartment = (await prisma.department.findMany({ select: { id: true, longDesc: true }})).map(dep => ({ id: dep.id, label: dep.longDesc}))
+    const listOfDepartment = (await prisma.department.findMany({ select: { id: true, longDesc: true } })).map(dep => ({ id: dep.id, label: dep.longDesc }))
     const listOfRoom = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } })
     const [total, oooRooms] = await prisma.$transaction([
       prisma.oooOmRoom.count({ where }),
@@ -152,8 +155,8 @@ async function createOooRoom(xType, oooRoom) {
       }
     })
   } catch (e) {
-   ThrowError(e)
-  }finally{
+    ThrowError(e)
+  } finally {
     await PrismaDisconnect()
   }
 }

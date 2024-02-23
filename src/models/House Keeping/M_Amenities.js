@@ -2,7 +2,7 @@ const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, generateDateBetweenStartAndEnd, isDateInRange } = require("../../utils/helper")
 
 const getAllAmenitiesData = async (art, q) => {
-    let { page = 1, perPage = 5, from, to } = q, usedLog = []
+    let { page = 1, perPage = 5, from, to } = q, usedLog = [], startIndex, endIndex
     try {
         if (from === undefined) from = new Date().toISOString().split("T")[0]
         if (to === undefined) {
@@ -48,9 +48,11 @@ const getAllAmenitiesData = async (art, q) => {
             }
         }
         const total = usedLog.length
-        startIndex = Math.max(0, (page - 1) * perPage);
-        endIndex = Math.min(usedLog.length - 1, (startIndex + perPage - 1));
-        usedLog.slice(startIndex, endIndex)
+        console.log(page, perPage)
+        startIndex = Math.max(0, (+page - 1) * +perPage);
+        endIndex = Math.min(usedLog.length - 1, (startIndex + +perPage - 1));
+        usedLog = usedLog.slice(startIndex, endIndex + 1)
+        console.log(usedLog)
 
         const lastPage = Math.ceil(total / perPage);
         return {

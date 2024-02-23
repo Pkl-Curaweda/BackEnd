@@ -12,20 +12,20 @@ const getData = async (query) => {
                 id: role.id,
                 name: role.name,
                 superAdmin: {
-                    reader: role.access['showSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['showSuperAdmin']) : "✖️",
-                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : "✖️"
+                    reader: role.access['showSuperAdmin'] != undefined ?  { backgroundColor: `#ffffff` }: { backgroundColor: `#ffffff` },
+                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : { backgroundColor: `#ffffff` }
                 },
                 admin: {
-                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : "✖️",
-                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : "✖️"
+                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : { backgroundColor: `#ffffff` },
+                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : { backgroundColor: `#ffffff` }
                 },
                 roomBoy: {
-                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : "✖️",
-                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : "✖️"
+                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : { backgroundColor: `#ffffff` },
+                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : { backgroundColor: `#ffffff` }
                 },
                 supervisor: {
-                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : "✖️",
-                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : "✖️"
+                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : { backgroundColor: `#ffffff` },
+                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : { backgroundColor: `#ffffff` }
                 },
             })
         }
@@ -89,7 +89,7 @@ const getAddEditUserHelper = async (query) => {
         }
     }, shownUser
     try {
-        const listRoles = await prisma.role.findMany({ where: { NOT: [{ name: "REMOVED" }, { name: "UNKNOWN" }],deleted: false }, select: { id: true, name: true } })
+        const listRoles = await prisma.role.findMany({ where: { NOT: [{ name: "REMOVED" }, { name: "UNKNOWN" }], deleted: false }, select: { id: true, name: true } })
         if (act != "add") {
             const exist = await prisma.user.findFirstOrThrow({ where: { id: +firstId, deleted: false }, select: { name: true, picture: true, phone: true, email: true, birthday: true, nik: true, gender: true, username: true, role: { select: { id: true, name: true } } } })
             shownUser = { ...exist }
@@ -143,7 +143,7 @@ const getEditRoomBoyHelper = async (query) => {
 
 const getAddRoomBoyHelper = async () => {
     try {
-        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: {} }, deleted: false, NOT: [{ roleId: 1 }, { roleId: 2 }, { roleId: 8 }] }, select: { id: true, name: true,  picture: true, email: true, role: { select: { name: true } } } })
+        let listUser = await prisma.user.findMany({ where: { roomMaids: { none: {} }, deleted: false, NOT: [{ roleId: 1 }, { roleId: 2 }, { roleId: 8 }] }, select: { id: true, name: true, picture: true, email: true, role: { select: { name: true } } } })
         listUser.map(user => ({
             id: user.id,
             name: user.name,
