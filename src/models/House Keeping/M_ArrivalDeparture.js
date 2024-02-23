@@ -17,7 +17,7 @@ const searchGet = (q) => {
 }
 
 const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
-    let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date;
+    let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date, sortingList = [];
     try {
         const dateNew = new Date();
         const currDate = dateNew.toISOString().split('T')[0];
@@ -110,9 +110,10 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 orderBy: so && so.orderQuery
             })
         ])
-        let table = []
+        let table = [], roomTypes = {}
         reservations.forEach(res => {
             const nik = res.reservation.idCard.length != 1 ? '-' : res.reservation.idCard[0]
+            roomTypes[res.room.roomType.id] = { id: `room+type+${res.room.roomType.id}`, label: `Room Type ${res.room.roomType.longDesc}`}
             const data = {
                 resNo: res.reservation.id,
                 resResource: res.reservation.reserver.resourceName,
@@ -153,8 +154,19 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
         })
+        sortingList.push({ id: 'room+id+asc', label: "Room Number" })
+        console.log(sortingList)
+        Object.values(roomTypes).forEach(rt => { sortingList.push({ ...rt }) })
+        console.log(sortingList)
+        sortingList.push({
+            id: 'rese+name+asc', label: "Guest Name"
+        }, {
+            id: 'resv+id+asc', label: 'Reservation Number'
+        })
+        console.log(sortingList)
         const lastPage = Math.ceil(total / perPage);
         return {
+            sortingList,
             arr, dep,
             arrival: {
                 checkInToday: `${arrival.checkInToday.room}-${arrival.checkInToday.person}`,

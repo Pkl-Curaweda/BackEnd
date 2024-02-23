@@ -6,7 +6,7 @@ const { createOooRoom } = require("../House Keeping/M_OOORoom")
 
 const isVoucherValid = async (id) => {
     try {
-        const voucher = await prisma.voucher.findFirst({ where: { id } })
+        const voucher = await prisma.voucher.findFirst({ where: { id, expired_at: { gte: new Date().toISOString() }, expired: false } })
         if (voucher === null) return false
         return voucher
     } catch (err) {
@@ -18,6 +18,7 @@ const isVoucherValid = async (id) => {
 
 const setVoucher = async (voucherId, resvRoomId, userId) => {
     try {
+        console.log(voucherId, resvRoomId, userId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
         const validVoucher = await isVoucherValid(voucherId)
         if (validVoucher === false) return false
@@ -42,8 +43,10 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
 const countAfterVoucher = async (baseline, voucherId) => {
     try {
         let result = baseline
+        console.log(result)
         const voucher = await isVoucherValid(voucherId)
         if (voucher != null) result -= result * voucher.cutPercentage / 100
+        console.log(result)
         return result;
     } catch (err) {
         ThrowError(err)

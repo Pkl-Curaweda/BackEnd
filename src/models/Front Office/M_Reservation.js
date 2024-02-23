@@ -451,9 +451,8 @@ const editReservation = async (reservationId, resvRoomId, data, user) => {
     const resvRoom = await prisma.resvRoom.update({
       where: { id: resvRoomId }, data: { arrangmentCodeId: arrangmentCode }
     })
-    if (voucher != '') await isVoucherValid(voucher).then(async (voucher) => {
-      await setVoucher(voucher.id, resvRoom.id, user.id)
-    })
+    console.log(voucher)
+    if (voucher != '') await setVoucher(voucher, resvRoom.id, user.id)
     return { update, voucher: `Using voucher: ${voucher}` };
   } catch (err) {
     ThrowError(err);
