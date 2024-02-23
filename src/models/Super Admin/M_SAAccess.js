@@ -108,10 +108,15 @@ const getAddEditUserHelper = async (query) => {
 const getEditRoomBoyHelper = async (query) => {
     const { firstId } = query
     try {
-        let listMaid = await prisma.roomMaid.findMany({ where: { deleted: false, }, select: { id: true, user: { select: { name: true } } } })
+        let listMaid = await prisma.roomMaid.findMany({ where: { deleted: false, }, select: { id: true, aliases: true, departmentId: true, shiftId: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
         listMaid.map(maid => ({
             id: maid.id,
-            label: maid.user.name
+            name: maid.user.name,
+            email: maid.user.email,
+            role: maid.user.role.name,
+            shiftId: maid.shiftId,
+            aliases: maid.aliases,
+            departmentId: maid.departmentId
         }))
         let listShift = await prisma.shift.findMany({ select: { id: true, description: true, startTime: true, endTime: true } })
         listShift = listShift.map(shift => ({
