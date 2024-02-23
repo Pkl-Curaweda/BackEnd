@@ -99,6 +99,7 @@ async function all(option) {
         where,
         orderBy,
         select: {
+          id: true,
           created_at: true,
           roomId: true,
           pic: {
@@ -128,6 +129,7 @@ async function all(option) {
     for (let lf of lostFounds) {
       const { date, time } = splitDateTime(lf.created_at)
       list.push({
+        id: lf.id,
         date, time,
         roomNo: lf.roomId,
         pic: lf.pic ? lf.pic.name : '-',
