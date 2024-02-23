@@ -6,7 +6,7 @@ const { createOooRoom } = require("../House Keeping/M_OOORoom")
 const isVoucherValid = async (id) => {
     try {
         const currentDate = new Date().toISOString()
-        const voucher = await prisma.voucher.findFirst({ where: { id, expired_at: { gte: currentDate }, expired: false } })
+        const voucher = await prisma.voucher.findFirst({ where: { id, expired: false } })
         if (voucher === null) return false
         return voucher
     } catch (err) {

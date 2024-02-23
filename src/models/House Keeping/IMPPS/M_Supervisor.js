@@ -136,6 +136,7 @@ const helperUnavailableRoomBoy = async (query) => {
             const unAvailRoomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: +unavail }, select: { aliases: true, shiftId: true, workload: true, user: { select: { picture: true } } } })
             const totalTask = await prisma.maidTask.count({
                 where: {
+                    finished: false, startTime: null,
                     roomMaidId: +unavail, AND: [
                         { created_at: { gte: `${currentDate}T00:00:00.000Z` } },
                         { created_at: { lte: `${currentDate}T23:59:59.999Z` } }

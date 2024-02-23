@@ -7,10 +7,10 @@ const sortingStatusPage = (q) => {
     try {
         switch (q) {
             case "roomType":
-                orderBy = { roomType: 'asc' }
+                orderBy = { roomType: { id: 'asc' } }
                 break;
             case "bedType":
-                orderBy = { bedSetup: 'asc' }
+                orderBy = { roomType: { bedSetup: 'asc' } }
                 break;
             case "status":
                 orderBy = { roomStatus: { shortDescription: 'asc' } }

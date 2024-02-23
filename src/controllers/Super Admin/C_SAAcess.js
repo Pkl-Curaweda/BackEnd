@@ -76,7 +76,7 @@ const postNewRole = async (req, res) => {
 
 const putEditRole = async (req, res) => {
     try {
-        const role = await modelSAAcess.editRoleById(req.body.id, req.body)
+        const role = await modelSAAcess.editRoleById(+req.params.id, req.body)
         return success(res, `Role ${role.name} Updated Successfully`, role)
     } catch (err) {
         return error(res, err.message)

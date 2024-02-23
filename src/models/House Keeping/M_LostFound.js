@@ -119,8 +119,8 @@ async function all(option) {
           image: true,
         }
       }),
-      prisma.lostFound.count({ where: { status: 'FOUND' } }),
-      prisma.lostFound.count({ where: { status: 'LOST' } })
+      prisma.lostFound.count({ where: { status: 'FOUND' , deleted: false} }),
+      prisma.lostFound.count({ where: { status: 'LOST', deleted: false } })
     ])
 
     graph.found = found

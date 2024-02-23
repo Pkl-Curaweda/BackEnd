@@ -30,7 +30,7 @@ const sortingOrderOOOOffRoom = (so) => {
         orderBy = { roomId: 'asc' }
         break;
       default:
-        orderBy = { created_at: 'asc'}
+        orderBy = { created_at: 'desc'}
         break;
     }
     return orderBy

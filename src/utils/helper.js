@@ -716,7 +716,7 @@ const generateDeleteDate = (param) => {
 }
 
 const convertBooleanToEmoji = (bool) => {
-  return bool ? "✔️" : "✖️"
+  return bool ? '#069550' : "#FFFFFF" 
 }
 module.exports = {
   splitDateTime,

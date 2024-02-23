@@ -8,24 +8,25 @@ const getData = async (query) => {
     try {
         const roles = await prisma.role.findMany({ where: { NOT: [{ id: 1 }, { id: 2 }], deleted: false }, select: { id: true, name: true, access: true } })
         for (let role of roles) {
+            console.log("============================", role)
             sendedData.listRole.push({
                 id: role.id,
                 name: role.name,
                 superAdmin: {
-                    reader: role.access['showSuperAdmin'] != undefined ?  { backgroundColor: `#ffffff` }: { backgroundColor: `#ffffff` },
-                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : { backgroundColor: `#ffffff` }
+                    reader: role.access['showSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['showSuperAdmin']) : `#ffffff`,
+                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : `#ffffff`
                 },
                 admin: {
-                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : { backgroundColor: `#ffffff` },
-                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : { backgroundColor: `#ffffff` }
+                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : "#FFFFFF",
+                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : "#FFFFFF"
                 },
                 roomBoy: {
-                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : { backgroundColor: `#ffffff` },
-                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : { backgroundColor: `#ffffff` }
+                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : "#FFFFFF",
+                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : "#FFFFFF"
                 },
                 supervisor: {
-                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : { backgroundColor: `#ffffff` },
-                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : { backgroundColor: `#ffffff` }
+                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : "#FFFFFF",
+                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : "#FFFFFF"
                 },
             })
         }
@@ -178,7 +179,7 @@ const addEditUser = async (body, act, userId = undefined) => {
         switch (act) {
             case "add":
                 if (!body.picture) body.picture = `${process.env.BASE_URL}/assets/profile-pict/default.png`
-                if (!body.roleId) body.roleId = 2
+                body.roleId = !body.roleId ? 2 : +body.roleId
                 if (body.password && body.password.length > 0) {
                     const salt = await bcrypt.genSalt();
                     body.password = await bcrypt.hash(body.password, salt);
@@ -217,8 +218,11 @@ const addNewRole = async (body) => {
 
 const editRoleById = async (roleId, body) => {
     try {
+
         const roleExist = await prisma.role.findFirstOrThrow({ where: { id: roleId }, select: { id: true } })
-        return await prisma.role.update({ where: { id: roleExist.id }, data: { name: body.name, defaultPath: body.path, access: body.access } })
+        const data = await prisma.role.update({ where: { id: roleExist.id }, data: { name: body.name, defaultPath: body.path, access: body.access } })
+        console.log(data)
+        return data
     } catch (err) {
         ThrowError(err)
     } finally {
