@@ -61,8 +61,8 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
+            console.log(currentSchedule, workload)
             currentSchedule = formatToSchedule(currentSchedule, workload)
-
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
             lowestRoomMaidId = choosenMaid.id
             lowestWorkload = choosenMaid.workload
@@ -108,9 +108,9 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
                 break;
             case "DLYCLEAN":
                 const listTask = []
-                const rooms = await prisma.room.findMany({ where: { deleted: false } })
+                const rooms = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, include: { roomType: true } })
                 for (let room of rooms) {
-                    const tt = room.occupied_status != false ? `FCLN-${room.roomType}` : 'CLN'
+                    const tt = room.occupied_status != false ? `FCLN-${room.roomType.id}` : 'CLN'
                     listTask.push({ action, roomId: room.id, request: "Need to be cleaned", workload: taskWorkload[tt], typeId: tt })
                 }
                 assigne = await assignTask(listTask)
@@ -188,7 +188,7 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
         const currentTime = `${hours}:${minutes}`
         const [roomMaid, room] = await prisma.$transaction([
             prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId, deleted: false } }),
-            prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false} })
+            prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false } })
         ])
         const canWorkOnTask = roomMaid.workload + data.customWorkload < 480
         const scheduleEnd = formatToSchedule(currentTime, data.customWorkload)

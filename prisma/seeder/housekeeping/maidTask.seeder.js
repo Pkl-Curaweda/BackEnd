@@ -6,7 +6,7 @@ const maidTasks = [
     request: "Please clean, there's a coffee on the celling",
     schedule: '08:40-08:55',
     roomMaidId: 1,
-    typeId: "FCLN-DELUXE"
+    typeId: "FCLN-DLX"
   },
 ];
 

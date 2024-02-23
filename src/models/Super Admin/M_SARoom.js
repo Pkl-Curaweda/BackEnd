@@ -4,9 +4,9 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper")
 const getSARoom = async () => {
     try {
         let [rooms, roomTypes, arrangment] = await prisma.$transaction([
-            prisma.room.findMany({ where: { deleted: false, NOT: [ { id: 0 }] }, select: { id: true, description: true, floor: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
-            prisma.roomType.findMany({ where: { deleted: false, NOT: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { id: 'asc' } }),
-            prisma.arrangmentCode.findMany({ where: { deleted: false, NOT: [ { id: 'REMOVED' }] }, select: { id: true }, orderBy: { matchTypeId: 'asc' } })
+            prisma.room.findMany({ where: { deleted: false, NOT: [{ id: 0 }] }, select: { id: true, description: true, floor: true, roomImage: true, roomStatus: { select: { longDescription: true } }, roomType: { select: { id: true, bedSetup: true, ArrangmentCode: { select: { id: true } } } } } }),
+            prisma.roomType.findMany({ where: { deleted: false, NOT: [{ id: 'REMOVED' }] }, select: { id: true }, orderBy: { id: 'asc' } }),
+            prisma.arrangmentCode.findMany({ where: { deleted: false, NOT: [{ id: 'REMOVED' }] }, select: { id: true }, orderBy: { matchTypeId: 'asc' } })
         ])
         rooms = rooms.map(room => ({
             roomNo: room.id,
@@ -31,9 +31,11 @@ const getEditRoomTypeHelper = async (id) => {
     try {
         listArr = ["RB", "RO"]
         const roomType = await prisma.roomType.findFirstOrThrow({ where: { id, deleted: false }, select: { id: true, longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true, rate: true } } } })
+        const {standardTime} = await prisma.taskType.findFirstOrThrow({ where: { id:`FCLN-${roomType.id}` }, select: { standardTime: true } })
         detail.longDescription = roomType.longDesc
         detail.shortDesc = roomType.id
         detail.bedSetup = roomType.bedSetup
+        detail.standardTime = standardTime
         for (let arr of roomType.ArrangmentCode) detail[`${arr.id.split('-')[1]}Price`] = arr.rate
         return detail
     } catch (err) {
@@ -108,8 +110,11 @@ const addEditRoomType = async (body, act) => {
         if (act === "add") {
             message = `Room Type ${data.id} Created Succesfully`
             const exist = await prisma.roomType.findFirst({ where: { id: data.id } })
-            if(exist != null && exist.deleted != false) 
-            if (exist != null) throw Error('Type already exist')
+            if (exist != null && exist.deleted != false)
+                if (exist != null) throw Error('Type already exist')
+            await prisma.taskType.create({ data: { standardTime: body.standardTime, id: `FCLN-${data.id}`, activity: `Full Clean ${data.longDesc} Room`, UoM: "minute", departmentId: 2 } })
+        } else if (act != "add" && body.standardTime != undefined) {
+            await prisma.taskType.update({ where: { id: `FCLN-${data.id}` }, data: { standardTime: body.standardTime } })
         }
         const createdtype = await prisma.roomType.upsert({
             where: { id: data.id },

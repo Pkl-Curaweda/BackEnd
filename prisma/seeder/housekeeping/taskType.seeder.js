@@ -2,7 +2,7 @@ const { prisma } = require("../config");
 
 const taskTypes = [
     {
-        id: "FCLN-STANDARD",
+        id: "FCLN-STD",
         activity: "Full Clean Standard Room",
         standardTime: 30,
         UoM: "minute",
@@ -11,7 +11,7 @@ const taskTypes = [
         }
     },
     {
-        id: "FCLN-DELUXE",
+        id: "FCLN-DLX",
         activity: "Full Clean Deluxe Room",
         standardTime: 40,
         UoM: "minute",
@@ -20,7 +20,7 @@ const taskTypes = [
         }
     },
     {
-        id: "FCLN-FAMILY",
+        id: "FCLN-FML",
         activity: "Full Clean Family Room",
         standardTime: 45,
         UoM: "minute",

@@ -6,7 +6,8 @@ const { createOooRoom } = require("../House Keeping/M_OOORoom")
 
 const isVoucherValid = async (id) => {
     try {
-        const voucher = await prisma.voucher.findFirst({ where: { id, expired_at: { gte: new Date().toISOString() }, expired: false } })
+        const currentDate = new Date().toISOString()
+        const voucher = await prisma.voucher.findFirst({ where: { id, expired_at: { gte: currentDate }, expired: false } })
         if (voucher === null) return false
         return voucher
     } catch (err) {
@@ -21,6 +22,7 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
         console.log(voucherId, resvRoomId, userId)
         const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, include: { reservation: true } })
         const validVoucher = await isVoucherValid(voucherId)
+        console.log(validVoucher)
         if (validVoucher === false) return false
         if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
             room: {
