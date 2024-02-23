@@ -1,6 +1,3 @@
-const PDFDocument = require("pdfkit-table");
-const fs = require("fs");
-const path = require("path");
 const { getReportData, } = require("../../models/Front Office/M_Report");
 const { success, error } = require("../../utils/response");
 const { report } = require("process");

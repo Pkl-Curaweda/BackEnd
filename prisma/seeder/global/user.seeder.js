@@ -2,7 +2,6 @@ const { prisma } = require("../config");
 const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
-const { random } = require("mathjs");
 
 const listOfProfilePict = [
   `${process.env.BASE_URL}/assets/profile-pict/1.png`,

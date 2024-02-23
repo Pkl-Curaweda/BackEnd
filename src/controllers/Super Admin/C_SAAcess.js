@@ -1,7 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const { error, success } = require("../../utils/response")
 const modelSAAcess = require('../../models/Super Admin/M_SAAccess')
-const { mode, help } = require("mathjs")
 const { getEditArrangmentHelper, getAddArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
 
 const get = async (req, res) => {

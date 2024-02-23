@@ -1,5 +1,4 @@
 const { base } = require("@faker-js/faker")
-const math = require('mathjs');
 const { prisma } = require("../../../prisma/seeder/config")
 const { ThrowError, PrismaDisconnect, splitDateTime } = require("../../utils/helper")
 const { createOooRoom } = require("../House Keeping/M_OOORoom")

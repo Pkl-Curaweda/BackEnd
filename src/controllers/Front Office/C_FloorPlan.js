@@ -1,7 +1,6 @@
 const room = require("../../models/House Keeping/M_Room.js");
 const floorplan = require("../../models/Front Office/M_FloorPlan.js");
 const { success, error } = require("../../utils/response.js");
-const { stat } = require("fs");
 const { createOooRoom } = require("../../models/House Keeping/M_OOORoom.js");
 
 const getFloorPlan = async (req, res) => {

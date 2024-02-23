@@ -1,8 +1,5 @@
 const { getAllRoomChange } = require("../../models/House Keeping/M_RoomChange")
 const { error, success } = require("../../utils/response")
-const PDFDocument = require("pdfkit-table");
-const fs = require("fs");
-const path = require("path");
 
 const get = async (req, res) => {
     try {

@@ -1,6 +1,3 @@
-const PDFDocument = require("pdfkit-table");
-const fs = require("fs");
-const path = require("path");
 const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice, addNewInvoiceFromArticle, addNewInvoiceFromOrder } = require("../../models/Front Office/M_Invoice");
 const { getBillingSummary, createResvPayment } = require("../../models/Front Office/M_ResvPayment");
 const { error, success } = require("../../utils/response");
