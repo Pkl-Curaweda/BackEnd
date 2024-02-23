@@ -28,10 +28,10 @@ const sortingStatusPage = (q) => {
 const getStatusData = async (q) => {
     let { roomPage = 1, roomPerPage = 10, roomSortOrder } = q
     try {
-        const where ={ deleted: false }
+        const where ={ deleted: false, NOT: { id: 0 } }
         roomSortOrder = sortingStatusPage(roomSortOrder)
         const [roomTotal, roomStatus, latestChange] = await prisma.$transaction([
-            prisma.room.count(where),
+            prisma.room.count({ where }),
             prisma.room.findMany({
                 where,
                 select: {

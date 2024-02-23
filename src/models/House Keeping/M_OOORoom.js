@@ -77,6 +77,8 @@ async function all(option) {
         }
       ]
     }
+    const listOfDepartment = (await prisma.department.findMany({ select: { id: true, longDesc: true }})).map(dep => ({ id: dep.id, label: dep.longDesc}))
+    const listOfRoom = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } })
     const [total, oooRooms] = await prisma.$transaction([
       prisma.oooOmRoom.count({ where }),
       prisma.oooOmRoom.findMany({
@@ -115,6 +117,7 @@ async function all(option) {
     }
     const lastPage = Math.ceil(total / perPage)
     return {
+      listOfRoom, listOfDepartment,
       arr, dep,
       ident: type != "OOO" ? "OM" : "O-O-O",
       OOORoom, meta: {

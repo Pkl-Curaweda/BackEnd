@@ -51,18 +51,20 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
         }
         const rs = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] , deleted: false}, select: { id: true, roomStatus: { select: { shortDescription: true, longDescription: true } } }, orderBy: roomOrder ? roomOrder : { id: 'asc' } });
         for (let r of rs) {
+            console.log("===============================", r.id)
             const resv = await prisma.resvRoom.findFirst({
                 where: {
                     roomId: r.id,
                     deleted: false,
                     reservation: {
                         AND: [
-                            { arrivalDate: { lte: `${arr}T00:00:00.000Z` } },
-                            { departureDate: { gte: `${dep}T23:59:59.999Z` } }
+                            { arrivalDate: { gte: `${arr}T00:00:00.000Z` } },
+                            { departureDate: { lte: `${dep}T23:59:59.999Z` } }
                         ]
                     }
                 }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }
             })
+            console.log(resv)
             room.push({
                 roomNo: r.id,
                 roomStatus: r.roomStatus.longDescription,

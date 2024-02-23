@@ -38,6 +38,7 @@ const { dailyCleaning, amenitiesTask, resetSchedule, postCreate, postCreateRoomM
 
 const router = express.Router()
 
+router.use(auth(['showAdmin']))
 
 router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
@@ -50,7 +51,7 @@ router.get('/arrival-departure', arrivalDeparture.getArrivalDepartureData)
 
 //Start OOO Room
 router.get('/ooo-rooms/', ooorooms.findAll)
-router.post('/ooo-rooms/', auth(['Admin']), ooorooms.create)
+router.post('/ooo-rooms/', auth(['createAdmin']), ooorooms.create)
 //End OOO Room
 
 //Start User
@@ -64,7 +65,7 @@ router.delete('/users/:id', user.remove)
 //Start Lost Found
 router.get('/lostfound/', lostFound.findAll)
 
-router.post('/lostfound/:id/:status', auth(['Admin']), lostFound.lostFinish)
+router.post('/lostfound/:id/:status', auth(['createAdmin']), lostFound.lostFinish)
 router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
 router.delete('/lostfound/:id/:act', lostFound.remove)
 //End Lost Found
@@ -72,7 +73,7 @@ router.delete('/lostfound/:id/:act', lostFound.remove)
 //Start Status
 router.get('/status', status.get)
 router.get('/status/refresh', status.getTask)
-router.post("/status/:id/:status", auth(['Admin']) , postStat)
+router.post("/status/:id/:status", auth(['createAdmin']) , postStat)
 //End Status
 
 //Start Room Occupancy Forecast

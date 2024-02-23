@@ -10,9 +10,11 @@ const getRoomOccupancyData = async (q) => {
     let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
         //TODO: HOUSE USE, COMP
+        const listOfTypes =  (await prisma.roomType.findMany({ where: { deleted: false, NOT: { id: 'REMOVED' } }, select: { id: true, longDesc: true } })).map(types => ({  id: types.id, label: `${types.longDesc} Room`}))
         const roomType = filt ? { roomType: { id: filt } } : undefined
         const roomStatus = await prisma.room.findMany({
             where: {
+                NOT: { id: 0 },
                 deleted: false,
                 ...(roomType != undefined && roomType)
             }, select: {
@@ -107,7 +109,7 @@ const getRoomOccupancyData = async (q) => {
                 },
                 select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
             }),
-            prisma.oooOmRoom.count({ //TODO: PERSON IN HOUSE USE NEED TO BE CHANGED, FOR NOW IT ONLY TAKE THE STORED DATA FROM OOO OM ROOM MODEL
+            prisma.oooOmRoom.count({ //TODO: MAYBE, PERSON IN HOUSE USE NEED TO BE CHANGED, FOR NOW IT ONLY TAKE THE STORED DATA FROM OOO OM ROOM MODEL
                 where: {
                     xType: "HU",
                     created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
@@ -143,7 +145,7 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
-        return { currData, percData: { roomPerc, personPerc, graph }, roomStatus }
+        return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
         ThrowError(err)
     } finally {

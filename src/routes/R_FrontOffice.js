@@ -37,7 +37,7 @@ R_FrontOffice.post("/floorplan/detail/:id/:status", auth(['createAdmin']), postS
 R_FrontOffice.get("/roomavail", getRoomAvailability);
 
 //?REPORT PAGE
-R_FrontOffice.get("/report/", getAllReport);
+R_FrontOffice.get("/report", getAllReport);
 
 //?INVOICE
 R_FrontOffice.get("/invoice/payment/:reservationId/:resvRoomId", getSummary);
