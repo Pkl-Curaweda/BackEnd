@@ -32,7 +32,7 @@ const getData = async (query) => {
         if (+roleId != 0) {
             const roleExist = await prisma.role.findFirst({ where: { id: +roleId } })
             const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
-            if (users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
+            // if (users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
             sendedData.listUser = users.map(user => ({
                 id: user.id,
                 name: user.name,
@@ -114,7 +114,7 @@ const getEditRoomBoyHelper = async (query) => {
             label: maid.user.name
         }))
         let listShift = await prisma.shift.findMany({ select: { id: true, description: true, startTime: true, endTime: true } })
-        listShift.map(shift => ({
+        listShift = listShift.map(shift => ({
             id: shift.id,
             label: `${shift.description} | ${shift.startTime} - ${shift.endTime}`
         }))
