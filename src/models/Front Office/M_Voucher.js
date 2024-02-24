@@ -23,17 +23,11 @@ const setVoucher = async (voucherId, resvRoomId, userId) => {
         const validVoucher = await isVoucherValid(voucherId)
         console.log(validVoucher)
         if (validVoucher === false) return false
-        if (voucherId === process.env.COMP_VOUCHER) await createOooRoom("COMP", {
-            room: {
-                connect: { id: resvRoom.roomId }
-            },
-            user: {
-                connect: { id: userId }
-            },
-            reason: `Added from Set Voucher`,
-            from: resvRoom.reservation.arrivalDate,
-            until: resvRoom.reservation.departureDate,
-            description: "-"
+        if(validVoucher.trackComp) await createOooRoom("COMP", {
+            roomId: resvRoom.roomId, userId, reservationId: resvRoom.reservationId, reason: "Voucher Set", from: new Date().toISOString(), until: new Date().toISOString(), description: `Made by voucher ${voucherId}`
+        })
+        if(validVoucher.trackHU) await createOooRoom('HU', {
+            roomId: resvRoom.roomId, userId, reservationId: resvRoom.reservationId, reason: "Voucher Set", from: new Date().toISOString(), until: new Date().toISOString(), description: `Made by voucher ${voucherId}`
         })
         return await prisma.resvRoom.update({ where: { id: resvRoomId }, data: { voucherId } })
     } catch (err) {

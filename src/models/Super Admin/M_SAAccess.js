@@ -32,7 +32,7 @@ const getData = async (query) => {
         }
         if (+roleId != 0) {
             const roleExist = await prisma.role.findFirst({ where: { id: +roleId } })
-            const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }) }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
+            const users = await prisma.user.findMany({ where: { ...(+roleId != 0 && { roleId: +roleId }), deleted: false }, select: { id: true, name: true, email: true, role: { select: { name: true } }, roomMaids: true } })
             // if (users.length < 1) throw Error(`No User Has ${roleExist?.name} Role`)
             sendedData.listUser = users.map(user => ({
                 id: user.id,
@@ -176,6 +176,7 @@ const addEditUser = async (body, act, userId = undefined) => {
             const usernameUssed = await prisma.user.findFirst({ where: { username: body.username } })
             if (usernameUssed != null) throw Error(`Username already used by ${usernameUssed.name}`)
         }
+    let user
         switch (act) {
             case "add":
                 if (!body.picture) body.picture = `${process.env.BASE_URL}/assets/profile-pict/default.jpg`
@@ -184,9 +185,10 @@ const addEditUser = async (body, act, userId = undefined) => {
                     const salt = await bcrypt.genSalt();
                     body.password = await bcrypt.hash(body.password, salt);
                 } else throw Error('Please send a correct password')
-                return await prisma.user.create({
+                user = await prisma.user.create({
                     data: { ...body }
                 })
+                return { message: "User created Successfully", data: user }
             default:
                 await prisma.user.findFirstOrThrow({ where: { id: +userId } })
                 if (body.password) {
@@ -195,7 +197,8 @@ const addEditUser = async (body, act, userId = undefined) => {
                         body.password = await bcrypt.hash(body.password, salt);
                     } else throw Error('Please the password must be atleast has 1 character')
                 }
-                return await prisma.user.update({ where: { id: +userId }, data: { ...body } })
+                user = await prisma.user.update({ where: { id: +userId }, data: { ...body } })
+                return { message: "User edited Successfully", data: user }
         }
     } catch (err) {
         ThrowError(err)

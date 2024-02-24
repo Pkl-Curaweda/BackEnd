@@ -51,7 +51,7 @@ const postAddEditUser = async (req, res) => {
     try {
         if (req.file) req.body.picture = process.env.BASE_URL + '/assets/lost-found/' + req.file.filename
         const user = await modelSAAcess.addEditUser(req.body, req.params.action, +req.params.id || 0)
-        return success(res, 'DJSBAJDBAS', user)
+        return success(res, user.message, user.data)
     } catch (err) {
         return error(res, err.message)
     }

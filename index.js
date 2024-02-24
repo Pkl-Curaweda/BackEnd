@@ -8,17 +8,17 @@ const rateLimit = require('express-rate-limit');
 
 
 // routers
-const R_Login = require("./routes/R_Login");
-const R_FrontOffice = require("./routes/R_FrontOffice");
-const R_HouseKeeping = require('./routes/R_HouseKeeping')
-const R_InRoomService = require("./routes/R_InRoomService");
-const R_Notif = require("./routes/R_Notification");
-const dashboard = require('./models/Front Office/M_Dashboard');
-const { success, error } = require("./utils/response");
-const R_IMPPS = require("./routes/R_IMPPS");
-const { scheduleInvoiceReservation } = require("./schedule/daily-schedule");
-const { auth } = require("./middlewares/auth");
-const R_SA = require("./routes/R_SuperAdmin");
+const R_Login = require("./src/routes/R_Login");
+const R_FrontOffice = require("./src/routes/R_FrontOffice");
+const R_HouseKeeping = require('./src/routes/R_HouseKeeping')
+const R_InRoomService = require("./src/routes/R_InRoomService");
+const R_Notif = require("./src/routes/R_Notification");
+const dashboard = require('./src/models/Front Office/M_Dashboard');
+const { success, error } = require("./src/utils/response");
+const R_IMPPS = require("./src/routes/R_IMPPS");
+const { scheduleInvoiceReservation } = require("./src/schedule/daily-schedule");
+const { auth } = require("./src/middlewares/auth");
+const R_SA = require("./src/routes/R_SuperAdmin");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -50,6 +50,9 @@ app.use(rateLimit({
 
 //??Start Endpoints
 // app.get("*", checkUser)
+app.get('/ping', (req, res) => {
+  return res.json({message: "Succesfully pinged"})
+})
 app.use('/notif', R_Notif)
 app.use("/auth", R_Login);
 app.get('/dashboard', auth(['showAdmin']), async (req, res) => {

@@ -161,7 +161,6 @@ async function createOooRoom(xType, oooRoom) {
   }
 }
 
-
 /**
  * @param {string} id
  * @param {import('@prisma/client').oooRoom} oooRoom
