@@ -32,6 +32,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             endDate.setDate(endDate.getDate() + 6);
             endDate = endDate.toISOString().split('T')[0]
         } else[startDate, endDate] = dateQuery.split(' ')
+        console.log(startDate, endDate)
         const rooms = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true, roomType: true } })
         let index = 1
         let sortTypes = {}
@@ -68,6 +69,8 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                 label: "Single Bed"
             }
         )
+
+        console.log(startDate, endDate)
         const reservation = await prisma.resvRoom.findMany({
             where: {
                 reservation: {
@@ -83,7 +86,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                             }
                         }
                     ],
-                    onGoingReservation: true
                 },
                 deleted: false
             },
@@ -106,6 +108,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                 }
             }
         })
+        console.log(reservation)
 
         let listShown = roomsList
         if (filter != undefined) {
@@ -179,7 +182,6 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
         } 
         roomHeaders.unshift({ name: 'Date', label: 'Date', field: "Date", align: "left" })
         const lastPage = Math.ceil(dates.length / perPage);
-    console.log(roomHeaders)
         return {
             roomHeaders, sortingType,
             logData, roomAverage, meta: {

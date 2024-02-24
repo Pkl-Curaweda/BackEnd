@@ -1,7 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config")
 const bcrypt = require("bcrypt");
 const M_User = require('../Authorization/M_User')
-const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToEmoji } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, existingAccess, convertBooleanToHex } = require("../../utils/helper");
 
 const getData = async (query) => {
     let { roleId } = query, sendedData = { listRole: [], listUser: undefined }
@@ -13,20 +13,20 @@ const getData = async (query) => {
                 id: role.id,
                 name: role.name,
                 superAdmin: {
-                    reader: role.access['showSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['showSuperAdmin']) : `#ffffff`,
-                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToEmoji(role.access['createSuperAdmin']) : `#ffffff`
+                    reader: role.access['showSuperAdmin'] != undefined ? convertBooleanToHex(role.access['showSuperAdmin']) : `#e7e7e7`,
+                    editor: role.access['createSuperAdmin'] != undefined ? convertBooleanToHex(role.access['createSuperAdmin']) : `#e7e7e7`
                 },
                 admin: {
-                    reader: role.access['showAdmin'] != undefined ? convertBooleanToEmoji(role.access['showAdmin']) : "#FFFFFF",
-                    editor: role.access['createAdmin'] != undefined ? convertBooleanToEmoji(role.access['createAdmin']) : "#FFFFFF"
+                    reader: role.access['showAdmin'] != undefined ? convertBooleanToHex(role.access['showAdmin']) : "#e7e7e7",
+                    editor: role.access['createAdmin'] != undefined ? convertBooleanToHex(role.access['createAdmin']) : "#e7e7e7"
                 },
                 roomBoy: {
-                    reader: role.access['showMaid'] != undefined ? convertBooleanToEmoji(role.access['showMaid']) : "#FFFFFF",
-                    editor: role.access['createMaid'] != undefined ? convertBooleanToEmoji(role.access['createMaid']) : "#FFFFFF"
+                    reader: role.access['showMaid'] != undefined ? convertBooleanToHex(role.access['showMaid']) : "#e7e7e7",
+                    editor: role.access['createMaid'] != undefined ? convertBooleanToHex(role.access['createMaid']) : "#e7e7e7"
                 },
                 supervisor: {
-                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToEmoji(role.access['showSupervisor']) : "#FFFFFF",
-                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToEmoji(role.access['createSupervisor']) : "#FFFFFF"
+                    reader: role.access['showSupervisor'] != undefined ? convertBooleanToHex(role.access['showSupervisor']) : "#e7e7e7",
+                    editor: role.access['createSupervisor'] != undefined ? convertBooleanToHex(role.access['createSupervisor']) : "#e7e7e7"
                 },
             })
         }
@@ -178,7 +178,7 @@ const addEditUser = async (body, act, userId = undefined) => {
         }
         switch (act) {
             case "add":
-                if (!body.picture) body.picture = `${process.env.BASE_URL}/assets/profile-pict/default.png`
+                if (!body.picture) body.picture = `${process.env.BASE_URL}/assets/profile-pict/default.jpg`
                 body.roleId = !body.roleId ? 2 : +body.roleId
                 if (body.password && body.password.length > 0) {
                     const salt = await bcrypt.genSalt();

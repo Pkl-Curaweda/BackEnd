@@ -44,7 +44,7 @@ const getAllStatus = async () => {
 const getFloorPlanByDate = async (dateRange) => {
   try {
     let listRoom = [], [startTime, endTime] = dateRange.split(' ')
-    const rooms = await prisma.room.findMany({ where: { deleted: false } })
+    const rooms = await prisma.room.findMany({ where: { deleted: false,  id: { in: [101, 102, 103, 104, 105, 106, 107, 108, 109, 110] } } })
     for (let room of rooms) {
       listRoom.push({
         id: `${room.id}`,
@@ -63,14 +63,14 @@ const getFloorPlanByDate = async (dateRange) => {
       } },
       select: {
         roomId: true,
-        reservation: { select: { specialTreatmentId: true, specialTreatment: true } }
+        reservation: { select: { specialTreatmentId: true, specialTreatment: true, checkoutDate: true } }
       }
     })
 
     for(let res of resv){
       listRoom[res.roomId - 101].roomStatus = {
-        rowColor: res.reservation.specialTreatmentId != null ? res.reservation.specialTreatment.rowColor : "#f8fdf7",
-        textColor: res.reservation.specialTreatmentId != null ? res.reservation.specialTreatment.textColor : "#0000f1"
+        rowColor: res.reservation.specialTreatmentId != null ? res.reservation.specialTreatment.rowColor :  res.reservation.checkoutDate ? "#10780a" :  "#f8fdf7",
+        textColor: res.reservation.specialTreatmentId != null ? res.reservation.specialTreatment.textColor : res.reservation.checkoutDate ? "#FFFFFF" : "#0000f1"
       }
     }
     return listRoom

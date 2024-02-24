@@ -324,6 +324,7 @@ const CreateNewReservation = async (data, user) => {
 
     const guestName = data.nameContact.split('/')[0];
     const guestContact = data.nameContact.split('/')[1];
+    if (guestContact === undefined) throw Error('Please send a correct format [Guest Name]/[Phone Number]')
     const createdGuest = await CreateNewGuest(guestName, guestContact);
     const createdReserver = await CreateNewReserver(createdGuest.guest.id, data);
     const createdReservation = await prisma.reservation.create({
@@ -568,12 +569,27 @@ const changeSpecialTreatment = async (reservationId, specialTreatmentId) => {
   }
 }
 
+const roomAvailableChecker = async (query) => {
+  let { roomId, range } = query
+  try {
+    let [arr, dep] = range.split('T')
+    arr = arr.replace(/\//g, '-')
+    dep = dep.replace(/\//g, '-')
+    return await isRoomAvailable({ arr, dep }, +roomId)
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
 module.exports = {
   getAllReservation,
   getDetailById,
   deleteReservationById,
   CreateNewReservation,
   editReservation,
+  roomAvailableChecker,
   ChangeReservationProgress,
   DetailCreateReservationHelper,
   AddNewIdCard,

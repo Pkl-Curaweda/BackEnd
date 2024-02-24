@@ -3,6 +3,7 @@ const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 
 const CreateNewReserver = async (guestId, data) => {
     try{
+        if(data.resourceName === null) throw Error('Please specify the Resource Name')
         const createdReserver = await prisma.reserver.create({
             data: {
                 guestId,

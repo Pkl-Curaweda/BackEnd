@@ -617,17 +617,21 @@ const loginPath = (ident) => {
 
 async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
   try {
-    const roomAvailable = await prisma.resvRoom.findMany({
+    const reservationFromRoom = await prisma.resvRoom.findMany({
       where: {
-        roomId, reservation: {
-          AND: [
-            { arrivalDate: { gte: `${date.arr.split('T')[0]}T00:00:00.00Z` } },
-            { departureDate: { lte: `${date.dep.split('T')[0]}T23:59:59.999Z` } }
-          ]
-        }, deleted: false
-      }
+        deleted: false, roomId, reservation: {
+          AND: [{ onGoingReservation: true, checkoutDate: null}]
+        }
+      }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } }
     })
-    if (roomAvailable.length != 0) throw Error('Room are used')
+    const dates = generateDateBetweenStartAndEnd(new Date(date.arr), new Date(date.dep))
+    for(let date of dates){
+      for(let res of reservationFromRoom){
+        let { arrivalDate, departureDate } =  res.reservation
+        const check = isDateInRange(date, arrivalDate, departureDate)
+        if(check) throw Error ( `Room are used | ${arrivalDate.toISOString().split('T')[0]} - ${departureDate.toISOString().split('T')[0]}`)
+      }
+    }
     return
   } catch (err) {
     ThrowError(err)
@@ -715,12 +719,12 @@ const generateDeleteDate = (param) => {
   return currentDate.toISOString()
 }
 
-const convertBooleanToEmoji = (bool) => {
-  return bool ? '#069550' : "#FFFFFF" 
+const convertBooleanToHex = (bool) => {
+  return bool ? '#069550' : "#e7e7e7"
 }
 module.exports = {
   splitDateTime,
-  convertBooleanToEmoji,
+  convertBooleanToHex,
   countNotificationTime,
   countISORange,
   loginPath,
