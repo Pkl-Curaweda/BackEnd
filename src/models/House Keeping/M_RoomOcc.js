@@ -10,8 +10,8 @@ const getRoomOccupancyData = async (q) => {
     let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
     try {
         //TODO: HOUSE USE, COMP
-        const listOfTypes =  (await prisma.roomType.findMany({ where: { deleted: false, NOT: { id: 'REMOVED' } }, select: { id: true, longDesc: true } })).map(types => ({  id: types.id, label: `${types.longDesc} Room`}))
-        const roomType = filt ? { roomType: { id: filt } } : undefined
+        const listOfTypes = (await prisma.roomType.findMany({ where: { deleted: false, NOT: { id: 'REMOVED' } }, select: { id: true, longDesc: true } })).map(types => ({ id: types.id, label: `${types.longDesc} Room` }))
+        const roomType = filt && filt != "ALL" ? { roomType: { id: filt } } : undefined
         const roomStatus = await prisma.room.findMany({
             where: {
                 NOT: { id: 0 },
@@ -78,9 +78,9 @@ const getRoomOccupancyData = async (q) => {
                 endDate = endDate.toISOString()
                 break
             case "month":
-                startDate = new Date(currentDate.setDate(currentDate.getDate() - (currentDate.getDate() - 1)))
-                lastDate = new Date(currentDate.getFullYear, currentDate.getMonth() + 1, 0).getDate()
-                endDate = new Date(currentDate.setDate(lastDate))
+                startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                const lastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+                endDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), lastDate);
                 break
             case "year":
                 [startDate, endDate] = [`${currentYear}-01-01T00:00:00.000Z`, `${currentYear}-12-31T23:59:59.999Z`]
@@ -89,7 +89,6 @@ const getRoomOccupancyData = async (q) => {
                 [startDate, endDate] = [`${currentDate.toISOString().split('T')[0]}T00:00:00.000Z`, `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z`]
                 break;
         }
-
         const [r, comp, hu, ooo, om] = await prisma.$transaction([
             prisma.resvRoom.findMany({
                 where: {
@@ -132,7 +131,7 @@ const getRoomOccupancyData = async (q) => {
         let estPers = 0, compPerson = 0
         for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
         percData.estOcc.person += estPers
-        for(let com of comp) compPerson += com.reservation.manyAdult + com.reservation.manyBaby + com.reservation.manyChild
+        for (let com of comp) compPerson += com.reservation.manyAdult + com.reservation.manyBaby + com.reservation.manyChild
         percData.comp.person += compPerson
         percData.comp.room += comp.length
         percData.houseUse.room += hu
@@ -145,6 +144,7 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
+        listOfTypes.push({ id: 'ALL', label: "ALL"  })
         return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
         ThrowError(err)

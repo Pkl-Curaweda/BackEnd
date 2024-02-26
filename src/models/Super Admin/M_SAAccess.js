@@ -107,13 +107,14 @@ const getAddEditUserHelper = async (query) => {
 }
 
 const getEditRoomBoyHelper = async (query) => {
-    const { firstId } = query
+    let { firstId } = query
     try {
-        let listMaid = await prisma.roomMaid.findMany({ where: { deleted: false, }, select: { id: true, aliases: true, departmentId: true, shiftId: true, user: { select: { name: true, email: true, role: { select: { name: true } } } } } })
+        let listMaid = await prisma.roomMaid.findMany({ where: { deleted: false, }, select: { id: true, aliases: true, departmentId: true, shiftId: true, user: { select: { name: true, picture: true, email: true, role: { select: { name: true } } } } } })
         listMaid.map(maid => ({
             id: maid.id,
             name: maid.user.name,
             email: maid.user.email,
+            picture: maid.user.picture,
             role: maid.user.role.name,
             shiftId: maid.shiftId,
             aliases: maid.aliases,
@@ -175,7 +176,7 @@ const addEditUser = async (body, act, userId = undefined) => {
         if (body.username) {
             const usernameUssed = await prisma.user.findFirst({ where: { username: body.username } })
             if (usernameUssed != null) throw Error(`Username already used by ${usernameUssed.name}`)
-        }
+    }
     let user
         switch (act) {
             case "add":
@@ -252,13 +253,13 @@ const addNewRoomBoy = async (body) => {
 }
 
 const editRoomBoy = async (maidId, body) => {
-    const { shift, aliases, userId, departmentId } = body
+    const { shift, aliases, departmentId } = body
     try {
         const [userExist, shiftExist] = await prisma.$transaction([
             prisma.roomMaid.findFirstOrThrow({ where: { id: +maidId } }),
             prisma.shift.findFirstOrThrow({ where: { id: body.shift } })
         ])
-        return await prisma.roomMaid.update({ where: { id: maidId }, data: { shift: { connect: { id: shift } }, user: { connect: { id: userId } }, department: { connect: { id: departmentId } }, aliases } })
+        return await prisma.roomMaid.update({ where: { id: maidId }, data: { shift: { connect: { id: shift } }, department: { connect: { id: departmentId } }, aliases } })
     } catch (err) {
         ThrowError(err)
     } finally {
