@@ -14,7 +14,7 @@ const get = async (page, perPage, date) => {
         const currData = await getCurrentDayData(date, hk.ttl)
         const { resvChart, hkChart } = await getChart();
         resvChart[dtName] = {
-            ident: dtName,
+            ident: dtName.substring(0, 3),
             nw: currData.newReservation,
             ci: currData.checkIn,
             co: currData.checkOut
@@ -61,7 +61,7 @@ const get = async (page, perPage, date) => {
 const getChart = async () => {
     let resvChart = {}, hkChart = { }
     try {
-        const rooms = await prisma.room.findMany({ select: { deleted: false, id: true } })
+        const rooms = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } })
         for(let room of rooms) hkChart[room.id] = { label: room.id, value: 0 }
         const dts = generateDateBetweenNowBasedOnDays('future', 7)
         const resvRoom = await prisma.resvRoom.findMany({
@@ -95,7 +95,7 @@ const getChart = async () => {
             // for(let rs of resvRoom){
             //     if(`${dt}T00:00:00.000Z` >= rs.reservation.arrivalDate && `${dt}T23:59:59.999Z` < rs.reservation.departureDate) 
             // }
-            resvChart[dtName] = { ident: dtName, ...data }
+            resvChart[dtName] = { ident: dtName.substring(0, 3), ...data }
         }
         hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
