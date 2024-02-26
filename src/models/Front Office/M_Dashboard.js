@@ -62,7 +62,7 @@ const getChart = async () => {
     let resvChart = {}, hkChart = { }
     try {
         const rooms = await prisma.room.findMany({ select: { deleted: false, id: true } })
-        for(let room of rooms) hkChart[room.id] = 0 
+        for(let room of rooms) hkChart[room.id] = { label: room.id, value: 0 }
         const dts = generateDateBetweenNowBasedOnDays('future', 7)
         const resvRoom = await prisma.resvRoom.findMany({
             where: {
@@ -89,7 +89,7 @@ const getChart = async () => {
                 if (rs.reservation.checkInDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkInDate < `${dt}T23:59:59.999Z`) data.ci++
                 if (rs.reservation.checkoutDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkoutDate < `${dt}T23:59:59.999Z`) data.co++
 
-                hkChart[rs.roomId]++
+                hkChart[rs.roomId].value++
             }
             const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
             // for(let rs of resvRoom){

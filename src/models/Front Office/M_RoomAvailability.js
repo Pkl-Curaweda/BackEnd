@@ -40,7 +40,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             roomAverage[`total_${room.id}`] = 0
             roomsList.push(room.id)
             roomHeaders.push({
-                name: `${room.id}-${room.roomType.id}-${room.roomType.bedSetup}`, label: `${room.id}-${room.roomType.id}-${room.roomType.bedSetup}`, field: `room_${index}`, align: "left"
+                name: `${room.id}-${room.roomType.id}-${room.roomType.bedSetup}`, label: `${room.id}-${room.roomType.id}-${room.roomType.bedSetup}`, field: `room_${index}`, align: "center"
             })
             sortTypes[room.roomType.id] = { id: `T_${room.roomType.longDesc}`, label: room.roomType.longDesc }
             rawRoomHistory[`room_${room.id}`] = { data: '', style: {} }
@@ -180,7 +180,7 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
             roomAverage = reverseObject(roomAverage)
             roomHeaders.reverse()
         } 
-        roomHeaders.unshift({ name: 'Date', label: 'Date', field: "Date", align: "left" })
+        roomHeaders.unshift({ name: 'Date', label: 'Date', field: "Date", align: "center" })
         const lastPage = Math.ceil(dates.length / perPage);
         return {
             roomHeaders, sortingType,
