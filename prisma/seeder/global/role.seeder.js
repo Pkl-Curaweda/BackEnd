@@ -44,7 +44,10 @@ const roles = [
   },
   {
     name: "Mitra",
-    access: {},
+    access: {
+      showMitra: true,
+      craeteMitra: true
+    },
     defaultPath: '/auth/login'
   },
   {
@@ -57,8 +60,11 @@ const roles = [
   },
   {
     name: "Room",
-    access: {},
-    defaultPath: '/auth/login'
+    access: {
+      showInRoom: true,
+      createInRoom: true
+    },
+    defaultPath: '/irs/home'
   }
 ];
 

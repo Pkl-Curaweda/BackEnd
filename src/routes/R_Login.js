@@ -7,7 +7,7 @@ const R_Login = Router();
 
 //User
 R_Login.get("/user", getAllUsers)
-R_Login.post("/user/login", postLogin);
+R_Login.post("/user/login/:encryptedData?", postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);
 R_Login.get('/user/me', auth(), getCurrentUser);

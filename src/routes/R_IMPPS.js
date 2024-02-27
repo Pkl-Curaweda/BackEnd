@@ -46,7 +46,7 @@ R_IMPPS.post('/roomboy', roomMaid.postCreateRoomMaid)
 //ROOM MAID
 R_IMPPS.get('/roomboy', auth(['showMaid']), roomMaid.get)
 R_IMPPS.put('/roomboy/:taskId', auth(['createMaid', 'createSupervisor']), roomMaid.submitComment)
-R_IMPPS.post('/roomboy/:taskId/:action', auth(["createMaid"]), roomMaid.post)
+R_IMPPS.post('/roomboy/:taskId/:action', auth(['createMaid']), roomMaid.post)
 R_IMPPS.post('/roomboy/lostfound', auth(['createMaid']),
     upload.single('image'),
     (req, res, next) => {

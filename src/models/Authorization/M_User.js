@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
-const { RemoveToken, CreateAndAssignToken } = require("./M_Token");
+const { RemoveToken, CreateAndAssignToken, deleteTokenByUserId, deleteAllTokenByUserId } = require("./M_Token");
 
 const UserLogin = async (email, password) => {
   try {
@@ -13,6 +13,11 @@ const UserLogin = async (email, password) => {
         email: true,
         picture: true,
         password: true,
+        guest: {
+          select: {
+            name: true,
+          }
+        },
         role: {
           select: {
             name: true,
@@ -21,6 +26,7 @@ const UserLogin = async (email, password) => {
         }
       }
     });
+    console.log(user)
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
@@ -39,7 +45,7 @@ const UserLogout = async (RefreshToken) => {
     return removeToken
   } catch (err) {
     ThrowError(err)
-  } finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
@@ -65,6 +71,40 @@ const GetAllUsers = async () => {
     await PrismaDisconnect();
   }
 };
+
+const forbiddenToLogin = async (userId) => {
+  try {
+    const userExist = await prisma.user.findFirstOrThrow({ where: { id: +userId } })
+    await deleteAllTokenByUserId(userExist.id)
+    return await prisma.user.update({ where: { id: +userId }, data: { canLogin: false } })
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
+const activateDeactivateRoomEmail = async (resvRoomId, act) => {
+  try {
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, select: { roomId: true, reservation: { select: { reserver: { select: { guestId: true } } } } } })
+    const emailRoomExist = await prisma.user.findFirst({ where: { email: `room${resvRoom.roomId}`, role: { name: "Room" } }, select: { id: true, canLogin: true } })
+    if (act != "deactivate") {
+      return await prisma.user.update({
+        where: { id: emailRoomExist.id },
+        data: { canLogin: true, guestId: resvRoom.reservation.reserver.guestId }
+      })
+    } else {
+      return await prisma.user.update({
+        where: { id: emailRoomExist.id },
+        data: { canLogin: false, guestId: null }
+      })
+    }
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
 
 /**
  * @typedef {object} GetAllUserOption
@@ -200,4 +240,4 @@ async function remove(id) {
 }
 
 
-module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove };
+module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail };

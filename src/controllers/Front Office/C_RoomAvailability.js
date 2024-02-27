@@ -5,7 +5,6 @@ const schedule = require("node-schedule")
 const getRoomAvailability = async (req, res) => {
   const { page = 1, perPage = 30, date, search, filter } = req.query;
   try {
-    console.log('test')
     const logData = await getLogAvailabilityData(date, parseInt(page), parseInt(perPage), filter, search)
     return success(res, 'Operation Success', logData)
   } catch (err) {

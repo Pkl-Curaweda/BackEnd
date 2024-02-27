@@ -67,7 +67,7 @@ const CreateGuestQrCode = async (guestData) => {
   };
   const path = `${process.env.QR_PATH}QR-${guestData.username}.png`;
   if (!fs.existsSync(path)) {
-    const stringfyData = JSON.stringify(storedData);
+  const stringfyData = JSON.stringify(storedData);
     const encryptedData = encrypt(stringfyData);
     const storedQR = "http://localhost:3000/auth/guest/login/qr/" + encryptedData;
     qr.toFile(path, storedQR, (err) => {

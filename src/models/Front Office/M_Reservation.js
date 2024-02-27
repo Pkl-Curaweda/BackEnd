@@ -9,6 +9,7 @@ const { assignRoomMaid } = require("../House Keeping/IMPPS/M_RoomMaid");
 const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
+const { activateRoomEmail, activateDeactivateRoomEmail } = require("../Authorization/M_User");
 
 const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -187,9 +188,9 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       orderBy: orderBy && orderBy.orderQuery || { created_at: 'desc' }
     })
 
-    const roomBoys = await prisma.user.findMany({
-      where: { roleId: 5, deleted: false },
-      select: { name: true }
+    const roomBoys = await prisma.roomMaid.findMany({
+      where: { deleted: false },
+      select: { user: { select: { name: true } } }
     })
 
     let roomsData = {}, roomTypes = {}, resvStatus = {}
@@ -452,7 +453,6 @@ const editReservation = async (reservationId, resvRoomId, data, user) => {
     const resvRoom = await prisma.resvRoom.update({
       where: { id: resvRoomId }, data: { arrangmentCodeId: arrangmentCode }
     })
-    console.log(voucher)
     if (voucher != '') await setVoucher(voucher, resvRoom.id, user.id)
     return { update, voucher: `Using voucher: ${voucher}` };
   } catch (err) {
@@ -494,6 +494,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {
+          await activateDeactivateRoomEmail(room.id, "activate")
           await changeRoomStatusByDescription(room.roomId, "OC")
           await changeOccupied(room.roomId, true)
         }
@@ -503,6 +504,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
         for (let room of reservation.resvRooms) {
+          await activateDeactivateRoomEmail(room.id, "deactivate")
           await changeRoomStatusByDescription(room.roomId, "VD")
           await changeOccupied(room.roomId, false)
         }

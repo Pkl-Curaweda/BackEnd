@@ -89,8 +89,6 @@ model Guest {
   User     User[]
 }
 
-// This table is for admin & mitra (hotel)
-
 model User {
   id             Int          @id @default(autoincrement())
   name           String
@@ -109,6 +107,7 @@ model User {
   guestId        Int?
   room           Room?        @relation(fields: [roomId], references: [id])
   roomId         Int?
+  canLogin       Boolean      @default(true)
   deleted        Boolean      @default(false)
   service        Service[]
   productReqs    ProductReq[]
@@ -519,14 +518,17 @@ model LostFound {
 // In Room Service Area =======================================================
 
 model ServiceType {
-  id         Int          @id @default(autoincrement())
-  name       String
-  open       String
-  close      String
-  services   Service[]
-  created_at DateTime     @default(now())
-  updated_at DateTime     @updatedAt
-  ProductReq ProductReq[]
+  id                Int          @id @default(autoincrement())
+  name              String
+  openHour          Int
+  closeHour         Int
+  path              String
+  accessibleToMitra Boolean      @default(false)
+  picture           String
+  services          Service[]
+  created_at        DateTime     @default(now())
+  updated_at        DateTime     @updatedAt
+  ProductReq        ProductReq[]
 }
 
 model SubType {

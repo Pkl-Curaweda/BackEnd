@@ -40,7 +40,7 @@ app.use(bodyParser.urlencoded({
 );
 app.use(rateLimit({
   windowMs: 1 * 60 * 1000,
-  max: 100,
+  max: 300,
   message: {
     message: 'Too many request, please slow down'
   }

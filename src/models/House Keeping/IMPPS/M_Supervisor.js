@@ -179,7 +179,7 @@ const addUnavailableRoomBoy = async (b) => {
                     aliases: true,
                     MaidTask: {
                         where: {
-                            created_at: { gte: `${currentDate}T00:00:00.000Z` }
+                            created_at: { gte: `${currentDate}T00:00:00.000Z` }, finished: false
                         }, select: { id: true, customWorkload: true, type: { select: { standardTime: true } } }
                     }
                 }

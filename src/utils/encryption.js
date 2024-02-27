@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { ThrowError } = require('./helper');
 require('dotenv').config();
 
 const key = crypto.createHash('sha512').update(process.env.ENCRYPTION_KEY).digest('hex').substring(0, 32)
@@ -27,8 +28,8 @@ function decrypt(text) {
       decipher.update(encryptedText), decipher.final()
     ])
     return decrypted.toString()
-  } catch {
-    throw new Error
+  } catch(err) {
+    ThrowError(err)
   }
 }
 

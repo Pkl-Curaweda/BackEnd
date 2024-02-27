@@ -8,7 +8,6 @@ const { phoneValidation, emailValidation, nikValidation } = require('../validati
 const { roomInputValidation } = require('../validations/room.validation');
 const { serviceInputValidation } = require('../validations/service.validation');
 
-const auth = require('../controllers/In Room Service/auth.service');
 const guest = require('../controllers/In Room Service/C_Guest');
 const order = require('../controllers/In Room Service/C_Order');
 const productReqService = require('../controllers/In Room Service/C_ProductReq');
@@ -16,6 +15,8 @@ const profile = require('../controllers/In Room Service/C_Profile');
 const room = require('../controllers/In Room Service/C_Room');
 const services = require('../controllers/In Room Service/C_Service');
 const subType = require('../controllers/In Room Service/C_SubType');
+const mainMenu = require('../controllers/In Room Service/C_MainMenu');
+const { auth } = require("../middlewares/auth");
 
 const R_InRoomService = express();
 
@@ -37,6 +38,10 @@ R_InRoomService.get('/Test', (req, res) => {
 //Start Guest
 R_InRoomService.get('/guest/:id', guest.get);
 //End Guest
+
+//? START MAIN MENU
+R_InRoomService.get('/menu', auth() ,mainMenu.getIRSMenu)
+//? END MAIN MENU
 
 //Start Order
 R_InRoomService.get('/order/:id', order.findOne);

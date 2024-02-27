@@ -6,10 +6,10 @@ const searchGet = (q) => {
     try {
         const search = q
         return {
-            idCard: {
-                every: { cardId: { contains: search } }
-            },
-            id: { equals: parseInt(search) }
+            OR: [
+                { idCard: { every: { cardId: { contains: search } } } },
+                { id: { equals: parseInt(search) } }
+            ]
         }
     } catch (err) {
         ThrowError(err)
@@ -113,7 +113,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
         let table = [], roomTypes = {}
         reservations.forEach(res => {
             const nik = res.reservation.idCard.length != 1 ? '-' : res.reservation.idCard[0]
-            roomTypes[res.room.roomType.id] = { id: `room+type+${res.room.roomType.id}`, label: `Room Type ${res.room.roomType.longDesc}`}
+            roomTypes[res.room.roomType.id] = { id: `room+type+${res.room.roomType.id}`, label: `Room Type ${res.room.roomType.longDesc}` }
             const data = {
                 resNo: res.reservation.id,
                 resResource: res.reservation.reserver.resourceName,

@@ -88,6 +88,22 @@ const users = [
     updated_at: new Date(),
   },
 
+  //! MITRA
+  {
+    name: faker.person.firstName(),
+    gender: "MALE",
+    phone: "0783273247",
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
+    email: "mitra1@gmail.com",
+    nik: randomInt(999999999).toString(),
+    birthday: new Date(faker.date.birthdate()),
+    username: faker.internet.userName(),
+    password: "password",
+    roleId: 6,
+    created_at: new Date(),
+    updated_at: new Date(),
+  },
+
   //! SUPERVISOR
   {
     name: faker.person.firstName(),

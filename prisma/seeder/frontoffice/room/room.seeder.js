@@ -2,6 +2,7 @@ const { prisma } = require("../../config");
 const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
+const { generateQrRoom } = require("../../../../src/models/House Keeping/M_Room");
 
 
 const rooms = [
@@ -108,7 +109,9 @@ const rooms = [
 
 async function roomSeed() {
   for (let room of rooms) {
-    await prisma.room.upsert({
+    const salt = await bcrypt.genSalt()
+    const password = await bcrypt.hash(process.env.ROOM_PASS, salt)
+    const createdRoom = await prisma.room.upsert({
       where: { id: room.id },
       update: { ...room },
       create: {
@@ -117,17 +120,19 @@ async function roomSeed() {
             name: faker.person.firstName(),
             gender: "MALE",
             phone: "",
+            canLogin: false,
             picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
             email: `room${room.id}`,
             nik: "",
             birthday: new Date(faker.date.birthdate()),
             username: `Kamar ${room.id}`,
-            password: "password",
+            password,
             roleId: 8,
           }
         }
-      }
+      }, include: { User: true }
     })
+    await generateQrRoom(createdRoom.User[0].email, createdRoom.User[0].password)
   }
 }
 

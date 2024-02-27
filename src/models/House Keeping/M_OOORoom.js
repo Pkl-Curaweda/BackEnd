@@ -61,7 +61,7 @@ const select = {
  */
 async function all(option) {
   try {
-    let { page = 1, perPage = 5, sortOrder, arr, dep, type = "OOO" } = option
+    let { sortOrder, arr, dep, type = "OOO" } = option
     if (arr === undefined) arr = new Date().toISOString().split('T')[0]
     if (dep === undefined) {
       dep = new Date(arr);
@@ -85,8 +85,6 @@ async function all(option) {
     const [total, oooRooms] = await prisma.$transaction([
       prisma.oooOmRoom.count({ where }),
       prisma.oooOmRoom.findMany({
-        take: +perPage,
-        skip: (page - 1) * perPage,
         orderBy: { ...sortOrder },
         select: {
           room: {
@@ -118,19 +116,11 @@ async function all(option) {
         roomType: ooo.room.roomType
       })
     }
-    const lastPage = Math.ceil(total / perPage)
     return {
       listOfRoom, listOfDepartment,
       arr, dep,
       ident: type != "OOO" ? "OM" : "O-O-O",
-      OOORoom, meta: {
-        total,
-        currPage: +page,
-        lastPage,
-        perPage,
-        prev: page > 1 ? page - 1 : null,
-        next: page < lastPage ? page + 1 : null
-      }
+      OOORoom
     }
 
   } catch (err) {

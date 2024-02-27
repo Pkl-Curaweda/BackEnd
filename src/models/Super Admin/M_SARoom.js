@@ -31,7 +31,7 @@ const getEditRoomTypeHelper = async (id) => {
     try {
         listArr = ["RB", "RO"]
         const roomType = await prisma.roomType.findFirstOrThrow({ where: { id, deleted: false }, select: { id: true, longDesc: true, bedSetup: true, ArrangmentCode: { select: { id: true, rate: true } } } })
-        const {standardTime} = await prisma.taskType.findFirstOrThrow({ where: { id:`FCLN-${roomType.id}` }, select: { standardTime: true } })
+        const { standardTime } = await prisma.taskType.findFirstOrThrow({ where: { id: `FCLN-${roomType.id}` }, select: { standardTime: true } })
         detail.longDescription = roomType.longDesc
         detail.shortDesc = roomType.id
         detail.bedSetup = roomType.bedSetup
@@ -70,6 +70,7 @@ const getAddArrangmentHelper = async (id) => {
 }
 
 const addEditRoom = async (body, act) => {
+    let room
     try {
         const data = {
             id: +body.roomNo,
@@ -86,11 +87,11 @@ const addEditRoom = async (body, act) => {
             message = `Room ${data.id} Created Succesfully`
             const exist = await prisma.room.findFirst({ where: { id: data.id } })
             if (exist != null) throw Error('Room already exist')
+            room = await prisma.room.create({ data: { ...data } })
+        } else {
+            delete data.id
+            room = await prisma.room.update({ where: { id: +body.roomNo }, data: { ...data } })
         }
-        const room = await prisma.room.upsert({
-            where: { id: +body.roomNo },
-            update: { ...data }, create: { ...data }
-        })
         return { message, data: room }
     } catch (err) {
         ThrowError(err)

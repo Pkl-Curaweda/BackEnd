@@ -61,11 +61,11 @@ const getLogAvailabilityData = async (dateQuery, page, perPage, filter, search) 
                 label: "King Bed"
             },
             {
-                id: `T_TWIN`,
+                id: `B_TWIN`,
                 label: "Twin Bed"
             },
             {
-                id: `T_SINGLE`,
+                id: `B_SINGLE`,
                 label: "Single Bed"
             }
         )

@@ -1,7 +1,10 @@
 const { UserLogout, UserLogin, GetAllUsers } = require("../models/Authorization/M_User");
 const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { ThrowError } = require("../utils/helper");
+const { decrypt } = require("dotenv");
+const { getExpireCookieRoom } = require("../models/House Keeping/M_Room");
 
 const getAllUsers = async (req, res) => {
     try {
@@ -37,11 +40,19 @@ const getNewUserRefreshToken = async (req, res) => {
     }
 }
 
+
 const postLogin = async (req, res) => {
-    const body = req.body;
+    let { email, password } = req.body, { encryptedData } = req.params;
+    let expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
     try {
-        const payload = await UserLogin(body.email, body.password);
-        const expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
+        if (encryptedData) {
+            let decryptedData = decrypt(encryptedData)
+            decryptedData = JSON.parse(decryptedData)
+            email = decryptedData.email
+            password = decryptedData.password
+            expire = getExpireCookieRoom()
+        }
+        const payload = await UserLogin(email, password);
         res.cookie('refresh_token', payload.createdToken, {
             httpOnly: true,
             secure: true,
@@ -77,13 +88,13 @@ const postLogout = async (req, res) => {
  */
 async function create(req, res) {
     try {
-      req.body.password = await bcrypt.hash(req.body.password, 10)
-      const user = await userRepository.create(req.body)
-      return success(res, 'Create user success', user)
+        req.body.password = await bcrypt.hash(req.body.password, 10)
+        const user = await userRepository.create(req.body)
+        return success(res, 'Create user success', user)
     } catch {
-      return error(res, 'Create user failed')
+        return error(res, 'Create user failed')
     }
-  }
+}
 
 
 module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }

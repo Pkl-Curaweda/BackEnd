@@ -59,7 +59,7 @@ function generateDateBetweenStartAndEnd(startDate, endDate) {
 
 function generateExpire(currentDate) {
   var expiredDate = new Date(currentDate);
-  expiredDate.setDate(currentDate.getDate() + 3); //3 days from now
+  expiredDate.setDate(currentDate.getDate() + 2); //2 days from current date
   return expiredDate;
 };
 
@@ -242,22 +242,6 @@ function emptyOrRows(rows) {
     return [];
   }
   return rows;
-}
-
-/**
- * @param {import('express').Response} res
- */
-
-function errorResponse(res, message, data, code = 500) {
-  res.status(code).json({ success: false, message, data });
-}
-
-/**
- * @param {import('express').Response} res
- */
-
-function successResponse(res, message, data, code = 200) {
-  res.status(code).json({ success: true, message, data });
 }
 
 function generateToken(payload) {
@@ -722,10 +706,15 @@ const generateDeleteDate = (param) => {
 const convertBooleanToHex = (bool) => {
   return bool ? '#069550' : "#e7e7e7"
 }
+
+const convertAmPm = (hour) => {
+  return hour > 12 ? hour + " pm" : `${hour.toString().padStart(2, '0')} am`
+}
 module.exports = {
   splitDateTime,
   convertBooleanToHex,
   countNotificationTime,
+  convertAmPm,
   countISORange,
   loginPath,
   generateDeleteDate,
@@ -765,9 +754,7 @@ module.exports = {
   verifyToken,
   getOffset,
   emptyOrRows,
-  errorResponse,
   formatToSchedule,
-  successResponse,
   generateToken,
   countTaxAndTotalInvoice,
   paginate,

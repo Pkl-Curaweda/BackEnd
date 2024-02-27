@@ -70,6 +70,16 @@ const CreateAndAssignToken = async (type, data) => {
   }
 }
 
+const deleteAllTokenByUserId = async (userId) => {
+  try{
+    return await prisma.userToken.deleteMany({ where: { userId } })
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
@@ -84,4 +94,4 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
 };
 
 
-module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken };
+module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken, deleteAllTokenByUserId};

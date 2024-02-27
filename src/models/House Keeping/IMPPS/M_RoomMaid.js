@@ -70,6 +70,7 @@ const getRoomMaidTaskById = async (id, q) => {
                     select: { id: true, roomType: true }
                 },
                 id: true,
+                customWorkload: true,
                 schedule: true,
                 request: true,
                 rowColor: true,
