@@ -160,6 +160,7 @@ async function updateQty(req, res) {
        *
        * @constant { {serviceId:number, qty:number}[] } updatedOrderDetails
        */
+      
       updatedOrderDetails = order.orderDetails.map((orderDetail) => {
         if (
           orderDetail.serviceId === orderDetailToUpdate.serviceId &&

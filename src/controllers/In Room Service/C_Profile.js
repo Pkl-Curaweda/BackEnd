@@ -41,6 +41,7 @@ async function getData(req, res) {
   }
 }
 
+
 async function updateNumber(req, res) {
   try {
     const { phone } = req.body;
