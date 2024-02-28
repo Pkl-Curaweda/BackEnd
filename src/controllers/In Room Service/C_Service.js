@@ -3,29 +3,30 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, } = require('../../utils/helper');
 const { error } = require('console');
 const { success } = require('../../utils/response');
+const { th } = require('@faker-js/faker');
 
 const getService = async (req, res) => {
   try {
-    const roleName = req.user.role.name
+    const userData = req.user
     const { serviceTypeId } = req.params, { id, search, sort, page, perPage } = req.query
     const { service } = prisma;
     const data = await prisma.service.findMany({
       where: {
-        ...(roleName === "Mitra" && { serviceType: { accessibleToMitra: true } }),
+        ...(userData.role.name === "Mitra" && { serviceType: { id: +serviceType, accessibleToMitra: true }, userId: userData.id }),
         name: { contains: search }
+      },
+      select: {
+        id: true,
+        desc: true,
+        name: true,
+        price: true
       },
       orderBy: { id: 'asc' }
     })
-
-    return success(
-      res,
-      `Service ${req.params.serviceTypeId} has been getted successfully`,
-      data,
-      200,
-    );
+    return success(res, 'Showing Data', data)
   } catch (error) {
     console.error(error);
-    return error(res, 'Service not found', '', 404);
+    return error(res, error.message);
   }
 };
 
