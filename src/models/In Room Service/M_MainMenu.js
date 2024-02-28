@@ -13,7 +13,7 @@ const mainMenuIRSData = async (userData) => {
                     { openHour: { lte: currentHour } }
 
                 ]
-            }, select: { name: true, openHour: true, closeHour: true, path: true }
+            }, select: { name: true, openHour: true, closeHour: true, path: true, picture: true }
         })
         console.log(name)
         if (name != "Admin" && name != "Mitra") name = "user"
@@ -21,6 +21,7 @@ const mainMenuIRSData = async (userData) => {
             listOfMenu.push({
                 name: service.name,
                 schedule: `${convertAmPm(service.openHour)} - ${convertAmPm(service.closeHour)}`,
+                picture: service.picture,
                 path: `${service.path}/${name.toLowerCase()}`
             })
         }

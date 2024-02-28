@@ -21,11 +21,12 @@ const getRoomOccupancyData = async (q) => {
                 id: true,
                 roomType: true,
                 roomStatus: {
-                    select: { longDescription: true }
+                    select: { shortDescription: true }
                 }
             }
         })
         for (let room of roomStatus) {
+            console.log(room)
             const [r, estR] = await prisma.$transaction([
                 prisma.resvRoom.findFirst({
                     where: {
@@ -89,13 +90,19 @@ const getRoomOccupancyData = async (q) => {
                 [startDate, endDate] = [`${currentDate.toISOString().split('T')[0]}T00:00:00.000Z`, `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z`]
                 break;
         }
+        const notDate = {
+            not: {
+                gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`,
+                lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z`
+            }
+        }
         const [r, comp, hu, ooo, om] = await prisma.$transaction([
             prisma.resvRoom.findMany({
                 where: {
                     reservation: {
                         AND: [
-                            { arrivalDate: { gte: startDate, not: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } } },
-                            { departureDate: { lte: endDate, not: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } } }
+                            { arrivalDate: { gte: startDate, ...notDate } },
+                            { departureDate: { lte: endDate, ...notDate } }
                         ]
                     }
                 },
@@ -103,27 +110,27 @@ const getRoomOccupancyData = async (q) => {
             }),
             prisma.resvRoom.findMany({
                 where: {
-                    voucherId: process.env.COMP_VOUCHER,
-                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                    voucher: { trackComp: true },
+                    created_at: { ...notDate }
                 },
                 select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
             }),
             prisma.oooOmRoom.count({ //TODO: MAYBE, PERSON IN HOUSE USE NEED TO BE CHANGED, FOR NOW IT ONLY TAKE THE STORED DATA FROM OOO OM ROOM MODEL
                 where: {
                     xType: "HU",
-                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                    created_at: { ...notDate }
                 }
             }),
             prisma.oooOmRoom.count({
                 where: {
                     xType: "OOO",
-                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                    created_at: { ...notDate }
                 }
             }),
             prisma.oooOmRoom.count({
                 where: {
                     xType: "OM",
-                    created_at: { not: { gte: `${splitDateTime(currentDate).date}T00:00:00.000Z`, lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z` } }
+                    created_at: { ...notDate }
                 }
             })
         ])
@@ -144,7 +151,7 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
-        listOfTypes.push({ id: 'ALL', label: "ALL"  })
+        listOfTypes.push({ id: 'ALL', label: "ALL" })
         return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
         ThrowError(err)

@@ -192,7 +192,8 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
         ])
         const canWorkOnTask = roomMaid.workload + data.customWorkload < 480
         const scheduleEnd = formatToSchedule(currentTime, data.customWorkload)
-        data.schedule = `${currentTime}-${scheduleEnd}`
+        data.schedule = `${currentTime} - ${scheduleEnd}`
+        data.customWorkload = +data.customWorkload
         if (!canWorkOnTask) throw Error('Please assign another maid for this task')
         const createdTask = await prisma.maidTask.create({
             data: {

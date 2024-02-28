@@ -31,13 +31,7 @@ const options = { storage, fileFilter };
 // R_InRoomService.get('/auth/logout', auth.logout);
 // //Emd Auth
 
-R_InRoomService.get('/Test', (req, res) => {
-    res.json({ data: "Nibba" })
-})
-
-//Start Guest
-R_InRoomService.get('/guest/:id', guest.get);
-//End Guest
+// R_InRoomService.use(auth(['readInRoom']))
 
 //? START MAIN MENU
 R_InRoomService.get('/menu', auth() ,mainMenu.getIRSMenu)
