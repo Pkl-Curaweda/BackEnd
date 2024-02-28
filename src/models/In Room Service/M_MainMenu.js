@@ -8,14 +8,15 @@ const mainMenuIRSData = async (userData) => {
         const serviceType = await prisma.serviceType.findMany({
             where: {
                 ...(name === "Mitra" && { accessibleToMitra: true }),
-                // AND: [
-                //     { closeHour: { lt: currentHour } },
-                //     { openHour: { gt: currentHour } }
-                // ]
+                AND: [
+                    { closeHour: { gte: currentHour } },
+                    { openHour: { lte: currentHour } }
+
+                ]
             }, select: { name: true, openHour: true, closeHour: true, path: true }
         })
         console.log(name)
-        if(name != "Admin" && name != "Mitra") name = "user"
+        if (name != "Admin" && name != "Mitra") name = "user"
         for (let service of serviceType) {
             listOfMenu.push({
                 name: service.name,

@@ -7,8 +7,9 @@
 
 const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/library');
 const { prisma } = require("../../../prisma/seeder/config");
-const { successResponse, verifyToken, generateSubtotal, generateTotal, getAccessToken, generateItemPrice, errorResponse } = require('../../utils/helper');
+const { verifyToken, generateSubtotal, generateTotal, getAccessToken, generateItemPrice } = require('../../utils/helper');
 const { prismaError } = require('../../utils/errors.util');
+const { error, success } = require('../../utils/response');
 /**
  *
  * @param {import ('express').Request} req
@@ -33,14 +34,14 @@ async function findOne(req, res) {
       },
     });
     if (!order) {
-      return errorResponse(res, 'Order not found', 'Order not found', 404);
+      return error(res, 'Order not found', 404);
     }
-    return successResponse(res, 'Order retreived successfully', order, 200);
+    return success(res, 'Order retreived successfully', 200);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.meta?.cause, res);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', error.message, 500);
   }
 }
 
@@ -83,12 +84,12 @@ async function create(req, res) {
       },
     });
 
-    return successResponse(res, 'Order created successfully', order, 201);
+    return success(res, 'Order created successfully', order, 201);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.message, res);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', error.message, 500);
   }
 }
 
@@ -118,7 +119,7 @@ async function updateQty(req, res) {
       },
     });
     if (!order) {
-      return errorResponse(res, 'Order not found', 'Order not found', 404);
+      return error(res, 'Order not found', 'Order not found', 404);
     }
     const orderDetailToUpdate = order.orderDetails.find(
       (orderDetail) =>
@@ -126,7 +127,7 @@ async function updateQty(req, res) {
         orderDetail.serviceId === parseInt(serviceId, 10),
     );
     if (!orderDetailToUpdate) {
-      return errorResponse(res, 'Order detail not found', 'Order detail not found', 404);
+      return error(res, 'Order detail not found', 'Order detail not found', 404);
     }
 
     let updatedOrderDetails;
@@ -160,7 +161,7 @@ async function updateQty(req, res) {
        *
        * @constant { {serviceId:number, qty:number}[] } updatedOrderDetails
        */
-      
+
       updatedOrderDetails = order.orderDetails.map((orderDetail) => {
         if (
           orderDetail.serviceId === orderDetailToUpdate.serviceId &&
@@ -178,7 +179,7 @@ async function updateQty(req, res) {
           id,
         },
       });
-      return successResponse(res, 'Order deleted successfully because no item found', null, 200);
+      return success(res, 'Order deleted successfully because no item found', null, 200);
     }
 
     const newSubtotal = await generateSubtotal(updatedOrderDetails);
@@ -200,13 +201,13 @@ async function updateQty(req, res) {
         },
       },
     });
-
-    return successResponse(res, 'Order updated successfully', updatedOrder, 200);
+    
+    return success(res, 'Order updated successfully', updatedOrder, 200);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.meta?.cause, res);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', error.message, 500);
   }
 }
 
@@ -257,12 +258,12 @@ async function updateNewItem(req, res) {
       },
     });
 
-    return successResponse(res, 'New item added successfully', order, 201);
+    return success(res, 'New item added successfully', order, 201);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.meta?.cause, res);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', error.message, 500);
   }
 }
 
@@ -286,12 +287,12 @@ async function remove(req, res) {
       },
     });
 
-    return successResponse(res, 'Order deleted successfully', null, 200);
+    return success(res, 'Order deleted successfully', null, 200);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
       return prismaError(error, error.meta?.cause, res);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', error.message, 500);
   }
 }
 

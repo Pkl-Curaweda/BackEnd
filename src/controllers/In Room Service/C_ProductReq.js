@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse, verifyToken, getAccessToken, deleteAsset, paginate } = require('../../utils/helper');
+const { verifyToken, getAccessToken, deleteAsset, paginate } = require('../../utils/helper');
+const { error, success } = require('../../utils/response');
 
 const db = new PrismaClient();
 async function create(req, res) {
@@ -13,7 +14,7 @@ async function create(req, res) {
     const { title, typeId, desc, price, statusProductReq, serviceTypeId } = req.body;
 
     if (!title || !userId || !typeId || !desc || !price || !serviceTypeId) {
-      return errorResponse(res, 'All required fields must be provided', '', 400);
+      return error(res, 'All required fields must be provided', '', 400);
     }
 
     const filesaved = req.file.filename;
@@ -34,7 +35,7 @@ async function create(req, res) {
       },
     });
 
-    successResponse(
+    success(
       res,
       'Product request has been created successfully',
       { ...productReq, picture: pictureUrl },
@@ -43,7 +44,7 @@ async function create(req, res) {
 
     return Promise.resolve(productReq);
   } catch (error) {
-    return errorResponse(res, 'Failed to create product request', error.message, 400);
+    return error(res, 'Failed to create product request', error.message, 400);
   }
 }
 
@@ -57,11 +58,11 @@ async function getAll(req, res) {
       page,
       perPage,
     });
-    successResponse(res, 'Product requests retrieved successfully', data, 200);
+    success(res, 'Product requests retrieved successfully', data, 200);
   } catch (error) {
     console.log(error);
     console.error(error);
-    errorResponse(res, 'An error occurred while fetching product requests', '', 500);
+    error(res, 'An error occurred while fetching product requests', '', 500);
   }
 }
 
@@ -77,18 +78,18 @@ async function getProductReqById(req, res) {
     });
 
     if (productReq) {
-      successResponse(
+      success(
         res,
         `Product request ${productReqId} has been retrieved successfully`,
         productReq,
         200,
       );
     } else {
-      errorResponse(res, 'Product request not found', '', 404);
+      error(res, 'Product request not found', '', 404);
     }
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while fetching product request data', '', 500);
+    error(res, 'An error occurred while fetching product request data', '', 500);
   }
 }
 
@@ -118,18 +119,18 @@ async function getProductReqByUserId(req, res) {
     });
 
     if (productReq.length > 0) {
-      successResponse(
+      success(
         res,
         `Product requests for user ${userId} have been retrieved successfully`,
         productReq,
         200,
       );
     } else {
-      errorResponse(res, 'Product requests not found for the user', '', 404);
+      error(res, 'Product requests not found for the user', '', 404);
     }
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while fetching product request data', '', 500);
+    error(res, 'An error occurred while fetching product request data', '', 500);
   }
 }
 
@@ -158,18 +159,18 @@ async function getProductReqByStatus(req, res) {
     });
 
     if (productReq.length > 0) {
-      successResponse(
+      success(
         res,
         `Product request with status ${status} has been retrieved successfully`,
         productReq,
         200,
       );
     } else {
-      errorResponse(res, 'Product request not found', '', 404);
+      error(res, 'Product request not found', '', 404);
     }
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while fetching product request data', '', 500);
+    error(res, 'An error occurred while fetching product request data', '', 500);
   }
 }
 
@@ -186,7 +187,7 @@ async function update(req, res) {
 
     // Retrieve user ID from the decoded token
     const userId = decoded.id;
-    if (!userId) return errorResponse(res, 'Forbiden credentials is invalid', '', 403);
+    if (!userId) return error(res, 'Forbiden credentials is invalid', '', 403);
 
     const productReq = await prisma.productReq.findUnique({
       where: {
@@ -195,7 +196,7 @@ async function update(req, res) {
     });
 
     if (!productReq) {
-      return errorResponse(res, 'Product request not found', '', 404);
+      return error(res, 'Product request not found', '', 404);
     }
 
     if (req.file) {
@@ -238,7 +239,7 @@ async function update(req, res) {
       });
     }
 
-    successResponse(
+    success(
       res,
       `Product request ${productReqId} has been updated successfully`,
       productReq,
@@ -246,13 +247,13 @@ async function update(req, res) {
     );
 
     // Pastikan untuk mengembalikan respons di sini
-    return successResponse;
+    return success;
   } catch (error) {
     console.log(error);
-    errorResponse(res, 'An error occurred while updating the product request', '', 500);
+    error(res, 'An error occurred while updating the product request', '', 500);
 
     // Pastikan untuk mengembalikan respons di sini
-    return errorResponse;
+    return error;
   }
 }
 
@@ -278,9 +279,9 @@ async function remove(req, res) {
         id: productReqId,
       },
     });
-    successResponse(res, 'Product request has been deleted successfully', {}, 200);
+    success(res, 'Product request has been deleted successfully', {}, 200);
   } catch (error) {
-    errorResponse(res, 'An error occurred while deleting the product request', '', 500);
+    error(res, 'An error occurred while deleting the product request', '', 500);
   }
 }
 
@@ -295,15 +296,15 @@ async function acceptProductReq(req, res) {
     });
 
     if (!productReq) {
-      return errorResponse(res, 'Product request not found', '', 404);
+      return error(res, 'Product request not found', '', 404);
     }
 
     if (productReq.statusProductReq === 'ACCEPTED') {
-      return errorResponse(res, 'Product request has already been accepted', '', 400);
+      return error(res, 'Product request has already been accepted', '', 400);
     }
 
     if (productReq.statusProductReq === 'REJECTED') {
-      return errorResponse(
+      return error(
         res,
         'Product request has been rejected and cannot be accepted',
         '',
@@ -334,11 +335,11 @@ async function acceptProductReq(req, res) {
       },
     });
 
-    successResponse(res, 'Product request accepted successfully', newService, 200);
+    success(res, 'Product request accepted successfully', newService, 200);
     return newService;
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while accepting the product request', '', 500);
+    error(res, 'An error occurred while accepting the product request', '', 500);
     throw error;
   }
 }
@@ -354,15 +355,15 @@ async function rejectProductReq(req, res) {
     });
 
     if (!productReq) {
-      return errorResponse(res, 'Product request not found', '', 404);
+      return error(res, 'Product request not found', '', 404);
     }
 
     if (productReq.statusProductReq === 'REJECTED') {
-      return errorResponse(res, 'Product request has already been rejected', '', 400);
+      return error(res, 'Product request has already been rejected', '', 400);
     }
 
     if (productReq.statusProductReq === 'ACCEPTED') {
-      return errorResponse(
+      return error(
         res,
         'Product request has been accepted and cannot be rejected',
         '',
@@ -380,11 +381,11 @@ async function rejectProductReq(req, res) {
       },
     });
 
-    successResponse(res, 'Product request rejected successfully', {}, 200);
+    success(res, 'Product request rejected successfully', {}, 200);
     return {};
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while rejecting the product request', '', 500);
+    error(res, 'An error occurred while rejecting the product request', '', 500);
     throw error;
   }
 }

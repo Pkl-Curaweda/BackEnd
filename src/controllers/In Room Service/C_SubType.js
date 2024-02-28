@@ -1,14 +1,14 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse } = require('../../utils/helper');
+const { error, success } = require("../../utils/response");
 
 // Mendapatkan semua subType
 async function getSubtypes(req, res) {
   try {
     const subTypes = await prisma.subType.findMany();
-    successResponse(res, 'Sub Type retrieved successfully', subTypes, 200);
+    success(res, 'Sub Type retrieved successfully', subTypes, 200);
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while fetching Sub Types', '', 500);
+    error(res, 'An error occurred while fetching Sub Types', '', 500);
   }
 }
 
@@ -21,10 +21,10 @@ async function createSubType(req, res) {
         name,
       },
     });
-    successResponse(res, 'Sub Type created successfully', newSubType, 201);
+    success(res, 'Sub Type created successfully', newSubType, 201);
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while creating Sub Type', '', 500);
+    error(res, 'An error occurred while creating Sub Type', '', 500);
   }
 }
 
@@ -42,7 +42,7 @@ async function updateSubType(req, res) {
     });
 
     if (!subType) {
-      return errorResponse(res, 'SubType not found', '', 404);
+      return error(res, 'SubType not found', '', 404);
     }
 
     await prisma.subType.update({
@@ -54,14 +54,14 @@ async function updateSubType(req, res) {
       },
     });
 
-    successResponse(res, `SubType ${subTypeId} has been updated successfully`, subType, 200);
+    success(res, `SubType ${subTypeId} has been updated successfully`, subType, 200);
 
-    return successResponse;
+    return success;
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while updating SubType', '', 500);
+    error(res, 'An error occurred while updating SubType', '', 500);
 
-    return errorResponse;
+    return error;
   }
 }
 
@@ -74,10 +74,10 @@ async function remove(req, res) {
         id: subTypeId,
       },
     });
-    successResponse(res, 'Sub Type deleted successfully', { subType }, 200);
+    success(res, 'Sub Type deleted successfully', { subType }, 200);
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'An error occurred while deleting Sub Type', '', 500);
+    error(res, 'An error occurred while deleting Sub Type', '', 500);
   }
 }
 

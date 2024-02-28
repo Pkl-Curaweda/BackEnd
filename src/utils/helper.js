@@ -8,6 +8,7 @@ const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/librar
 require('dotenv').config();
 const { prisma } = require("../../prisma/seeder/config");
 const config = require('../configs/general.config');
+const { error } = require('console');
 
 const PrismaDisconnect = async () => {
   await prisma.$disconnect();
@@ -302,9 +303,9 @@ function validate(scheme) {
       return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return errorResponse(res, error.errors[0].message, null, 400);
+        return error(res, error.errors[0].message, null, 400);
       }
-      return errorResponse(res, 'Internal server error', error.message, 500);
+      return error(res, 'Internal server error', error.message, 500);
     }
   };
 }
@@ -390,10 +391,10 @@ function uploadFile(options, fieldName = 'image') {
   return (req, res, next) =>
     upload(req, res, (err) => {
       if (err) {
-        return errorResponse(res, err.message, null, 422);
+        return error(res, err.message, null, 422);
       }
       if (!req.file) {
-        return errorResponse(res, `${fieldName} is required`, null, 400);
+        return error(res, `${fieldName} is required`, null, 400);
       }
       return next();
     });

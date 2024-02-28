@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 const Express = require('express');
 const cookieParser = require('cookie-parser');
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse, verifyToken, getAccessToken } = require('../../utils/helper');
+const { verifyToken, getAccessToken } = require('../../utils/helper');
+const { error, success } = require('../../utils/response');
 
 const app = Express();
 app.use(cookieParser());
@@ -31,13 +32,13 @@ async function getData(req, res) {
     });
 
     if (!data) {
-      return errorResponse(res, 'User not found', '', 404);
+      return error(res, 'User not found', 404);
     }
 
-    return successResponse(res, 'User has been retrieved successfully', data, 200);
+    return success(res, 'User has been retrieved successfully', data, 200);
   } catch (error) {
     console.error('Error in getData:', error);
-    return errorResponse(res, 'Internal server error', '', 500);
+    return error(res, 'Internal server error', 500);
   }
 }
 
@@ -65,10 +66,10 @@ async function updateNumber(req, res) {
       },
     });
 
-    return successResponse(res, 'Phone number updated successfully', data, 200);
+    return success(res, 'Phone number updated successfully', data, 200);
   } catch (error) {
     console.error('Error in updateNumber:', error);
-    return errorResponse(res, 'Internal server error', '', 500);
+    return error(res, 'Internal server error', '', 500);
   }
 }
 
@@ -95,10 +96,10 @@ async function updateEmail(req, res) {
       },
     });
 
-    return successResponse(res, 'Email updated successfully', data, 200);
+    return success(res, 'Email updated successfully', data, 200);
   } catch (error) {
     console.error('Error in updateNumber:', error);
-    return errorResponse(res, 'Internal server error', '', 500);
+    return error(res, 'Internal server error', '', 500);
   }
 }
 
@@ -125,10 +126,10 @@ async function updateNIK(req, res) {
       },
     });
 
-    return successResponse(res, 'NIK updated successfully', data, 200);
+    return success(res, 'NIK updated successfully', data, 200);
   } catch (error) {
     console.error('Error in updateNumber:', error);
-    return errorResponse(res, 'Internal server error', '', 500);
+    return error(res, 'Internal server error', '', 500);
   }
 }
 

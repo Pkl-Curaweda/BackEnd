@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
 const { Prisma } = require('@prisma/client');
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse, generateToken, verifyToken, encrypt, getAccessToken, decrypt } = require('../../utils/helper');
+const { generateToken, verifyToken, encrypt, getAccessToken, decrypt } = require('../../utils/helper');
+const { success } = require('../../utils/response');
 
 /**
  * @param {import('express').Request} req
@@ -31,15 +32,15 @@ async function register(req, res) {
       },
     });
 
-    return successResponse(res, 'Register success', user, 201);
+    return success(res, 'Register success', user);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        return errorResponse(res, 'Account already exists', null, 409);
+        return error(res, 'Account already exists', 409, null);
       }
-      return errorResponse(res, 'Invalid request', error, 400);
+      return error(res, 'Invalid request', 400, error.message);
     }
-    return errorResponse(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', 500, error.message);
   }
 }
 

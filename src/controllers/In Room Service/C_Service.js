@@ -1,37 +1,23 @@
 const fs = require('fs');
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse, getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, } = require('../../utils/helper');
+const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, } = require('../../utils/helper');
+const { error } = require('console');
+const { success } = require('../../utils/response');
 
 const getService = async (req, res) => {
   try {
-    const { serviceTypeId } = req.params;
-    const { id } = req.query;
-    const { search } = req.query;
-    const { sort } = req.query || 'asc';
-    const { page } = req.query;
-    const { perPage } = req.query;
+    const roleName = req.user.role.name
+    const { serviceTypeId } = req.params, { id, search, sort, page, perPage } = req.query
     const { service } = prisma;
-    const data = await paginate(
-      service,
-      {
-        page,
-        perPage,
+    const data = await prisma.service.findMany({
+      where: {
+        ...(roleName === "Mitra" && { serviceType: { accessibleToMitra: true } }),
+        name: { contains: search }
       },
-      {
-        where: {
-          serviceTypeId: parseInt(serviceTypeId, 10),
-          ...(id ? { id: parseInt(id, 10) } : {}),
-          name: {
-            contains: search,
-          },
-        },
-        orderBy: {
-          id: sort,
-        },
-      },
-    );
+      orderBy: { id: 'asc' }
+    })
 
-    return successResponse(
+    return success(
       res,
       `Service ${req.params.serviceTypeId} has been getted successfully`,
       data,
@@ -39,7 +25,7 @@ const getService = async (req, res) => {
     );
   } catch (error) {
     console.error(error);
-    return errorResponse(res, 'Service not found', '', 404);
+    return error(res, 'Service not found', '', 404);
   }
 };
 
@@ -55,10 +41,10 @@ const getServiceLatest = async (req, res) => {
       },
       take: 1,
     });
-    successResponse(res, 'get latest service success', service, 200);
+    success(res, 'get latest service success', service, 200);
   } catch (error) {
     console.error(error);
-    errorResponse(res, 'Get latest service failed', '', 404);
+    error(res, 'Get latest service failed', '', 404);
   }
 };
 
@@ -82,9 +68,9 @@ const createService = async (req, res) => {
       },
     });
 
-    return successResponse(res, 'Create service success', service, 200);
+    return success(res, 'Create service success', service, 200);
   } catch (error) {
-    return errorResponse(res, 'Create service failed', error.message, 400);
+    return error(res, 'Create service failed', error.message, 400);
   }
 };
 
@@ -98,7 +84,7 @@ const updateService = async (req, res) => {
       where: { id: parseInt(id, 10) },
     });
     if (item == null) {
-      return errorResponse(res, 'Update service failed', `Service with id ${id} is not found`, 404);
+      return error(res, 'Update service failed', `Service with id ${id} is not found`, 404);
     }
     const oldPicturePath = getFilePath(item.picture);
     const pictureUrl = generateAssetUrl(picture);
@@ -118,10 +104,10 @@ const updateService = async (req, res) => {
       },
     });
 
-    return successResponse(res, 'update service success', service, 200);
+    return success(res, 'update service success', service, 200);
   } catch (error) {
     fs.unlinkSync(`./public/assets/images/${picture}`);
-    return errorResponse(res, 'update service failed', error.message, 404);
+    return error(res, 'update service failed', error.message, 404);
   }
 };
 
@@ -132,17 +118,16 @@ const deleteService = async (req, res) => {
       where: { id: parseInt(id, 10) },
     });
     if (item == null) {
-      return errorResponse(res, 'Delete service failed', `Service with id ${id} is not found`, 404);
+      return error(res, 'Delete service failed', `Service with id ${id} is not found`, 404);
     }
     const oldPicturePath = getFilePath(item.picture);
     deleteAsset(oldPicturePath);
     await prisma.service.delete({
       where: { id: parseInt(id, 10) },
     });
-
-    return successResponse(res, 'Service yang dipilih telah dihapus', null, 200);
+    return success(res, 'Service yang dipilih telah dihapus', null, 200);
   } catch (error) {
-    return errorResponse(res, 'delete service failed', '', 404);
+    return error(res, 'delete service failed', '', 404);
   }
 };
 

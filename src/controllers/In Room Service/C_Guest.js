@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { errorResponse, successResponse } = require('../../utils/helper');
+const { success } = require("../../utils/response");
 /**
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -14,9 +14,9 @@ async function get(req, res) {
       },
     });
 
-    return successResponse(res, `User ${req.params.id} has been getted successfully`, user, 200);
+    return success(res, `User ${req.params.id} has been getted successfully`, user, 200);
   } catch (error) {
-    return errorResponse(res, 'User not found', '', 404);
+    return error(res, 'User not found', 404);
   }
 }
 

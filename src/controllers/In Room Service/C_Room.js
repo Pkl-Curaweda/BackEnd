@@ -2,7 +2,8 @@ const bodyParser = require('body-parser');
 const Express = require('express');
 require('dotenv').config()
 const { prisma } = require("../../../prisma/seeder/config")
-const { errorResponse, successResponse, deleteAsset, getFilePath, generateAssetUrl, paginate, ThrowError, PrismaDisconnect, } = require('../../utils/helper');
+const { deleteAsset, getFilePath, generateAssetUrl, paginate, ThrowError, PrismaDisconnect, } = require('../../utils/helper');
+const { error, success } = require('../../utils/response');
 
 const app = Express();
 app.use(bodyParser.json());
@@ -17,10 +18,10 @@ async function getAllData(req, res) {
   });
 
   if (!data) {
-    return errorResponse(res, 'User not found', '', 404);
+    return error(res, 'User not found', '', 404);
   }
 
-  return successResponse(res, `Room has been getted successfully`, data, 200);
+  return success(res, `Room has been getted successfully`, data, 200);
 }
 
 async function getData(req, res) {
@@ -31,10 +32,10 @@ async function getData(req, res) {
   });
 
   if (!data) {
-    return errorResponse(res, 'Room not found', '', 404);
+    return error(res, 'Room not found', '', 404);
   }
 
-  return successResponse(res, `Room ${req.params.id} has been getted successfully`, data, 200);
+  return success(res, `Room ${req.params.id} has been getted successfully`, data, 200);
 }
 
 async function createData(req, res) {
@@ -73,7 +74,7 @@ async function createData(req, res) {
       },
     });
 
-    return successResponse(
+    return success(
       res,
       `Data has been inserted successfully`,
       { ...data, roomImage: pictureUrl },
@@ -81,7 +82,7 @@ async function createData(req, res) {
     );
   } catch (error) {
     console.log(error);
-    return errorResponse(res, 'An error occurred while creating the Room', '', 404);
+    return error(res, 'An error occurred while creating the Room', '', 404);
   }
 }
 
@@ -109,7 +110,7 @@ async function updateData(req, res) {
     });
 
     if (data === null) {
-      return errorResponse(res, 'Room not found', '', 404);
+      return error(res, 'Room not found', '', 404);
     }
     const oldPicturePath = getFilePath(data.roomImage);
     const response = await prisma.room.update({
@@ -137,10 +138,10 @@ async function updateData(req, res) {
     if (picture !== null) {
       deleteAsset(oldPicturePath);
     }
-    return successResponse(res, `Room ${roomId} has been updated successfully`, response, 200);
+    return success(res, `Room ${roomId} has been updated successfully`, response, 200);
   } catch (err) {
     ThrowError(err)
-    return errorResponse(res, 'An error occurred while updating the Room', '', 500);
+    return error(res, 'An error occurred while updating the Room', '', 500);
   }
 }
 
@@ -163,9 +164,9 @@ async function deleteData(req, res) {
         id: roomId,
       },
     });
-    successResponse(res, 'Room has been deleted successfully', {}, 200);
+    success(res, 'Room has been deleted successfully', {}, 200);
   } catch (error) {
-    errorResponse(res, 'An error occurred while deleting the Room', '', 500);
+    error(res, 'An error occurred while deleting the Room', '', 500);
   }
 }
 
