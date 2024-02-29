@@ -2,6 +2,7 @@ const { prisma } = require("../config");
 const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
+const { splitDateTime } = require("../../../src/utils/helper");
 
 const listOfProfilePict = [
   `${process.env.BASE_URL}/assets/profile-pict/1.png`,
@@ -20,7 +21,7 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "superadmin1@gmail.com",
     nik: "1234567890123456",
-    birthday: new Date("1990-01-01"),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 3,
@@ -36,7 +37,7 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "admin1@gmail.com",
     nik: "1234567890123456",
-    birthday: new Date("1990-01-01"),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 4,
@@ -52,7 +53,7 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy1@gmail.com",
     nik: randomInt(999999999).toString(),
-    birthday: new Date(faker.date.birthdate()),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 5,
@@ -66,7 +67,7 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy2@gmail.com",
     nik: randomInt(999999999).toString(),
-    birthday: new Date(faker.date.birthdate()),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 5,
@@ -77,10 +78,10 @@ const users = [
     name: faker.person.firstName(),
     gender: "FEMALE",
     phone: "083424234578",
-    picture:listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "roomboy3@gmail.com",
     nik: randomInt(999999999).toString(),
-    birthday: new Date(faker.date.birthdate()),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 5,
@@ -96,12 +97,10 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "mitra1@gmail.com",
     nik: randomInt(999999999).toString(),
-    birthday: new Date(faker.date.birthdate()),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 6,
-    created_at: new Date(),
-    updated_at: new Date(),
   },
 
   //! SUPERVISOR
@@ -112,7 +111,7 @@ const users = [
     picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
     email: "supervisor1@gmail.com",
     nik: randomInt(999999999).toString(),
-    birthday: new Date(faker.date.birthdate()),
+    birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
     password: "password",
     roleId: 7,

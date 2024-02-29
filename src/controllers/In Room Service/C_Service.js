@@ -1,30 +1,34 @@
 const fs = require('fs');
 const { prisma } = require("../../../prisma/seeder/config");
-const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, } = require('../../utils/helper');
-const { success, error } = require('../../utils/response');
+const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, ThrowError, } = require('../../utils/helper');
+const { success } = require('../../utils/response');
 const { th } = require('@faker-js/faker');
+const { error } = require('console');
 
 const getService = async (req, res) => {
+  const { serviceTypeId } = req.params, { id, search, sort, page, perPage } = req.query
   try {
     const userData = req.user
-    const { serviceTypeId } = req.params, { id, search, sort, page, perPage } = req.query
     const data = await prisma.service.findMany({
       where: {
-        ...(userData.role.name === "Mitra" && { serviceType: { id: +serviceTypeId, accessibleToMitra: true }, userId: userData.id }),
+        serviceType: { id: +serviceTypeId },
+        ...(userData.role.name === "Mitra" && { accessibleToMitra: true, userId: userData.id }),
         name: { contains: search }
       },
       select: {
         id: true,
         desc: true,
         name: true,
+        picture: true, 
         price: true
       },
       orderBy: { id: 'asc' }
     })
+    
     return success(res, 'Showing Data', data)
-  } catch (error) {
-    console.log(error);
-    return error(res, error.message);
+  } catch (err) {
+    ThrowError(err)
+    return error(res, err.message)
   }
 };
 
@@ -49,8 +53,6 @@ const getServiceLatest = async (req, res) => {
 
 const createService = async (req, res) => {
   try {
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
     const { name, price, desc, serviceTypeId, subTypeId } = req.body;
     const picture = req.file.filename;
     const pictureUrl = generateAssetUrl(picture);

@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const { faker } = require("@faker-js/faker");
 const { randomInt } = require("crypto");
 const { generateQrRoom } = require("../../../../src/models/House Keeping/M_Room");
+const { splitDateTime } = require("../../../../src/utils/helper");
 
 
 const rooms = [
@@ -117,14 +118,14 @@ async function roomSeed() {
       create: {
         ...room, User: {
           create: {
-            name: faker.person.firstName(),
-            gender: "MALE",
+            name: "Room",
+          gender: "MALE",
             phone: "",
             canLogin: false,
             picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
             email: `room${room.id}`,
             nik: "",
-            birthday: new Date(faker.date.birthdate()),
+            birthday: splitDateTime(new Date().toISOString()).date,
             username: `Kamar ${room.id}`,
             password,
             roleId: 8,

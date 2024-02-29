@@ -1,5 +1,8 @@
 const express = require("express");
-const { setStorage, setFileFilter, uploadFile } = require('../utils/helper');
+const multer = require("multer");
+const crypto = require('crypto');
+const path = require('path');
+
 
 const { loginValidation, registerValidation } = require('../validations/auth.validation');
 const { createOrderValidation, updateQtyValidation } = require('../validations/order.validation');
@@ -20,10 +23,31 @@ const { auth } = require("../middlewares/auth");
 
 const R_InRoomService = express();
 
-const storage = setStorage();
-const fileFilter = setFileFilter();
-const options = { storage, fileFilter };
+//Start Multer
+const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
+const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+        cb(null, 'public/assets/lost-found')
+    },
+    filename: (_req, file, cb) => {
+        crypto.pseudoRandomBytes(16, (_err, raw) => {
+            cb(null, raw.toString('hex') + path.extname(file.originalname))
+        })
+    }
+})
 
+const upload = multer({
+    storage,
+    fileFilter(req, file, cb) {
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            req.fileValidationError = 'Only image file are allowed'
+            cb(null, false)
+            return
+        }
+        cb(null, true)
+    }
+})
+//End Multer
 // //Start Auth
 // R_InRoomService.post('/auth/register', loginValidation, auth.register);
 // R_InRoomService.post('/auth/login', registerValidation, auth.login);
@@ -32,6 +56,7 @@ const options = { storage, fileFilter };
 // //Emd Auth
 
 // R_InRoomService.use(auth(['readInRoom']))
+R_InRoomService.use(auth())
 
 //? START MAIN MENU
 R_InRoomService.get('/menu', auth() ,mainMenu.getIRSMenu)
@@ -46,11 +71,11 @@ R_InRoomService.delete('/order/delete/:id', order.remove);
 //End Order
 
 //Start ProductReq
-R_InRoomService.post('/productReq/create', uploadFile(options, 'picture'), productReqInputValidation, productReqService.create);
+R_InRoomService.post('/productReq/create', auth(),upload.single('picture'), productReqService.create);
 R_InRoomService.get('/productReq/', productReqService.getAll);
 R_InRoomService.get('/productReq/status/:status', productReqService.getProductReqByStatus);
 R_InRoomService.get('/productReq/:id', productReqService.getProductReqById);
-R_InRoomService.put('/productReq/update/:id', uploadFile(options, 'picture'), productReqInputValidation, productReqService.update,);
+R_InRoomService.put('/productReq/update/:id', upload.single('picture'), productReqInputValidation, productReqService.update,);
 R_InRoomService.delete('/productReq/delete/:id', productReqService.remove);
 R_InRoomService.post('/productReq/accept/:id', productReqService.acceptProductReq);
 R_InRoomService.post('/productReq/reject/:id', productReqService.rejectProductReq);
@@ -59,24 +84,22 @@ R_InRoomService.get('/productReq/user/:userId', productReqService.getProductReqB
 
 //Start Profile
 R_InRoomService.get('/profile/', profile.getData);
-R_InRoomService.put('/profile/updateNumber', phoneValidation, profile.updateNumber);
-R_InRoomService.put('/profile/updateEmail', emailValidation, profile.updateEmail);
-R_InRoomService.put('/profile/updateNIK', nikValidation, profile.updateNIK);
+R_InRoomService.put('/profile/', profile.updateProfile)
 //End Profile
 
 //Start Room
 R_InRoomService.get('/room/', room.getAllData);
 R_InRoomService.get('/room/:id', room.getData);
-R_InRoomService.post('/room/create', uploadFile(options, 'roomImage'), room.createData);
-R_InRoomService.put('/room/update/:id', uploadFile(options, 'roomImage'), room.updateData);
+R_InRoomService.post('/room/create', upload.single('roomImage'), room.createData);
+R_InRoomService.put('/room/update/:id', upload.single('roomImage'), room.updateData);
 R_InRoomService.delete('/room/delete/:id', room.deleteData);
 //End Room
 
 //Start Service
-R_InRoomService.post('/services/create-service', uploadFile(options, 'picture'), serviceInputValidation, services.createService);
-R_InRoomService.get('/services/:serviceTypeId', services.getService);
+R_InRoomService.post('/services/create-service', upload.single('picture'), serviceInputValidation, services.createService);
+R_InRoomService.get('/services/:serviceTypeId', auth(),services.getService);
 R_InRoomService.get('/services/:serviceTypeId/latest', services.getServiceLatest);
-R_InRoomService.put('/services/update/:id', uploadFile(options, 'picture'), serviceInputValidation, services.updateService);
+R_InRoomService.put('/services/update/:id', upload.single('picture'), serviceInputValidation, services.updateService);
 R_InRoomService.delete('/services/delete/:id', services.deleteService);
 //Emd Service
 

@@ -95,7 +95,7 @@ model User {
   gender         Gender?
   phone          String?
   picture        String?
-  birthday       DateTime?
+  birthday       String?
   nik            String?
   email          String       @unique
   username       String       @unique
@@ -518,26 +518,26 @@ model LostFound {
 // In Room Service Area =======================================================
 
 model ServiceType {
-  id                Int          @id @default(autoincrement())
+  id                Int        @id @default(autoincrement())
   name              String
   openHour          Int
   closeHour         Int
   path              String
-  accessibleToMitra Boolean      @default(false)
+  accessibleToMitra Boolean    @default(false)
   picture           String
+  orderTrack        OrderTrack @relation(fields: [orderTrackId], references: [id])
+  orderTrackId      Int
   services          Service[]
-  created_at        DateTime     @default(now())
-  updated_at        DateTime     @updatedAt
-  ProductReq        ProductReq[]
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
 }
 
 model SubType {
-  id          Int          @id @default(autoincrement())
-  name        String
-  services    Service[]
-  productReqs ProductReq[]
-  created_at  DateTime     @default(now())
-  updated_at  DateTime     @updatedAt
+  id         Int       @id @default(autoincrement())
+  name       String
+  services   Service[]
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 }
 
 model Service {
@@ -552,26 +552,21 @@ model Service {
   serviceTypeId Int
   subType       SubType       @relation(fields: [subTypeId], references: [id])
   subTypeId     Int
+  approved      Boolean       @default(false)
   orderDetails  OrderDetail[]
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
+  ProductReq    ProductReq[]
 }
 
 model ProductReq {
-  id               Int              @id @default(autoincrement())
-  title            String
-  user             User             @relation(fields: [userId], references: [id])
-  userId           Int
-  type             SubType          @relation(fields: [typeId], references: [id])
-  typeId           Int
-  desc             String
-  price            Int
-  picture          String
-  statusProductReq StatusProductReq @default(PENDING)
-  serviceType      ServiceType      @relation(fields: [serviceTypeId], references: [id])
-  serviceTypeId    Int
-  created_at       DateTime         @default(now())
-  updated_at       DateTime         @updatedAt
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  service    Service  @relation(fields: [serviceId], references: [id])
+  serviceId  Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model PaymentMethod {
@@ -606,7 +601,6 @@ model Order {
   fees         Float
   transaction  Transaction?
   orderDetails OrderDetail[]
-  orderTracks  OrderTrack[]
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
 }
@@ -626,15 +620,11 @@ model Transaction {
 }
 
 model OrderTrack {
-  id         Int         @id @default(autoincrement())
-  order      Order       @relation(fields: [orderId], references: [id])
-  orderId    String
-  status     OrderStatus @default(PENDING)
-  time       DateTime    @default(now())
-  created_at DateTime    @default(now())
-  updated_at DateTime    @updatedAt
-
-  @@unique([orderId, status])
+  id          Int           @id @default(autoincrement())
+  trackToDo   Json
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  ServiceType ServiceType[]
 }
 
 model OrderDetail {

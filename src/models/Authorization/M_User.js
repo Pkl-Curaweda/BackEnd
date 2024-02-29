@@ -26,7 +26,6 @@ const UserLogin = async (email, password) => {
         }
       }
     });
-    console.log(user)
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
@@ -105,24 +104,6 @@ const activateDeactivateRoomEmail = async (resvRoomId, act) => {
     await PrismaDisconnect()
   }
 }
-
-/**
- * @typedef {object} GetAllUserOption
- * @property {number} page
- * @property {number} show
- * @property {string} query
- * @property {string} sort
- * @property {'asc'|'desc'} order
- * @property {Date} from
- * @property {Date} to
- * @property {number} roleId
- */
-
-/**
- * @typedef {object} GetAllUserResult
- * @property {number} total
- * @property {import('@prisma/client').User[]} users
- */
 
 const select = {
   id: true,

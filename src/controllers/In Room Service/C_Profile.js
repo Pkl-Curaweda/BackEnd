@@ -1,141 +1,45 @@
-/* eslint-disable operator-linebreak */
-const bodyParser = require('body-parser');
-const Express = require('express');
-const cookieParser = require('cookie-parser');
 const { prisma } = require("../../../prisma/seeder/config");
-const { verifyToken, getAccessToken } = require('../../utils/helper');
+const { verifyToken, getAccessToken, ThrowError, PrismaDisconnect } = require('../../utils/helper');
 const { error, success } = require('../../utils/response');
-
-const app = Express();
-app.use(cookieParser());
-app.use(bodyParser.json());
+const { update } = require("./C_ProductReq");
+const user = require('../../models/Authorization/M_User');
+const { use } = require("../../routes/R_InRoomService");
 
 async function getData(req, res) {
   try {
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
-    const data = await prisma.user.findUnique({
-      where: {
-        deleted: false,
-        id: decoded,
-      },
+    const { id } = req.user
+    const data = await prisma.user.findFirstOrThrow({
+      where: { deleted: false, id },
       select: {
-        id: true,
-        name: true,
         picture: true,
-        phone: true,
-        email: true,
-        nik: true,
+        name: true,
+        username: true,
         gender: true,
         birthday: true,
+        phone: true,
+        email: true,
       },
     });
 
-    if (!data) {
-      return error(res, 'User not found', 404);
-    }
-
-    return success(res, 'User has been retrieved successfully', data, 200);
-  } catch (error) {
-    console.error('Error in getData:', error);
+    return success(res, 'User has been retrieved successfully', data);
+  } catch (err) {
+    ThrowError(err)
     return error(res, 'Internal server error', 500);
   }
 }
 
-
-async function updateNumber(req, res) {
-  try {
-    const { phone } = req.body;
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
-    const data = await prisma.user.update({
-      where: {
-        id: decoded,
-      },
-      data: {
-        phone,
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        nik: true,
-        gender: true,
-        birthday: true,
-      },
-    });
-
-    return success(res, 'Phone number updated successfully', data, 200);
-  } catch (error) {
-    console.error('Error in updateNumber:', error);
-    return error(res, 'Internal server error', '', 500);
-  }
-}
-
-async function updateEmail(req, res) {
-  try {
-    const { email } = req.body;
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
-    const data = await prisma.user.update({
-      where: {
-        id: decoded,
-      },
-      data: {
-        email,
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        nik: true,
-        gender: true,
-        birthday: true,
-      },
-    });
-
-    return success(res, 'Email updated successfully', data, 200);
-  } catch (error) {
-    console.error('Error in updateNumber:', error);
-    return error(res, 'Internal server error', '', 500);
-  }
-}
-
-async function updateNIK(req, res) {
-  try {
-    const { nik } = req.body;
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
-    const data = await prisma.user.update({
-      where: {
-        id: decoded,
-      },
-      data: {
-        nik,
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        email: true,
-        nik: true,
-        gender: true,
-        birthday: true,
-      },
-    });
-
-    return success(res, 'NIK updated successfully', data, 200);
-  } catch (error) {
-    console.error('Error in updateNumber:', error);
-    return error(res, 'Internal server error', '', 500);
+const updateProfile =  async (req, res) => {
+  try{
+    const body = req.body, { id} = req.user
+    const updatedUser = await user.update(id, body)
+    return success(res, `User ${updatedUser.name} updated`, updatedUser)
+  }catch(err){
+    return error(res, err.message)
+  }finally{
+    await PrismaDisconnect()
   }
 }
 
 module.exports = {
-  getData,
-  updateNumber,
-  updateEmail,
-  updateNIK,
+  getData, updateProfile
 };

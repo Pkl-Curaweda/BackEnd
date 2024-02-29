@@ -1,70 +1,54 @@
-const { PrismaClient } = require('@prisma/client');
 const { prisma } = require("../../../prisma/seeder/config");
-const { verifyToken, getAccessToken, deleteAsset, paginate } = require('../../utils/helper');
+const { verifyToken, getAccessToken, deleteAsset, paginate, ThrowError } = require('../../utils/helper');
 const { error, success } = require('../../utils/response');
 
-const db = new PrismaClient();
 async function create(req, res) {
   try {
-    const accessToken = getAccessToken(req);
-    // Decode the refresh token
-    const decoded = verifyToken(accessToken);
-    // Retrieve user ID from the decoded token
-    const userId = decoded.id;
-    const { title, typeId, desc, price, statusProductReq, serviceTypeId } = req.body;
+    const userId = req.user.id
+    const { name, typeId, desc, price, subTypeId } = req.body;
 
-    if (!title || !userId || !typeId || !desc || !price || !serviceTypeId) {
-      return error(res, 'All required fields must be provided', '', 400);
+    if (!name || !typeId || !desc || !price || !subTypeId) {
+      return error(res, 'All required fields must be provided');
     }
-
-    const filesaved = req.file.filename;
-
-    const pictureUrl = `${process.env.BASE_URL}/public/assets/images/${filesaved}`;
-
-    // Save image data to the database
-    const productReq = await db.productReq.create({
+    const picture = `${process.env.BASE_URL}/public/assets/services/${req.file.filename}`;
+    const service = await prisma.service.create({
       data: {
-        title,
-        userId: parseInt(userId.toString(), 10),
-        typeId: parseInt(typeId.toString(), 10),
-        desc,
-        price: parseInt(price.toString(), 10),
-        picture: pictureUrl,
-        statusProductReq,
-        serviceTypeId: parseInt(serviceTypeId.toString(), 10),
-      },
+        name, userId, price: +price, desc, serviceTypeId: +typeId, subTypeId: +subTypeId, picture
+      }
+    })
+    await prisma.productReq.create({
+      data: { userId, serviceId: service.id }
     });
 
-    success(
-      res,
-      'Product request has been created successfully',
-      { ...productReq, picture: pictureUrl },
-      201,
-    );
-
-    return Promise.resolve(productReq);
-  } catch (error) {
-    return error(res, 'Failed to create product request', error.message, 400);
+    return success(res, `${name} sended for an Approval`, service)
+  } catch (err) {
+    ThrowError(err)
+    return error(res, err.message);
   }
 }
 
-// Mendapatkan semua product requests
+
 async function getAll(req, res) {
   try {
-    const { page } = req.query;
-    const { perPage } = req.query;
+    const userId = req.user.id
     const { productReq } = prisma;
-    const data = await paginate(productReq, {
-      page,
-      perPage,
-    });
-    success(res, 'Product requests retrieved successfully', data, 200);
-  } catch (error) {
-    console.log(error);
-    console.error(error);
-    error(res, 'An error occurred while fetching product requests', '', 500);
+    const data = await productReq.findMany({ where: { userId },
+      select: {
+        id: true,
+        service: { select:{ approved: true} },
+        user: {
+          select: { name: true }
+        }
+      }
+    })
+    return success(res, 'Product requests retrieved successfully', data);
+  } catch (err) {
+    ThrowError(err)
+    return error(res, 'An error occurred while fetching product requests');
   }
 }
+
+
 
 // Mendapatkan product request berdasarkan ID
 async function getProductReqById(req, res) {
