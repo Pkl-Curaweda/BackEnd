@@ -41,7 +41,7 @@ const getRoomStatWithId = async (id) => {
     } catch (err) {
         ThrowError(err)
     } finally {
-        await PrismaDisconnect()
+    await PrismaDisconnect()
     }
 }
 

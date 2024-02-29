@@ -503,6 +503,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
       case 'checkout':
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
+        await generateBalanceAndTotal({}, reservation.id).then(({ balance }) => { if (balance < 0) throw Error('Balance must be 0 before Check Out') })
         for (let room of reservation.resvRooms) {
           await activateDeactivateRoomEmail(room.id, "deactivate")
           await changeRoomStatusByDescription(room.roomId, "VD")

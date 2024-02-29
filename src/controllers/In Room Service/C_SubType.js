@@ -1,7 +1,6 @@
 const { prisma } = require("../../../prisma/seeder/config");
 const { error, success } = require("../../utils/response");
 
-// Mendapatkan semua subType
 async function getSubtypes(req, res) {
   try {
     const subTypes = await prisma.subType.findMany();
@@ -12,7 +11,6 @@ async function getSubtypes(req, res) {
   }
 }
 
-// menambahkan subType
 async function createSubType(req, res) {
   try {
     const { name } = req.body;
@@ -28,7 +26,6 @@ async function createSubType(req, res) {
   }
 }
 
-// mengedit subType
 async function updateSubType(req, res) {
   const subTypeId = parseInt(req.params.id, 10);
 

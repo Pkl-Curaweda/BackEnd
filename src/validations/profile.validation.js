@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { validate } = require('../utils/helper');
+const validate = require('../middlewares/validation');
 const { recordUnique } = require('../utils/db-validation')
 
 const phoneInputScheme = z.object({

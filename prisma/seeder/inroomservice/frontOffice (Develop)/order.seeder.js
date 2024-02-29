@@ -4,15 +4,12 @@ const { transactionSeeder } = require("./transaction.seeder");
 const { generateId } = require("./uniqueHandler");
 
 const orders = [{
-    id: "OR-1",
-    guestId: 1,
     roomId: 101,
+    resvRoomId: 1,
     subtotal: 400000,
     total: 30000,
     ppn: 50000,
-    fees: 378279,
-    created_at: new Date(),
-    updated_at: new Date(),
+    fees: 378279
 }];
 
 const orderSeeder = async () => {

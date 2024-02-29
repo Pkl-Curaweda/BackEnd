@@ -6,6 +6,12 @@ const orderDetails = [{
     serviceId: 1,
     price: 4000,
     qty: 4,
+    progress: {
+        1: {
+            label: "Order Processed",
+            finishOn: "",
+        }
+    },
     created_at: new Date(),
     updated_at: new Date(),
 }];

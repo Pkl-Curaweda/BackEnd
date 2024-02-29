@@ -10,3 +10,5 @@ const getDefault = async (orderTrackId) => {
         await PrismaDisconnect()
     }
 }
+
+module.exports = { getDefault }

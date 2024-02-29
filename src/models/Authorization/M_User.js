@@ -6,7 +6,7 @@ const { RemoveToken, CreateAndAssignToken, deleteTokenByUserId, deleteAllTokenBy
 const UserLogin = async (email, password) => {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email, deleted: false }, select: {
+      where: { email, deleted: false, canLogin: true }, select: {
         id: true,
         name: true,
         username: true,
@@ -85,17 +85,18 @@ const forbiddenToLogin = async (userId) => {
 
 const activateDeactivateRoomEmail = async (resvRoomId, act) => {
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, select: { roomId: true, reservation: { select: { reserver: { select: { guestId: true } } } } } })
-    const emailRoomExist = await prisma.user.findFirst({ where: { email: `room${resvRoom.roomId}`, role: { name: "Room" } }, select: { id: true, canLogin: true } })
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: +resvRoomId }, select: { id: true, roomId: true, reservation: { select: { reserver: { select: { guest: true } } } } } })
+    const emailRoomExist = await prisma.user.findFirst({ where: { email: `room${resvRoom.roomId}${process.env.EMAIL}`, role: { name: "Room" } }, select: { id: true, canLogin: true } })
+    const { guest } = resvRoom.reservation.reserver
     if (act != "deactivate") {
       return await prisma.user.update({
         where: { id: emailRoomExist.id },
-        data: { canLogin: true, guestId: resvRoom.reservation.reserver.guestId }
+        data: { canLogin: true, guestId: guest.id, resvRoomId: resvRoom.id, name: guest.name, phone: guest.contact }
       })
     } else {
       return await prisma.user.update({
         where: { id: emailRoomExist.id },
-        data: { canLogin: false, guestId: null }
+        data: { canLogin: false, name: "Room", phone: null, birthday: null, gender: null }
       })
     }
   } catch (err) {

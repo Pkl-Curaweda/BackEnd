@@ -119,11 +119,11 @@ async function roomSeed() {
         ...room, User: {
           create: {
             name: "Room",
-          gender: "MALE",
+            gender: "MALE",
             phone: "",
             canLogin: false,
-            picture: `${process.env.BASE_URL}/assets/room_1.jpg`,
-            email: `room${room.id}`,
+            picture: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
+            email: `room${room.id}${process.env.EMAIL}`,
             nik: "",
             birthday: splitDateTime(new Date().toISOString()).date,
             username: `Kamar ${room.id}`,

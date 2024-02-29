@@ -1,9 +1,6 @@
-const fs = require('fs');
 const { prisma } = require("../../../prisma/seeder/config");
 const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, ThrowError, } = require('../../utils/helper');
-const { success } = require('../../utils/response');
-const { th } = require('@faker-js/faker');
-const { error } = require('console');
+const { success, error } = require('../../utils/response');
 
 const getService = async (req, res) => {
   const { serviceTypeId } = req.params, { id, search, sort, page, perPage } = req.query
@@ -19,18 +16,30 @@ const getService = async (req, res) => {
         id: true,
         desc: true,
         name: true,
-        picture: true, 
+        picture: true,
         price: true
       },
       orderBy: { id: 'asc' }
     })
-    
+
     return success(res, 'Showing Data', data)
   } catch (err) {
     ThrowError(err)
     return error(res, err.message)
   }
 };
+
+const getServiceById = async (req, res) => {
+  const { id } = req.params, sendedData = { service: undefined, subTypes: undefined }
+  try{
+    sendedData.subTypes = await prisma.subType.findMany({ select: { id: true, name: true } })
+    if (id) sendedData.service = await prisma.service.findFirstOrThrow({ where: { id: +id } })
+    return success(res, 'Showing Service', { ...sendedData })
+  }catch(err){
+    ThrowError(err)
+    return error(res, err.message)
+  }
+}
 
 const getServiceLatest = async (req, res) => {
   try {
@@ -54,8 +63,7 @@ const getServiceLatest = async (req, res) => {
 const createService = async (req, res) => {
   try {
     const { name, price, desc, serviceTypeId, subTypeId } = req.body;
-    const picture = req.file.filename;
-    const pictureUrl = generateAssetUrl(picture);
+    const pictureUrl = generateAssetUrl(req.file.filename);
     const service = await prisma.service.create({
       data: {
         userId: 1,
@@ -76,39 +84,20 @@ const createService = async (req, res) => {
 };
 
 const updateService = async (req, res) => {
-  const picture = req.file.filename;
+  const { id } = req.params
   try {
-    const { id } = req.params;
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
-    const item = await prisma.service.findUnique({
-      where: { id: parseInt(id, 10) },
-    });
-    if (item == null) {
-      return error(res, 'Update service failed', `Service with id ${id} is not found`, 404);
-    }
-    const oldPicturePath = getFilePath(item.picture);
-    const pictureUrl = generateAssetUrl(picture);
-    const { name, price, desc, serviceTypeId, subTypeId } = req.body;
-    deleteAsset(oldPicturePath);
+    if(req.file) req.body.picture = generateAssetUrl(req.file.filename)
+    if(req.body.price) req.body.price = +req.body.price
+    const exist = await prisma.service.findFirstOrThrow({ where: { id: +id }  });
     const service = await prisma.service.update({
-      where: { id: parseInt(id, 10) },
+      where: { id: +id },
       data: {
-        userId: 1,
-        name,
-        price: parseInt(price, 10),
-        desc,
-        picture: pictureUrl,
-        serviceTypeId: parseInt(serviceTypeId, 10),
-        subTypeId: parseInt(subTypeId, 10),
-        updated_at: new Date(),
+        ...req.body
       },
     });
-
     return success(res, 'update service success', service, 200);
-  } catch (error) {
-    fs.unlinkSync(`./public/assets/images/${picture}`);
-    return error(res, 'update service failed', error.message, 404);
+  } catch (err) {
+    return error(res, err.message);
   }
 };
 
@@ -137,5 +126,6 @@ module.exports = {
   deleteService,
   createService,
   updateService,
+  getServiceById,
   getServiceLatest,
 };

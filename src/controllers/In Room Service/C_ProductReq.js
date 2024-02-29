@@ -1,5 +1,6 @@
+const { raw } = require("@prisma/client/runtime/library");
 const { prisma } = require("../../../prisma/seeder/config");
-const { verifyToken, getAccessToken, deleteAsset, paginate, ThrowError } = require('../../utils/helper');
+const { verifyToken, getAccessToken, deleteAsset, paginate, ThrowError, PrismaDisconnect, generateAssetUrl } = require('../../utils/helper');
 const { error, success } = require('../../utils/response');
 
 async function create(req, res) {
@@ -10,7 +11,7 @@ async function create(req, res) {
     if (!name || !typeId || !desc || !price || !subTypeId) {
       return error(res, 'All required fields must be provided');
     }
-    const picture = `${process.env.BASE_URL}/public/assets/services/${req.file.filename}`;
+    const picture = generateAssetUrl(req.file.filename)
     const service = await prisma.service.create({
       data: {
         name, userId, price: +price, desc, serviceTypeId: +typeId, subTypeId: +subTypeId, picture
@@ -22,7 +23,7 @@ async function create(req, res) {
 
     return success(res, `${name} sended for an Approval`, service)
   } catch (err) {
-    ThrowError(err)
+    console.log(err)
     return error(res, err.message);
   }
 }
@@ -30,12 +31,12 @@ async function create(req, res) {
 
 async function getAll(req, res) {
   try {
-    const userId = req.user.id
-    const { productReq } = prisma;
-    const data = await productReq.findMany({ where: { userId },
+    const { id, role } = req.user
+    const data = await prisma.productReq.findMany({
+      where: { ...(role.name === "Admin" && { userId: +id }) },
       select: {
         id: true,
-        service: { select:{ approved: true} },
+        service: { select: { approved: true } },
         user: {
           select: { name: true }
         }
@@ -43,37 +44,30 @@ async function getAll(req, res) {
     })
     return success(res, 'Product requests retrieved successfully', data);
   } catch (err) {
-    ThrowError(err)
+    console.log(err)
     return error(res, 'An error occurred while fetching product requests');
   }
 }
 
 
-
-// Mendapatkan product request berdasarkan ID
 async function getProductReqById(req, res) {
-  const productReqId = parseInt(req.params.id, 10);
-
+  const { id } = req.params
   try {
-    const productReq = await prisma.productReq.findUnique({
-      where: {
-        id: productReqId,
-      },
-    });
-
-    if (productReq) {
-      success(
-        res,
-        `Product request ${productReqId} has been retrieved successfully`,
-        productReq,
-        200,
-      );
-    } else {
-      error(res, 'Product request not found', '', 404);
-    }
+    const productReq = await prisma.$transaction([
+      prisma.productReq.findUnique({
+        where: { id: +id }, select: {
+          service: {
+            select: {
+              name: true, price: true, desc: true, subTypeId: true
+            }
+          }
+        }
+    }),
+    ])
+    return success(res, `Showing Product Request ${productReq.service.name}`, { service: productReq.service, subTypes })
   } catch (error) {
-    console.error(error);
-    error(res, 'An error occurred while fetching product request data', '', 500);
+    console.log(err)
+    return error(res, err.message)
   }
 }
 
@@ -118,7 +112,6 @@ async function getProductReqByUserId(req, res) {
   }
 }
 
-// Mendapatkan product request berdasarkan Status
 async function getProductReqByStatus(req, res) {
   const { status } = req.params;
 
@@ -241,7 +234,6 @@ async function update(req, res) {
   }
 }
 
-// Menghapus product request
 async function remove(req, res) {
   const productReqId = parseInt(req.params.id, 10);
   try {
@@ -270,107 +262,43 @@ async function remove(req, res) {
 }
 
 async function acceptProductReq(req, res) {
-  const productReqId = parseInt(req.params.id, 10);
-
+  const { id } = req.params
   try {
-    const productReq = await prisma.productReq.findUnique({
-      where: {
-        id: productReqId,
-      },
+    const exist = await prisma.productReq.findFirstOrThrow({ where: { id: +id, service: { approved: false } }, include: { service: true } })
+    const service = await prisma.service.update({
+      where: { id: exist.serviceId },
+      data: { approved: true },
     });
-
-    if (!productReq) {
-      return error(res, 'Product request not found', '', 404);
-    }
-
-    if (productReq.statusProductReq === 'ACCEPTED') {
-      return error(res, 'Product request has already been accepted', '', 400);
-    }
-
-    if (productReq.statusProductReq === 'REJECTED') {
-      return error(
-        res,
-        'Product request has been rejected and cannot be accepted',
-        '',
-        400,
-      );
-    }
-
-    // Ubah status menjadi ACCEPTED
-    await prisma.productReq.update({
-      where: {
-        id: productReqId,
-      },
-      data: {
-        statusProductReq: 'ACCEPTED',
-      },
-    });
-
-    // Tambahkan Service baru dengan informasi dari productReq
-    const newService = await prisma.service.create({
-      data: {
-        userId: productReq.userId,
-        name: productReq.title,
-        price: productReq.price,
-        desc: productReq.desc,
-        picture: productReq.picture,
-        serviceTypeId: productReq.serviceTypeId,
-        subTypeId: productReq.typeId,
-      },
-    });
-
-    success(res, 'Product request accepted successfully', newService, 200);
-    return newService;
-  } catch (error) {
-    console.error(error);
-    error(res, 'An error occurred while accepting the product request', '', 500);
-    throw error;
+    return success(res, `Product ${service.name} Approved`, service);
+  } catch (err) {
+    console.log(err)
+    return error(res, err.message)
   }
 }
 
 async function rejectProductReq(req, res) {
-  const productReqId = parseInt(req.params.id, 10);
-
+  const { id } = req.params
   try {
-    const productReq = await prisma.productReq.findUnique({
-      where: {
-        id: productReqId,
-      },
-    });
+    const exist = await prisma.productReq.findFirstOrThrow({ where: { id: +id, service: { approved: false }}, select: { id: true, serviceId: true } })
+    await deleteProductReq(exist.id)
+    const [serviceExist, deletedService] = await prisma.$transaction([
+      prisma.service.findFirstOrThrow({ where: { id: exist.serviceId } }),
+      prisma.service.delete({ where: { id: exist.serviceId } }),
+    ])
+    return success(res, `Product ${serviceExist.name} Rejected`, serviceExist)
+  } catch (err) {
+    console.log(err)
+    return error(res, err.message)
+  }
+}
 
-    if (!productReq) {
-      return error(res, 'Product request not found', '', 404);
-    }
-
-    if (productReq.statusProductReq === 'REJECTED') {
-      return error(res, 'Product request has already been rejected', '', 400);
-    }
-
-    if (productReq.statusProductReq === 'ACCEPTED') {
-      return error(
-        res,
-        'Product request has been accepted and cannot be rejected',
-        '',
-        400,
-      );
-    }
-
-    // Ubah status menjadi REJECTED
-    await prisma.productReq.update({
-      where: {
-        id: productReqId,
-      },
-      data: {
-        statusProductReq: 'REJECTED',
-      },
-    });
-
-    success(res, 'Product request rejected successfully', {}, 200);
-    return {};
-  } catch (error) {
-    console.error(error);
-    error(res, 'An error occurred while rejecting the product request', '', 500);
-    throw error;
+const deleteProductReq = async (id) => {
+  try{
+    return await prisma.productReq.delete({ where: { id } })
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
   }
 }
 

@@ -3,7 +3,6 @@ const { verifyToken, getAccessToken, ThrowError, PrismaDisconnect } = require('.
 const { error, success } = require('../../utils/response');
 const { update } = require("./C_ProductReq");
 const user = require('../../models/Authorization/M_User');
-const { use } = require("../../routes/R_InRoomService");
 
 async function getData(req, res) {
   try {

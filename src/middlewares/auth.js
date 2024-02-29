@@ -29,6 +29,8 @@ const auth = (access) => async (req, res, next) => {
                 phone: true,
                 picture: true,
                 guestId: true,
+                roomId: true,
+                resvRoomId: true,
                 role: {
                     select: {
                         name: true,

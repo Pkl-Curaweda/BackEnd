@@ -84,7 +84,6 @@ model Guest {
   username String       @unique
   password String
   Tokens   GuestToken[]
-  orders   Order[]
   Reserver Reserver[]
   User     User[]
 }
@@ -105,6 +104,8 @@ model User {
   roleId         Int
   guest          Guest?       @relation(fields: [guestId], references: [id])
   guestId        Int?
+  resvRoom       ResvRoom?    @relation(fields: [resvRoomId], references: [id])
+  resvRoomId     Int?
   room           Room?        @relation(fields: [roomId], references: [id])
   roomId         Int?
   canLogin       Boolean      @default(true)
@@ -205,6 +206,8 @@ model ResvRoom {
   roomChanges      RoomChange[]
   Invoice          Invoice[]
   ResvPayment      ResvPayment[]
+  Order            Order[]
+  User             User[]
 }
 
 model Voucher {
@@ -591,8 +594,8 @@ model Payment {
 
 model Order {
   id           String        @id @default(uuid())
-  guest        Guest         @relation(fields: [guestId], references: [id])
-  guestId      Int
+  resvRoom     ResvRoom      @relation(fields: [resvRoomId], references: [id])
+  resvRoomId   Int
   room         Room          @relation(fields: [roomId], references: [id])
   roomId       Int
   subtotal     Float
@@ -635,6 +638,7 @@ model OrderDetail {
   serviceId  Int
   price      Float
   qty        Int
+  progress   Json
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   Invoice    Invoice[]

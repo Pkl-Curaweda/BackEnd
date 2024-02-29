@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { validate } = require('../utils/helper');
+const validate = require('../middlewares/validation');
 
 const createOrderSchema = z.object({
   body: z.object({

@@ -64,7 +64,7 @@ R_InRoomService.get('/menu', auth() ,mainMenu.getIRSMenu)
 
 //Start Order
 R_InRoomService.get('/order/:id', order.findOne);
-R_InRoomService.post('/order/create', createOrderValidation, order.create);
+R_InRoomService.post('/order/create', order.create);
 R_InRoomService.put('/order/update/qty/:id/:dordId', updateQtyValidation, order.updateQty);
 R_InRoomService.put('/order/update/newItem/:id', order.updateNewItem);
 R_InRoomService.delete('/order/delete/:id', order.remove);
@@ -96,10 +96,10 @@ R_InRoomService.delete('/room/delete/:id', room.deleteData);
 //End Room
 
 //Start Service
-R_InRoomService.post('/services/create-service', upload.single('picture'), serviceInputValidation, services.createService);
+R_InRoomService.get('/services/detail/:id?', services.getServiceById)
+R_InRoomService.post('/services/create-service', upload.single('picture'), services.createService);
 R_InRoomService.get('/services/:serviceTypeId', auth(),services.getService);
-R_InRoomService.get('/services/:serviceTypeId/latest', services.getServiceLatest);
-R_InRoomService.put('/services/update/:id', upload.single('picture'), serviceInputValidation, services.updateService);
+R_InRoomService.put('/services/update/:id', upload.single('picture'), services.updateService);
 R_InRoomService.delete('/services/delete/:id', services.deleteService);
 //Emd Service
 

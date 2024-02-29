@@ -1,25 +1,12 @@
-/* eslint-disable operator-linebreak */
-/**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- * @param {import('express').NextFunction} next
- */
-
 const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/library');
 const { prisma } = require("../../../prisma/seeder/config");
-const { verifyToken, generateSubtotal, generateTotal, getAccessToken, generateItemPrice } = require('../../utils/helper');
+const { verifyToken, getAccessToken, generateTotal } = require('../../utils/helper');
 const { prismaError } = require('../../utils/errors.util');
 const { error, success } = require('../../utils/response');
-/**
- *
- * @param {import ('express').Request} req
- * @param {import ('express').Response} res
- */
+const { generateItemPrice, generateDefaultTrack, generateSubtotal } = require('../../models/In Room Service/M_OrderDetail');
 
 async function findOne(req, res) {
   try {
-    const accessToken = getAccessToken(req);
-    const decoded = verifyToken(accessToken);
     const { id } = req.params;
     const order = await prisma.order.findUnique({
       where: {
@@ -37,31 +24,27 @@ async function findOne(req, res) {
       return error(res, 'Order not found', 404);
     }
     return success(res, 'Order retreived successfully', 200);
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      return prismaError(error, error.meta?.cause, res);
+  } catch (err) {
+    if (err instanceof PrismaClientKnownRequestError) {
+      return prismaError(err, err.meta?.cause, res);
     }
-    return error(res, 'Internal server error', error.message, 500);
+    return error(res, 'Internal server error', err.message, 500);
   }
 }
 
-/**
- *
- * @param {import ('express').Request} req
- * @param {import ('express').Response} res
- */
+
 async function create(req, res) {
   try {
-    // const accessToken = getAccessToken(req);
-    // const decoded = verifyToken(accessToken);
+    const { roomId, resvRoomId } = req.user
+    if(resvRoomId === null) throw Error('Your account didnt attach to a reservation \n Please tell this to our Front Office')
     const subtotal = await generateSubtotal(req.body.items);
     const order = await prisma.order.create({
       data: {
-        guestId: 1,
-        roomId: 1, // 1 for temporary roomId because we don't have roomId yet in the payload
+        resvRoom: { connect: { id: resvRoomId } },
+        room: { connect: { id: roomId } },
         subtotal,
-        ppn: subtotal * 0.1,
-        fees: 1000,
+        ppn: subtotal * 0.1, //TODO: PPN NEED TO BE CHANGED
+        fees: 1000, 
         total: generateTotal(subtotal),
         orderDetails: {
           createMany: {
@@ -70,6 +53,7 @@ async function create(req, res) {
                 serviceId: parseInt(item.serviceId, 10),
                 price: await generateItemPrice(item.serviceId, item.qty),
                 qty: parseInt(item.qty, 10),
+                progress: await generateDefaultTrack(item.serviceId)
               })),
             ),
           },
@@ -85,19 +69,16 @@ async function create(req, res) {
     });
 
     return success(res, 'Order created successfully', order, 201);
-  } catch (error) {
-    if (error instanceof PrismaClientKnownRequestError) {
-      return prismaError(error, error.message, res);
+  } catch (err) {
+    console.log(err)
+    if (err instanceof PrismaClientKnownRequestError) {
+      return prismaError(err, err.message, res);
     }
-    return error(res, 'Internal server error', error.message, 500);
+    return error(res, err.message);
   }
 }
 
-/**
- *
- * @param {import ('express').Request} req
- * @param {import ('express').Response} res
- */
+
 async function updateQty(req, res) {
   try {
     const { id, dordId } = req.params;
@@ -211,11 +192,6 @@ async function updateQty(req, res) {
   }
 }
 
-/**
- *
- * @param {import ('express').Request} req
- * @param {import ('express').Response} res
- */
 async function updateNewItem(req, res) {
   try {
     const { id } = req.params;

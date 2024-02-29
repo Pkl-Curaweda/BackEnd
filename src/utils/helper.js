@@ -123,30 +123,30 @@ const countTaxAndTotalInvoice = (bills) => {
   }
 }
 
-const generateBalanceAndTotal = async (option = { balance: false, total: false }, reservationId, id) => {
+const generateBalanceAndTotal = async (option, reservationId, id) => {
   let totalInvoice = 0, totalPaid = 0;
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({
-      where: { id, reservationId },
+    console.log(reservationId)
+    const reservation = await prisma.reservation.findFirstOrThrow({
+      where: { id: reservationId },
       select: {
-        Invoice: {
-          select: {
-            rate: true,
-            paid: true,
+        arrivalDate: true, departureDate: true,
+        reserver: { select: { guestId: true } },
+        resvRooms: {
+          where: { ...(id && { id }) }, select: {
+            Invoice: {
+              select: { rate: true, paid: true }
+            },
+            arrangment: { select: { rate: true } }
           }
-        },
-        reservation: {
-          select: {
-            arrivalDate: true, departureDate: true,
-            reserver: { select: { guestId: true, } },
-          }
-        }, arrangment: { select: { rate: true } }
+        }
       }
     })
-
-    for (let inv of resvRoom.Invoice) {
-      totalInvoice += inv.rate
-      if (inv.paid != false) totalPaid += inv.rate
+    for (let resvRoom of reservation.resvRooms) {
+      for (let inv of resvRoom.Invoice) {
+        totalInvoice += inv.rate
+        if (inv.paid != false) totalPaid += inv.rate
+      }
     }
 
     const [balance, total] = [totalPaid - totalInvoice, totalInvoice - totalPaid]
@@ -283,32 +283,6 @@ function verifyToken(token) {
   }
 }
 
-/**
- * @param {z.ZodSchema<object>} scheme
- */
-function validate(scheme) {
-  /**
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   * @param {import('express').NextFunction} next
-   */
-  return (req, res, next) => {
-    try {
-      scheme.parse({
-        body: req.body,
-        query: req.query,
-        params: req.params,
-      });
-
-      return next();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return error(res, error.errors[0].message, null, 400);
-      }
-      return error(res, 'Internal server error', error.message, 500);
-    }
-  };
-}
 
 /* Encryption */
 // const key = crypto
@@ -341,7 +315,7 @@ function getFilePath(url) {
 }
 
 function generateAssetUrl(fileName) {
-  return `${process.env.BASE_URL}/public/assets/images/${fileName}`;
+  return `${process.env.BASE_URL}/public/assets/services/${fileName}`;
 }
 
 function deleteAsset(path) {
@@ -405,69 +379,14 @@ function uploadFile(options, fieldName = 'image') {
 /* Order Helper */
 
 /**
- * @param { {serviceId:number, qty:number}[] } items
- */
-async function generateSubtotal(items) {
-  let subTotal = 0;
-
-  const services = await prisma.service.findMany({
-    where: {
-      id: {
-        in: items.map((item) => parseInt(item.serviceId, 10)),
-      },
-    },
-  });
-
-  for (const item of items) {
-    const service = services.find((s) => s.id === parseInt(item.serviceId, 10));
-
-    if (!service) {
-      const err = new PrismaClientKnownRequestError('Service not found', {
-        code: 'P2025',
-        meta: {
-          target: ['service id'],
-        },
-      });
-      throw err;
-    }
-
-    subTotal += service.price * parseInt(item.qty, 10);
-  }
-
-  return subTotal;
-}
-
-/**
  * @param {number} subTotal
  */
-function generateTotal(subTotal) {
+const generateTotal = (subTotal) => {
   const ppn = subTotal * 0.1;
   const fees = 1000;
   const total = subTotal + ppn + fees;
 
   return total;
-}
-
-/**
- * @param {number} id
- * @param {number} qty
- */
-
-async function generateItemPrice(id, qty) {
-  const service = await prisma.service.findUnique({
-    where: {
-      id: parseInt(id, 10),
-    },
-  });
-  if (!service)
-    throw new PrismaClientKnownRequestError('Service not found', {
-      code: 'P2025',
-      meta: {
-        target: ['id'],
-      },
-    });
-
-  return service.price * parseInt(qty, 10);
 }
 
 /**
@@ -605,16 +524,16 @@ async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
     const reservationFromRoom = await prisma.resvRoom.findMany({
       where: {
         deleted: false, roomId, reservation: {
-          AND: [{ onGoingReservation: true, checkoutDate: null}]
+          AND: [{ onGoingReservation: true, checkoutDate: null }]
         }
       }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } }
     })
     const dates = generateDateBetweenStartAndEnd(new Date(date.arr), new Date(date.dep))
-    for(let date of dates){
-      for(let res of reservationFromRoom){
-        let { arrivalDate, departureDate } =  res.reservation
+    for (let date of dates) {
+      for (let res of reservationFromRoom) {
+        let { arrivalDate, departureDate } = res.reservation
         const check = isDateInRange(date, arrivalDate, departureDate)
-        if(check) throw Error ( `Room are used | ${arrivalDate.toISOString().split('T')[0]} - ${departureDate.toISOString().split('T')[0]}`)
+        if (check) throw Error(`Room are used | ${arrivalDate.toISOString().split('T')[0]} - ${departureDate.toISOString().split('T')[0]}`)
       }
     }
     return
@@ -741,8 +660,6 @@ module.exports = {
   GenerateUsernameAndPassword,
   generateBalanceAndTotal,
   generateSignature,
-  generateItemPrice,
-  generateSubtotal,
   generateTotal,
   uploadFile,
   setFileFilter,
@@ -751,7 +668,6 @@ module.exports = {
   getFilePath,
   generateAssetUrl,
   getAccessToken,
-  validate,
   verifyToken,
   getOffset,
   emptyOrRows,

@@ -1,12 +1,7 @@
-const bodyParser = require('body-parser');
-const Express = require('express');
 require('dotenv').config()
 const { prisma } = require("../../../prisma/seeder/config")
 const { deleteAsset, getFilePath, generateAssetUrl, paginate, ThrowError, PrismaDisconnect, } = require('../../utils/helper');
 const { error, success } = require('../../utils/response');
-
-const app = Express();
-app.use(bodyParser.json());
 
 async function getAllData(req, res) {
   const { page } = req.query;
