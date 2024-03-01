@@ -3,8 +3,8 @@ const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken");
 const { ThrowError } = require("../utils/helper");
-const { decrypt } = require("dotenv");
 const { getExpireCookieRoom } = require("../models/House Keeping/M_Room");
+const { decrypt } = require("../utils/encryption");
 
 const getAllUsers = async (req, res) => {
     try {
@@ -46,11 +46,13 @@ const postLogin = async (req, res) => {
     let expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
     try {
         if (encryptedData) {
+            console.log(encryptedData)
             let decryptedData = decrypt(encryptedData)
             decryptedData = JSON.parse(decryptedData)
+            console.log(decryptedData)
             email = decryptedData.email
             password = decryptedData.password
-            expire = getExpireCookieRoom()
+            expires = getExpireCookieRoom()
         }
         const payload = await UserLogin(email, password);
         res.cookie('refresh_token', payload.createdToken, {

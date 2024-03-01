@@ -133,7 +133,7 @@ async function roomSeed() {
         }
       }, include: { User: true }
     })
-    await generateQrRoom(createdRoom.User[0].email, createdRoom.User[0].password)
+    await generateQrRoom(createdRoom.User[0].email, process.env.ROOM_PASS)
   }
 }
 

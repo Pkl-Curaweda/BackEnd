@@ -21,6 +21,7 @@ const auth = (access) => async (req, res, next) => {
                 id: +decoded.sub
             },
             select: {
+                canLogin: true,
                 id: true,
                 username: true,
                 email: true,
@@ -39,6 +40,7 @@ const auth = (access) => async (req, res, next) => {
                 }
             }
         })
+        if(userData.canLogin != true) return error(res, 'This account cannot be used', 410)
         if (access !== undefined) {
             const userAllowedAccess = Object.keys(userData.role.access)
             const isAccessible = access.some((acc) => userAllowedAccess.includes(acc))

@@ -126,7 +126,6 @@ const countTaxAndTotalInvoice = (bills) => {
 const generateBalanceAndTotal = async (option, reservationId, id) => {
   let totalInvoice = 0, totalPaid = 0;
   try {
-    console.log(reservationId)
     const reservation = await prisma.reservation.findFirstOrThrow({
       where: { id: reservationId },
       select: {

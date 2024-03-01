@@ -6,13 +6,14 @@ const { RemoveToken, CreateAndAssignToken, deleteTokenByUserId, deleteAllTokenBy
 const UserLogin = async (email, password) => {
   try {
     const user = await prisma.user.findUniqueOrThrow({
-      where: { email, deleted: false, canLogin: true }, select: {
+      where: { email, deleted: false }, select: {
         id: true,
         name: true,
         username: true,
         email: true,
         picture: true,
         password: true,
+        canLogin: true,
         guest: {
           select: {
             name: true,
@@ -26,6 +27,7 @@ const UserLogin = async (email, password) => {
         }
       }
     });
+    if(!user.canLogin) throw Error('Your account need to be activated, please tell our staff')
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
@@ -40,7 +42,7 @@ const UserLogin = async (email, password) => {
 
 const UserLogout = async (RefreshToken) => {
   try {
-    const removeToken = await RemoveToken("user", RefreshToken);
+    const removeToken = await RemoveToken(RefreshToken);
     return removeToken
   } catch (err) {
     ThrowError(err)
@@ -94,6 +96,9 @@ const activateDeactivateRoomEmail = async (resvRoomId, act) => {
         data: { canLogin: true, guestId: guest.id, resvRoomId: resvRoom.id, name: guest.name, phone: guest.contact }
       })
     } else {
+      console.log('Token deleted')
+      const token = await prisma.userToken.findFirst({ where: { id: emailRoomExist.id } })
+      if (token != null) await prisma.userToken.delete({ where: { id: emailRoomExist.id } }) // Delete the token, so it cannot be log again
       return await prisma.user.update({
         where: { id: emailRoomExist.id },
         data: { canLogin: false, name: "Room", phone: null, birthday: null, gender: null }
