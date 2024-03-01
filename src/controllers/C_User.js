@@ -46,14 +46,13 @@ const postLogin = async (req, res) => {
     let expires = new Date(Date.now() + 1000 * 3600 * 24 * 30) // Expires in 30 days
     try {
         if (encryptedData) {
-            console.log(encryptedData)
             let decryptedData = decrypt(encryptedData)
             decryptedData = JSON.parse(decryptedData)
-            console.log(decryptedData)
             email = decryptedData.email
             password = decryptedData.password
-            expires = getExpireCookieRoom()
+            expires = await getExpireCookieRoom(email)
         }
+        console.log(expires)
         const payload = await UserLogin(email, password);
         res.cookie('refresh_token', payload.createdToken, {
             httpOnly: true,
