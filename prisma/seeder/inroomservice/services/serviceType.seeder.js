@@ -6,7 +6,6 @@ const serviceTypes = [
     openHour: 7,
     closeHour: 22,
     picture:`${process.env.BASE_URL}/assets/profile-pict/1.png`,
-    accessibleToMitra: true,
     orderTrackId: 1,
     path: "/irs/minimarket",
     created_at: new Date(),

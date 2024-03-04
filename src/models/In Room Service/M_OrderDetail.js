@@ -59,14 +59,36 @@ const generateItemPrice = async (id, qty) => {
 }
 
 const generateDefaultTrack = async (serviceId) => {
-    try{
+    try {
         const service = await prisma.service.findFirst({ where: { id: +serviceId }, select: { serviceType: { select: { orderTrack: { select: { trackToDo: true } } } } } })
         return service.serviceType.orderTrack.trackToDo
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
 
-module.exports = { generateSubtotal, generateItemPrice, generateDefaultTrack }
+const getAllOrder = async (user, detailId) => {
+    let { resvRoomId } = user, orders, detailOrder
+    try {
+        //TODO: IF NEED TO ADD HISTORY { !history && { finished: false} }
+        orders = await prisma.orderDetail.findMany({ where: { order: { resvRoomId } }, select: { id: true, qty: true, currentProgress: true, price: true, service: { select: { name: true, picture: true } } } })
+        if (+detailId != 0) {
+            detailOrder = await prisma.orderDetail.findFirstOrThrow({ where: { id: +detailId, order: { resvRoomId } } })
+        }
+
+        return { orders, detailOrder }
+    } catch (err) {
+        ThrowError(err)
+    } finally { await PrismaDisconnect() }
+}
+
+const createMany = async (list) => {
+    try{
+        return await prisma.orderDetail.createMany(list)
+    }catch(err){
+        ThrowError(err)
+    }finally{  await PrismaDisconnect() }
+}
+module.exports = { generateSubtotal, generateItemPrice, generateDefaultTrack, getAllOrder, createMany }

@@ -1,10 +1,11 @@
-const { UserLogout, UserLogin, GetAllUsers } = require("../models/Authorization/M_User");
+const { UserLogout, UserLogin, GetAllUsers, forceActivateUserByEmail } = require("../models/Authorization/M_User");
 const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken");
 const { ThrowError } = require("../utils/helper");
 const { getExpireCookieRoom } = require("../models/House Keeping/M_Room");
 const { decrypt } = require("../utils/encryption");
+const { prisma } = require("../../prisma/seeder/config");
 
 const getAllUsers = async (req, res) => {
     try {
@@ -52,7 +53,6 @@ const postLogin = async (req, res) => {
             password = decryptedData.password
             expires = await getExpireCookieRoom(email)
         }
-        console.log(expires)
         const payload = await UserLogin(email, password);
         res.cookie('refresh_token', payload.createdToken, {
             httpOnly: true,
@@ -83,19 +83,15 @@ const postLogout = async (req, res) => {
     }
 }
 
-/**
- * @param {import('express').Request} req
- * @param {import('express').Response} res
- */
-async function create(req, res) {
-    try {
-        req.body.password = await bcrypt.hash(req.body.password, 10)
-        const user = await userRepository.create(req.body)
-        return success(res, 'Create user success', user)
-    } catch {
-        return error(res, 'Create user failed')
+const forceActivate = async (req, res) => {
+    try{
+        const activate = await forceActivateUserByEmail(req.body)
+        return success(res, 'User Activacted', activate)
+    }catch(err){
+        return error(res, err.message)
     }
 }
 
 
-module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser }
+
+module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser, forceActivate }

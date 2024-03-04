@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, ThrowError, } = require('../../utils/helper');
+const { getFilePath, generateAssetUrl, deleteAsset, getAccessToken, verifyToken, paginate, ThrowError, PrismaDisconnect, } = require('../../utils/helper');
 const { success, error } = require('../../utils/response');
 
 const getService = async (req, res) => {
@@ -9,7 +9,7 @@ const getService = async (req, res) => {
     const data = await prisma.service.findMany({
       where: {
         serviceType: { id: +serviceTypeId },
-        ...(userData.role.name === "Mitra" && { accessibleToMitra: true, userId: userData.id }),
+        ...(userData.role.name === "Mitra" && { userId: userData.id, id: { in: userData.serviceShown.serviceTypes } }),
         name: { contains: search }
       },
       select: {
@@ -61,25 +61,29 @@ const getServiceLatest = async (req, res) => {
 };
 
 const createService = async (req, res) => {
+  const { id, serviceShown } = req.user
+  const { name, price, desc, serviceTypeId, subTypeId } = req.body;
   try {
-    const { name, price, desc, serviceTypeId, subTypeId } = req.body;
+    console.log(serviceTypeId, serviceShown)
+    const allowToCreate = serviceShown.serviceTypes.some(type => +serviceTypeId === type)
+    if(!allowToCreate) throw Error('You cannot create item with this Type')
     const pictureUrl = generateAssetUrl(req.file.filename);
     const service = await prisma.service.create({
       data: {
-        userId: 1,
+        userId: id,
         name,
-        price: parseInt(price, 10),
+        price: +price,
         desc,
         picture: pictureUrl,
-        serviceTypeId: parseInt(serviceTypeId, 10),
-        subTypeId: parseInt(subTypeId, 10),
-        created_at: new Date(),
+        serviceTypeId: +serviceTypeId,
+        subTypeId: +subTypeId,
       },
     });
 
     return success(res, 'Create service success', service, 200);
-  } catch (error) {
-    return error(res, 'Create service failed', error.message, 400);
+  } catch (err) {
+    console.log(err)
+    return error(res, err.message);
   }
 };
 

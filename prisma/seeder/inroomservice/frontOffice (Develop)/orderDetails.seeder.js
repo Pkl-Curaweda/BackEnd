@@ -7,10 +7,8 @@ const orderDetails = [{
     price: 4000,
     qty: 4,
     progress: {
-        1: {
-            label: "Order Processed",
-            finishOn: "",
-        }
+        label: ['Order Proccessed', 'Order is being packaged', 'Order is being delivered', 'Order received', 'Done'],
+        finishOn: ['', '', '', '', '']
     },
     created_at: new Date(),
     updated_at: new Date(),

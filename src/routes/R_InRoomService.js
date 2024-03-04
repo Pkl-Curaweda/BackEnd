@@ -19,6 +19,7 @@ const room = require('../controllers/In Room Service/C_Room');
 const services = require('../controllers/In Room Service/C_Service');
 const subType = require('../controllers/In Room Service/C_SubType');
 const mainMenu = require('../controllers/In Room Service/C_MainMenu');
+const cart = require('../controllers/In Room Service/C_Cart')
 const { auth } = require("../middlewares/auth");
 
 const R_InRoomService = express();
@@ -63,7 +64,7 @@ R_InRoomService.get('/menu', auth() ,mainMenu.getIRSMenu)
 //? END MAIN MENU
 
 //Start Order
-R_InRoomService.get('/order/:id', order.findOne);
+R_InRoomService.get('/order/:id?', order.get);
 R_InRoomService.post('/order/create', order.create);
 R_InRoomService.put('/order/update/qty/:id/:dordId', updateQtyValidation, order.updateQty);
 R_InRoomService.put('/order/update/newItem/:id', order.updateNewItem);
@@ -109,5 +110,11 @@ R_InRoomService.post('/subType/create', subType.createSubType);
 R_InRoomService.put('/subType/update/:id', subType.updateSubType);
 R_InRoomService.delete('/subType/delete/:id', subType.remove);
 //End subType
+
+//Start Cart
+R_InRoomService.get('/cart', cart.get)
+R_InRoomService.get('/cart/clear', cart.clear)
+R_InRoomService.post('/cart', cart.addNew)
+//End Cart
 
 module.exports = R_InRoomService

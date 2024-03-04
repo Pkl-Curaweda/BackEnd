@@ -27,7 +27,7 @@ const UserLogin = async (email, password) => {
         }
       }
     });
-    if(!user.canLogin) throw Error('Your account need to be activated, please tell our staff')
+    if (!user.canLogin) throw Error('Your account need to be activated, please tell our staff')
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
     const createdToken = await CreateAndAssignToken("user", user);
@@ -83,6 +83,16 @@ const forbiddenToLogin = async (userId) => {
   } finally {
     await PrismaDisconnect()
   }
+}
+
+const forceActivateUserByEmail = async (body) => {
+  try {
+    const exist = await prisma.user.findFirstOrThrow({ where: { email: body.email, deleted: false }, select: { id: true } })
+    delete body.email
+    return await prisma.user.update({ where: { id: exist.id }, data: { canLogin: true, ...body } })
+  } catch (err) {
+    ThrowError(err)
+  } finally { await PrismaDisconnect() }
 }
 
 const activateDeactivateRoomEmail = async (resvRoomId, act) => {
@@ -227,4 +237,4 @@ async function remove(id) {
 }
 
 
-module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail };
+module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail, forceActivateUserByEmail };

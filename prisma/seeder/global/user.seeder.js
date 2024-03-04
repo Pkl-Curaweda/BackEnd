@@ -99,6 +99,39 @@ const users = [
     nik: randomInt(999999999).toString(),
     birthday: splitDateTime(new Date().toISOString()).date,
     username: faker.internet.userName(),
+    serviceShown: {
+      serviceTypes: [1]
+    },
+    password: "password",
+    roleId: 6,
+  },
+  {
+    name: faker.person.firstName(),
+    gender: "MALE",
+    phone: "0783273247",
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
+    email: "mitra2@gmail.com",
+    nik: randomInt(999999999).toString(),
+    birthday: splitDateTime(new Date().toISOString()).date,
+    username: faker.internet.userName(),
+    serviceShown: {
+      serviceTypes: [2]
+    },
+    password: "password",
+    roleId: 6,
+  },
+  {
+    name: faker.person.firstName(),
+    gender: "MALE",
+    phone: "0783273247",
+    picture: listOfProfilePict[randomInt(listOfProfilePict.length - 1)],
+    email: "mitra3@gmail.com",
+    nik: randomInt(999999999).toString(),
+    birthday: splitDateTime(new Date().toISOString()).date,
+    username: faker.internet.userName(),
+    serviceShown: {
+      serviceTypes: [3]
+    },
     password: "password",
     roleId: 6,
   },

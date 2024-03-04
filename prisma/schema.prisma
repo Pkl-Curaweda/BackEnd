@@ -110,6 +110,8 @@ model User {
   roomId         Int?
   canLogin       Boolean      @default(true)
   deleted        Boolean      @default(false)
+  cartList       Json?        @default("{}")
+  serviceShown   Json?        @default("{}")
   service        Service[]
   productReqs    ProductReq[]
   cleanRooms     CleanRoom[]
@@ -257,8 +259,8 @@ model Invoice {
   rate          Float
   dateUsed      DateTime?
   dateReturn    DateTime?
-  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id])
-  orderDetailId Int?
+  order         Order?       @relation(fields: [orderId], references: [id])
+  orderId       String?
   paid          Boolean      @default(false)
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
@@ -521,18 +523,17 @@ model LostFound {
 // In Room Service Area =======================================================
 
 model ServiceType {
-  id                Int        @id @default(autoincrement())
-  name              String
-  openHour          Int
-  closeHour         Int
-  path              String
-  accessibleToMitra Boolean    @default(false)
-  picture           String
-  orderTrack        OrderTrack @relation(fields: [orderTrackId], references: [id])
-  orderTrackId      Int
-  services          Service[]
-  created_at        DateTime   @default(now())
-  updated_at        DateTime   @updatedAt
+  id           Int        @id @default(autoincrement())
+  name         String
+  openHour     Int
+  closeHour    Int
+  path         String
+  picture      String
+  orderTrack   OrderTrack @relation(fields: [orderTrackId], references: [id])
+  orderTrackId Int
+  services     Service[]
+  created_at   DateTime   @default(now())
+  updated_at   DateTime   @updatedAt
 }
 
 model SubType {
@@ -593,19 +594,21 @@ model Payment {
 }
 
 model Order {
-  id           String        @id @default(uuid())
-  resvRoom     ResvRoom      @relation(fields: [resvRoomId], references: [id])
-  resvRoomId   Int
-  room         Room          @relation(fields: [roomId], references: [id])
-  roomId       Int
-  subtotal     Float
-  total        Float
-  ppn          Float
-  fees         Float
-  transaction  Transaction?
-  orderDetails OrderDetail[]
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
+  id            String        @id @default(uuid())
+  resvRoom      ResvRoom      @relation(fields: [resvRoomId], references: [id])
+  resvRoomId    Int
+  room          Room          @relation(fields: [roomId], references: [id])
+  roomId        Int
+  paymentMethod String
+  subtotal      Float
+  total         Float?
+  ppn           Float?
+  fees          Float?
+  transaction   Transaction?
+  orderDetails  OrderDetail[]
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  Invoice       Invoice[]
 }
 
 model Transaction {
@@ -631,17 +634,20 @@ model OrderTrack {
 }
 
 model OrderDetail {
-  id         Int       @id @default(autoincrement())
-  order      Order     @relation(fields: [orderId], references: [id])
-  orderId    String
-  service    Service   @relation(fields: [serviceId], references: [id])
-  serviceId  Int
-  price      Float
-  qty        Int
-  progress   Json
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  Invoice    Invoice[]
+  id              Int      @id @default(autoincrement())
+  order           Order    @relation(fields: [orderId], references: [id])
+  orderId         String
+  service         Service  @relation(fields: [serviceId], references: [id])
+  serviceId       Int
+  price           Float
+  qty             Int
+  notes           String?  @db.Text
+  finished        Boolean  @default(false)
+  currentProgress String   @default("Waiting Approval")
+  progressIndex   Int      @default(0)
+  progress        Json
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 }
 
 // End In Room Service Area ===================================================

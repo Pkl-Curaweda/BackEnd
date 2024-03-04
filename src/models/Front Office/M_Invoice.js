@@ -147,48 +147,19 @@ const searchInvoice = (m, s) => {
   }
 }
 
-const addNewInvoiceFromOrder = async (o, reservationId, resvRoomId) => {
-  let invoiceList = []
+const addNewInvoiceFromOrder = async (orderId, resvRoomId) => {
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { id: true, reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
-    const subtotal = await generateSubtotal(o)
-    const order = await prisma.order.create({
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId }, select: { id: true, reservation: { select: { reserver: { select: { guestId: true } } } }, roomId: true } })
+    const invoice = await prisma.invoice.create({
       data: {
-        guestId: resvRoom.reservation.reserver.guestId,
+        orderId,
+        resvRoomId: resvRoom.id,
+        qty: orderDetail.qty,
         roomId: resvRoom.roomId,
-        subtotal,
-        ppn: subtotal * 0.1, //TODO: PPN NEED TO CHANGED,
-        fees: subtotal * 0.1, //TODO: FEES NEED TO CHANGED,
-        total: generateTotal(subtotal),
+        rate: orderDetail.price,
       }
     })
-
-    for (let orderDet of o) {
-      const orderDetail = await prisma.orderDetail.create({
-        data: {
-          orderId: order.id,
-          serviceId: orderDet.serviceId,
-          price: await generateItemPrice(orderDet.serviceId, orderDet.qty),
-          qty: parseInt(orderDet.qty, 10),
-        }, include: { service: true }
-      })
-      const invoice = await prisma.invoice.create({
-        data: {
-          resvRoomId: resvRoom.id,
-          orderDetailId: orderDetail.id,
-          qty: orderDetail.qty,
-          roomId: resvRoom.roomId,
-          rate: orderDetail.price,
-        }
-      })
-      invoiceList.push({
-        art: "In Room",
-        desc: orderDetail.service.name,
-        orderDetailId: invoice.orderDetailId,
-        qty: orderDetail.qty,
-      })
-    }
-    return invoiceList
+    return invoice
   } catch (err) {
     ThrowError(err)
   } finally {
@@ -306,7 +277,7 @@ const putInvoiceData = async (reservationId, resvRoomId, args, data) => {
   try {
     await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId } })
     if (id >= 998) throw Error('Cannot Be Changed')
-    const artList = await prisma.articleType.findMany({ where:{ deleted: false }, select: { id: true } })
+    const artList = await prisma.articleType.findMany({ where: { deleted: false }, select: { id: true } })
     const arts = artList.map(art => art.id)
     if (arts.includes(id)) {
       const [exist, resvArt] = await prisma.$transaction([

@@ -1,10 +1,21 @@
 const { PrismaClientKnownRequestError } = require('@prisma/client/runtime/library');
 const { prisma } = require("../../../prisma/seeder/config");
-const { verifyToken, getAccessToken, generateTotal } = require('../../utils/helper');
+const { verifyToken, getAccessToken, generateTotal, ThrowError, PrismaDisconnect } = require('../../utils/helper');
 const { prismaError } = require('../../utils/errors.util');
 const { error, success } = require('../../utils/response');
-const { generateItemPrice, generateDefaultTrack, generateSubtotal } = require('../../models/In Room Service/M_OrderDetail');
+const { generateItemPrice, generateDefaultTrack, generateSubtotal, getAllOrder } = require('../../models/In Room Service/M_OrderDetail');
+const orderDetail = require('../../models/In Room Service/M_OrderDetail');
+const { addNewInvoiceFromOrder } = require('../../models/Front Office/M_Invoice');
 
+
+const get = async (req, res) => {
+  try {
+    const data = await getAllOrder(req.user, req.params.id)
+    return success(res, 'Showing All Order...', data)
+  } catch (err) {
+    return error(res, err.message)
+  }
+}
 async function findOne(req, res) {
   try {
     const { id } = req.params;
@@ -34,40 +45,30 @@ async function findOne(req, res) {
 
 
 async function create(req, res) {
+  const { roomId, resvRoomId } = req.user, { paymentMethod, fees, items } = req.body
   try {
-    const { roomId, resvRoomId } = req.user
-    if(resvRoomId === null) throw Error('Your account didnt attach to a reservation \n Please tell this to our Front Office')
-    const subtotal = await generateSubtotal(req.body.items);
+    if (resvRoomId === null) throw Error('Your account didnt attach to a reservation \n Please tell this to our Front Office')
+    const subtotal = await generateSubtotal(items);
     const order = await prisma.order.create({
       data: {
         resvRoom: { connect: { id: resvRoomId } },
         room: { connect: { id: roomId } },
         subtotal,
         ppn: subtotal * 0.1, //TODO: PPN NEED TO BE CHANGED
-        fees: 1000, 
+        fees: 1000, //TODO: IS THIS ONE NEED TO BE CHANGED FROM THE DATA?
         total: generateTotal(subtotal),
-        orderDetails: {
-          createMany: {
-            data: await Promise.all(
-              req.body.items.map(async (item) => ({
-                serviceId: parseInt(item.serviceId, 10),
-                price: await generateItemPrice(item.serviceId, item.qty),
-                qty: parseInt(item.qty, 10),
-                progress: await generateDefaultTrack(item.serviceId)
-              })),
-            ),
-          },
-        },
-      },
-      include: {
-        orderDetails: {
-          include: {
-            service: true,
-          },
-        },
-      },
-    });
-
+      }
+    })
+    if (paymentMethod === "RESV") await addNewInvoiceFromOrder(order.id, resvRoomId)
+    await orderDetail.createMany(await Promise.all(
+      req.body.items.map(async (item) => ({
+        serviceId: parseInt(item.serviceId, 10),
+        price: await generateItemPrice(item.serviceId, item.qty),
+        qty: parseInt(item.qty, 10),
+        ...(item.notes && { notes: item.notes }),
+        progress: await generateDefaultTrack(item.serviceId)
+      })),
+    ))
     return success(res, 'Order created successfully', order, 201);
   } catch (err) {
     console.log(err)
@@ -182,7 +183,7 @@ async function updateQty(req, res) {
         },
       },
     });
-    
+
     return success(res, 'Order updated successfully', updatedOrder, 200);
   } catch (error) {
     if (error instanceof PrismaClientKnownRequestError) {
@@ -273,6 +274,7 @@ async function remove(req, res) {
 }
 
 module.exports = {
+  get,
   create,
   updateQty,
   updateNewItem,

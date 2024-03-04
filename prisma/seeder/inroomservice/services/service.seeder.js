@@ -1,3 +1,4 @@
+const { faker } = require("@faker-js/faker");
 const { prisma } = require("../../config");
 
 const services = [
@@ -5,7 +6,7 @@ const services = [
     userId: 1,
     name: "Betadine Wound",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 1,
     subTypeId: 4,
@@ -17,7 +18,7 @@ const services = [
     userId: 1,
     name: "Biore Liquid Soap",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 1,
     subTypeId: 4,
@@ -29,7 +30,7 @@ const services = [
     userId: 1,
     name: "Ayam Taliwang",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 2,
     subTypeId: 4,
@@ -41,7 +42,7 @@ const services = [
     userId: 1,
     name: "Bebek Goreng Surabaya",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     approved: true,
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 2,
@@ -53,7 +54,7 @@ const services = [
     userId: 1,
     name: "Overall/Terusan",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     approved: true,
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 3,
@@ -65,7 +66,7 @@ const services = [
     userId: 1,
     name: "Polo/T-Shirt",
     price: 8500,
-    desc: "5ml",
+    desc: faker.commerce.productDescription(),
     approved: true,
     picture: "https://i.pravatar.cc/300",
     serviceTypeId: 3,

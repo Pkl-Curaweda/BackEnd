@@ -94,4 +94,4 @@ typings/
 
 # Keep environment variables out of version control
 prisma/migrations
-src/image
+public/assets

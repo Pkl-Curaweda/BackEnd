@@ -629,6 +629,7 @@ const convertBooleanToHex = (bool) => {
 const convertAmPm = (hour) => {
   return hour > 12 ? hour + " pm" : `${hour.toString().padStart(2, '0')} am`
 }
+
 module.exports = {
   splitDateTime,
   convertBooleanToHex,
