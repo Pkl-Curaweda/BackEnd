@@ -57,9 +57,19 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
                     roomId: r.id,
                     deleted: false,
                     reservation: {
-                        AND: [
-                            { arrivalDate: { gte: `${arr}T00:00:00.000Z` } },
-                            { departureDate: { lte: `${dep}T23:59:59.999Z` } }
+                        OR: [
+                            {
+                                arrivalDate: {
+                                    gte: `${arr}T00:00:00.000Z`,
+                                    lte: `${dep}T23:59:59.999Z`
+                                }
+                            },
+                            {
+                                departureDate: {
+                                    gte: `${arr}T00:00:00.000Z`,
+                                    lte: `${dep}T23:59:59.999Z`
+                                }
+                            }
                         ]
                     }
                 }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }

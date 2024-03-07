@@ -29,7 +29,7 @@ const postStat = async (req, res) => {
   const user = req.user
   try {
     const { id, status} = req.params
-    const chgStat = await room.changeRoomStatusByDescription(+id, status)
+    const chgStat = await room.changeRoomStatusByDescription(+id, status, user)
     if(statusToLog.some((stats) => { stats === chgStat.roomStatus.shortDescription})){
       const currDate = new Date().toISOString().split('T')[0]
       await createOooRoom(chgStat.roomStatus.shortDescription, { roomId: +id, userId: user.id, reason: 'Floor Plan Changes', from: `${currDate}T00:00:00.000Z`, until: `${currDate}T23:59:59.999Z`, description: 'Floor Plan Changes'})

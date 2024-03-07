@@ -113,6 +113,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
         const [nw, ci, co] = await prisma.$transaction([
             prisma.resvRoom.count({
                 where: {
+                    deleted: false,
                     reservation: {
                         onGoingReservation: true,
                         created_at: {
@@ -124,6 +125,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
             }),
             prisma.resvRoom.count({
                 where: {
+                    deleted: false,
                     reservation: {
                         onGoingReservation: true,
                         checkInDate: {
@@ -135,6 +137,7 @@ const getCurrentDayData = async (dt, ttlRoom) => {
             }),
             prisma.resvRoom.count({
                 where: {
+                    deleted: false,
                     reservation: {
                         onGoingReservation: true,
                         checkoutDate: {

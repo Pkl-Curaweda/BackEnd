@@ -46,7 +46,6 @@ const auth = (access) => async (req, res, next) => {
         if (access !== undefined) {
             const userAllowedAccess = Object.keys(userData.role.access)
             const isAccessible = access.some((acc) => userAllowedAccess.includes(acc))
-            console.log(isAccessible)
             if (!isAccessible) return error(res, 'Forbidden, you have no access to this resource', 403)
         }
         req.user = userData

@@ -80,6 +80,7 @@ const getAllRoomChange = async (q) => {
           roomToId: true,
           reason: true
         },
+        orderBy: { created_at: 'desc' },
         skip: (page - 1) * perPage,
         take: +perPage
       })

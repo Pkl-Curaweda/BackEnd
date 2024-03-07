@@ -21,25 +21,26 @@ const getRoomOccupancyData = async (q) => {
                 id: true,
                 roomType: true,
                 roomStatus: {
-                    select: { shortDescription: true }
+                    select: { shortDescription: true, longDescription: true }
                 }
             }
         })
         for (let room of roomStatus) {
-            console.log(room)
             const [r, estR] = await prisma.$transaction([
                 prisma.resvRoom.findFirst({
                     where: {
                         roomId: room.id, reservation: {
                             checkInDate: { not: null }, onGoingReservation: true
-                        }
+                        },
+                        deleted: false
                     }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
                 }),
                 prisma.resvRoom.findMany({
                     where: {
                         roomId: room.id, reservation: {
                             arrivalDate: { gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z` }
-                        }
+                        },
+                        deleted: false
                     }, select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
                 })
             ])
@@ -151,6 +152,7 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
+        console.log(currData)
         listOfTypes.push({ id: 'ALL', label: "ALL" })
         return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {

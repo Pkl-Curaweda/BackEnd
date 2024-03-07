@@ -91,7 +91,7 @@ const getRoomMaidTaskById = async (id, q) => {
                 schedule: mTask.schedule,
                 rowColor: `#${mTask.rowColor}`,
                 standard: `${mTask.customWorkload ? mTask.customWorkload : mTask.type.standardTime} ${mTask.type.UoM}`,
-                actual: mTask.actual != null ? `${mTask.actual} ${mTask.UoM}` : '',
+                actual: `${mTask.actual || 0} ${mTask.UoM}`,
                 remarks: mTask.request ? mTask.request : "-",
                 status: mTask.status ? mTask.status : "-",
                 comments: mTask.comment ? mTask.comment : "-"

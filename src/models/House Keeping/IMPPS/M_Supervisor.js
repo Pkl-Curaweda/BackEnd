@@ -39,7 +39,7 @@ const getSupervisorData = async (q) => {
                 schedule: task.schedule,
                 rowColor: task.rowColor,
                 standard: `${task.customWorkload ? task.customWorkload : task.type.standardTime} ${task.UoM}`,
-                actual: task.actual,
+                actual: `${task.actual || 0} ${task.UoM}`,
                 remarks: task.request ? task.request : "-",
                 pic: task.roomMaid.aliases,
                 status: task.status ? task.status : "-",

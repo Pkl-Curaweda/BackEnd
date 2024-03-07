@@ -60,8 +60,8 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
       },
     })
     if (date) {
-      startDate = date.split('T')[0];
-      endDate = date.split('T')[1];
+      startDate = date.split(' ')[0];
+      endDate = date.split(' ')[1];
     }
     if (sortIdentifier != undefined) {
       [ident, ascDesc] = sortIdentifier.split('-')
@@ -72,7 +72,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         resvRoomId,
         ...(date && { created_at: { gte: `${startDate}T00:00:00.000Z`, lte: `${endDate}T23:59:59.999Z` } })
       },
-      select: { id: true, paid: true, created_at: true, articleType: { select: { id: true, description: true, price: true, Stock: { select: { remain: true } } } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
+      select: { id: true, paid: true, created_at: true, articleType: { select: { id: true, description: true, price: true, Stock: { select: { remain: true } } } }, qty: true, roomId: true, rate: true },
       ...(orderBy != false && { ...orderBy } || { orderBy: { paid: 'desc' } })
     })
 
@@ -82,7 +82,7 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
         uniqueId: i.id,
         qty: i.qty,
         rowColor: i.paid != false ? "#808080" : "#ffffff",
-        desc: i.articleType != null ? i.articleType.description : i.orderDetail.service.name,
+        desc: i.articleType != null ? i.articleType.description : "",
         rate: i.rate,
         amount: (i.rate * i.qty),
         roomNo: i.roomId,
@@ -248,17 +248,17 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, invoiceId) => {
   try {
     let detail;
     const balanceTotal = await generateBalanceAndTotal({ balance: true, total: true }, reservationId, resvRoomId)
-    let addressComment = await prisma.reservation.findFirst({ where: { id: reservationId }, select: { idCard: { select: { address: true } }, reserver: { select: { billComment: true } } } })
-    addressComment = { address: addressComment.idCard.address || "", comment: addressComment.reserver.billComment || "" }
+    let addressComment = await prisma.reservation.findFirst({ where: { id: reservationId }, select: { idCard: {select: { address: true } }, reservationRemarks: true } })
+    addressComment = { address: addressComment.idCard[0].address || "", comment: addressComment.reservationRemarks }
     const i = await prisma.invoice.findFirstOrThrow({
       where: { id: invoiceId },
-      select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } }
+      select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true }
     })
 
     detail = {
       art: i.articleType.id ? i.articleType.id : "In Room",
       qty: i.qty,
-      desc: i.articleType.description ? i.articleType.description : i.orderDetail.service.name,
+      desc: i.articleType.description ? i.articleType.description : "",
       rate: i.rate,
       amount: (i.rate * i.qty),
     }

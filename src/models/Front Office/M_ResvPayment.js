@@ -32,7 +32,7 @@ const getBillingSummary = async (id, reservationId) => {
 
         const invoices = await prisma.invoice.findMany({
             where: { paid: false, resvRoomId: resvRoom.id },
-            select: { id: true, created_at: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true, orderDetail: { select: { id: true, service: { select: { id: true, name: true, price: true } } } } },
+            select: { id: true, created_at: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, roomId: true, rate: true },
             orderBy: { rate: 'asc' }
         })
 
@@ -40,7 +40,7 @@ const getBillingSummary = async (id, reservationId) => {
             art: inv.articleType != null ? inv.articleType.id : "In Room",
             uniqueId: inv.id,
             qty: inv.qty,
-            desc: inv.articleType != null ? inv.articleType.description : inv.orderDetail.service.name,
+            desc: inv.articleType != null ? inv.articleType.description : "",
             rate: inv.rate,
             amount: (inv.rate * inv.qty),
             roomNo: inv.roomId,

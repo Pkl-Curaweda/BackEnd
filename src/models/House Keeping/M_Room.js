@@ -4,6 +4,7 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateRandomString, generateExpire } = require("../../utils/helper");
 const { generateQRToken } = require("../Authorization/M_Token");
 const { encrypt } = require("../../utils/encryption");
+const { createOooRoom } = require("./M_OOORoom");
 
 const getAllAvailableRoom = async () => {
     try {
@@ -45,7 +46,7 @@ const getRoomStatWithId = async (id) => {
     }
 }
 
-const changeRoomStatusByDescription = async (roomId = 0, shortDescription) => {
+const changeRoomStatusByDescription = async (roomId = 0, shortDescription, userId) => {
     try {
         const roomStatusExist = await prisma.roomStatus.findFirstOrThrow({ where: { shortDescription }, select: { id: true, shortDescription: true } })
         await prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false } })

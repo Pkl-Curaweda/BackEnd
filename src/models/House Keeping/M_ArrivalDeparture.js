@@ -5,6 +5,7 @@ const { prisma } = require("../../../prisma/seeder/config");
 const searchGet = (q) => {
     try {
         const search = q
+        if(parseInt(search) === NaN) return
         return {
             OR: [
                 { idCard: { every: { cardId: { contains: search } } } },
@@ -28,14 +29,20 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
             dep = dep.toISOString().split('T')[0]
         }
         date = {
-            arrivalDate: {
-                gte: `${arr}T00:00:00.000Z`,
-                lte: `${dep}T23:59:59.999Z`
-            },
-            departureDate: {
-                gte: `${arr}T00:00:00.000Z`,
-                lte: `${dep}T23:59:59.999Z`
-            }
+            OR: [
+                {
+                    arrivalDate: {
+                        gte: `${arr}T00:00:00.000Z`,
+                        lte: `${dep}T23:59:59.999Z`
+                    }
+                },
+                {
+                    departureDate: {
+                        gte: `${arr}T00:00:00.000Z`,
+                        lte: `${dep}T23:59:59.999Z`
+                    }
+                }
+            ]
         }
         so = so ? orderReservationByIdentifier(so) : so
         if (search != "") search = searchGet(search)
@@ -155,9 +162,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
             }
         })
         sortingList.push({ id: 'room+id+asc', label: "Room Number" })
-        console.log(sortingList)
         Object.values(roomTypes).forEach(rt => { sortingList.push({ ...rt }) })
-        console.log(sortingList)
         sortingList.push({
             id: 'rese+name+asc', label: "Guest Name"
         }, {

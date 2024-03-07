@@ -394,6 +394,7 @@ const deleteReservationById = async (id, resvRoomId) => {
     ])
     const deleted_at = generateDeleteDate("deleteResv")
     await prisma.resvRoom.update({ where: { id: resvroomExist.id }, data: { deleted: true, deleted_at } })
+    await prisma.room.update({ where: { id: resvroomExist.id }, data: { occupied_status: false } })
     return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);
@@ -490,7 +491,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         break;
       case 'checkin':
         progressIndex = 1
-        if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
+      if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {
