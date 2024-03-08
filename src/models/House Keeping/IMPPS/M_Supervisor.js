@@ -62,11 +62,11 @@ const helperAddTask = async (query) => {
         if (roomNo === "0" && roomBoy === "0") {
             [sendedData.list.room, maids] = await prisma.$transaction([
                 prisma.room.findMany({ where: { NOT: [{ id: 0 }], deleted: false }, select: { id: true }, orderBy: { id: 'asc' } }),
-                prisma.roomMaid.findMany({ where: { workload: { lt: 480 } }, select: { id: true, aliases: true, shiftId: true } })
+                prisma.roomMaid.findMany({ where: { workload: { lt: 480 } }, select: { id: true, user: { select: { name: true } }, shiftId: true } })
             ])
             sendedData.list.maid = maids.map(maid => ({
                 value: maid.id,
-                label: `${maid.aliases} - Shift ${maid.shiftId}`
+                label: `${maid.user.name} - Shift ${maid.shiftId}`
             }))
         }
         if (roomNo != "0") {
