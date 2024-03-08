@@ -9,7 +9,7 @@ const searchGet = (q) => {
         return {
             OR: [
                 { idCard: { every: { cardId: { contains: search } } } },
-                { id: { equals: parseInt(search) } }
+                { id: { equals: +search } }
             ]
         }
     } catch (err) {

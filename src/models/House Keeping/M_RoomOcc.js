@@ -7,7 +7,7 @@ const { getAllRoomStatus } = require("./M_Room")
 const getRoomOccupancyData = async (q) => {
     const { page, perPage, disOpt, filt } = q
     const currentDate = new Date()
-    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 } }, percData = {}
+    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 } }, percData = {}
     try {
         //TODO: HOUSE USE, COMP
         const listOfTypes = (await prisma.roomType.findMany({ where: { deleted: false, NOT: { id: 'REMOVED' } }, select: { id: true, longDesc: true } })).map(types => ({ id: types.id, label: `${types.longDesc} Room` }))
@@ -152,7 +152,7 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
-        console.log(currData)
+        console.log(percData)
         listOfTypes.push({ id: 'ALL', label: "ALL" })
         return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {
