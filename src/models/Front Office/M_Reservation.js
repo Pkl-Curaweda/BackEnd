@@ -394,7 +394,7 @@ const deleteReservationById = async (id, resvRoomId) => {
     ])
     const deleted_at = generateDeleteDate("deleteResv")
     await prisma.resvRoom.update({ where: { id: resvroomExist.id }, data: { deleted: true, deleted_at } })
-    await prisma.room.update({ where: { id: resvroomExist.id }, data: { occupied_status: false } })
+    await prisma.room.update({ where: { id: resvroomExist.roomId }, data: { occupied_status: false } })
     return "Resv Room Delete"
   } catch (err) {
     ThrowError(err);

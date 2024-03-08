@@ -380,7 +380,7 @@ const getReportDetailData = async (date, displayOption) => {
       for (let rs of resv) {
         const { roomType, id } = rs.room;
         total.RESERVATION++;
-        total[roomType]++;
+        total[roomType.longDesc]++;
         const key = `room_${id}`;
         const percentageKeyExists = percentages.hasOwnProperty(key);
         percentages[key] = (percentageKeyExists ? percentages[key] : 0) + 100;

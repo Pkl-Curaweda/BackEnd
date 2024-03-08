@@ -249,7 +249,7 @@ const GetInvoiceDetailByArt = async (reservationId, resvRoomId, invoiceId) => {
     let detail;
     const balanceTotal = await generateBalanceAndTotal({ balance: true, total: true }, reservationId, resvRoomId)
     let addressComment = await prisma.reservation.findFirst({ where: { id: reservationId }, select: { idCard: {select: { address: true } }, reservationRemarks: true } })
-    addressComment = { address: addressComment.idCard[0].address || "", comment: addressComment.reservationRemarks }
+    addressComment = { address: addressComment.idCard[0]?.address || "", comment: addressComment.reservationRemarks }
     const i = await prisma.invoice.findFirstOrThrow({
       where: { id: invoiceId },
       select: { id: true, articleType: { select: { id: true, description: true, price: true } }, qty: true, rate: true }

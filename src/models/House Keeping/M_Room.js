@@ -21,7 +21,6 @@ const getAllAvailableRoom = async () => {
         await PrismaDisconnect();
     }
 }
-
 const getAllRoomStatus = async () => {
     try {
         const rooms = await prisma.room.findMany({ where: { deleted: false }, select: { id: true, roomStatus: { select: { id: true, shortDescription: true, longDescription: true } } } })
