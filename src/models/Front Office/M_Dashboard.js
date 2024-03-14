@@ -1,5 +1,5 @@
 const { prisma } = require("../../../prisma/seeder/config");
-const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays, paginate, paginateFO, isDateInRange } = require("../../utils/helper");
+const { PrismaDisconnect, ThrowError, generateDateBetweenNowBasedOnDays, paginate, paginateFO, isDateInRange, splitDateTime } = require("../../utils/helper");
 const { getAllAvailableRoom } = require("../House Keeping/M_Room");
 
 const get = async (page, perPage, date) => {
@@ -59,44 +59,52 @@ const get = async (page, perPage, date) => {
 }
 
 const getChart = async () => {
-    let resvChart = {}, hkChart = { }
+    let resvChart = {}, hkChart = {}
     try {
-        const rooms = await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } })
-        for(let room of rooms) hkChart[room.id] = { label: room.id, value: 0 }
-        const dts = generateDateBetweenNowBasedOnDays('future', 7)
+        await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } }).then(rooms =>{
+            for(let room of rooms)  hkChart[room.id] = { label: room.id, value: 0 }
+        })
+        const currentDay = new Date()
+        const currentMonth = (currentDay.getMonth() + 1).toString().padStart(2, '0');
+        const lastDayOfMonth = new Date(currentDay.getFullYear(), currentDay.getMonth() + 1, 0);
+        const [arrivalDate, departureDate] = [
+            `${currentDay.getFullYear()}-${currentMonth}-01`, // Note: Months are zero-based in JavaScript Date, so we add 1
+            `${currentDay.getFullYear()}-${currentMonth}-${lastDayOfMonth.getDate()}`
+        ];
         const resvRoom = await prisma.resvRoom.findMany({
             where: {
+                deleted: false,
                 reservation: {
                     OR: [
-                        { arrivalDate: { gte: `${dts[0]}T00:00:00.000Z` } },
-                        { departureDate: { lte: `${dts[dts.length - 1]}T23:59:59.999Z` } },
+                        { arrivalDate: { gte: `${arrivalDate}T00:00:00.000Z` } },
+                        { departureDate: { lte: `${departureDate}T23:59:59.999Z` } },
                     ]
                 }
             },
             select: { roomId: true, reservation: { select: { inHouseIndicator: true, arrivalDate: true, departureDate: true, checkInDate: true, checkoutDate: true, created_at: true, inHouseIndicator: true } } }
         })
 
-        // dts.reverse()
+        const dts = generateDateBetweenNowBasedOnDays("past", 7).reverse()
         for (dt of dts) {
             let data = { nw: 0, ci: 0, co: 0 }
-            newDt = new Date(dt)
-            const rsv = resvRoom.filter(rsv => {
-                let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
-                return isDateInRange(new Date(dt), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
-            })
-            for (let rs of rsv) {
-                if (rs.reservation.created_at >= `${dt}T00:00:00.000Z` && rs.reservation.created_at < `${dt}T23:59:59.999Z`) data.nw++
-                if (rs.reservation.checkInDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkInDate < `${dt}T23:59:59.999Z`) data.ci++
-                if (rs.reservation.checkoutDate >= `${dt}T00:00:00.000Z` && rs.reservation.checkoutDate < `${dt}T23:59:59.999Z`) data.co++
+            for (const rsv of resvRoom) {
+                let createdAt = rsv.reservation.created_at;
+                let checkIn = rsv.reservation.checkInDate;
+                let checkout = rsv.reservation.checkoutDate;
+                let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate];
 
-                hkChart[rs.roomId].value++
+                if (isDateInRange(new Date(dt), new Date(`${splitDateTime(createdAt).date}T00:00:00.000Z`), new Date(`${splitDateTime(createdAt).date}T23:59:59.999Z`))) data.nw++;
+                if (isDateInRange(new Date(dt), new Date(`${splitDateTime(checkIn).date}T00:00:00.000Z`), new Date(`${splitDateTime(checkIn).date}T23:59:59.999Z`))) data.ci++;
+                if (isDateInRange(new Date(dt), new Date(`${splitDateTime(checkout).date}T00:00:00.000Z`), new Date(`${splitDateTime(checkout).date}T23:59:59.999Z`))) data.co++;
+
+                if (isDateInRange(new Date(dt), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`))) {
+                    hkChart[rsv.roomId].value++;
+                }
             }
-            const dtName = newDt.toLocaleDateString('en-US', { weekday: 'long' });
-            // for(let rs of resvRoom){
-            //     if(`${dt}T00:00:00.000Z` >= rs.reservation.arrivalDate && `${dt}T23:59:59.999Z` < rs.reservation.departureDate) 
-            // }
-            resvChart[dtName] = { ident: dtName.substring(0, 3), ...data }
+            const dtName = new Date(dt).toLocaleDateString('en-US', { weekday: 'long' });
+            resvChart[dtName] = { ident: dtName.substring(0, 3), ...data };
         }
+        console.log(resvChart)
         hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
     } catch (err) {
@@ -115,7 +123,6 @@ const getCurrentDayData = async (dt, ttlRoom) => {
                 where: {
                     deleted: false,
                     reservation: {
-                        onGoingReservation: true,
                         created_at: {
                             gte: `${dt}T00:00:00.000Z`,
                             lte: `${dt}T23:59:59.999Z`,
@@ -127,7 +134,6 @@ const getCurrentDayData = async (dt, ttlRoom) => {
                 where: {
                     deleted: false,
                     reservation: {
-                        onGoingReservation: true,
                         checkInDate: {
                             gte: `${dt}T00:00:00.000Z`,
                             lte: `${dt}T23:59:59.999Z`,
@@ -139,7 +145,6 @@ const getCurrentDayData = async (dt, ttlRoom) => {
                 where: {
                     deleted: false,
                     reservation: {
-                        onGoingReservation: true,
                         checkoutDate: {
                             gte: `${dt}T00:00:00.000Z`,
                             lte: `${dt}T23:59:59.999Z`,

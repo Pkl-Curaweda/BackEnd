@@ -21,7 +21,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
     let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date, sortingList = [];
     try {
         const dateNew = new Date();
-        const currDate = dateNew.toISOString().split('T')[0];
+        const currDate =splitDateTime(dateNew.toISOString()).date;
         if (arr === undefined) arr = currDate
         if (dep === undefined) {
             dep = new Date(arr);
@@ -141,25 +141,32 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 roomStatus: res.room.roomStatus,
                 created: splitDateTime(res.created_at).date
             }
-            table.push(data)
+            console.log(currDate)
             if (res.reservation.checkInDate) {
                 if (data.arrival === currDate) {
+                    console.log(data.arrival)
                     arrival.arriving.room++
                     arrival.arriving.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
                 if (data.departure === currDate) {
+                    console.log(data.departure)
                     departure.departing.room++
                     departure.departing.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
             }
-            if (splitDateTime(res.reservation.checkInDate === currDate)) {
+            if (splitDateTime(res.reservation.checkInDate).date === currDate) {
+                console.log('Check IN')
                 arrival.checkInToday.room++
                 arrival.checkInToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
-            if (splitDateTime(res.reservation.checkoutDate === currDate)) {
+            if (splitDateTime(res.reservation.checkoutDate).date === currDate) {
+                console.log('Check Out')
                 departure.departedToday.room++
                 departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
+            console.log("ARRIVAL ==================",arrival)
+            console.log("DEPARTURE ==================",departure)
+            table.push(data)
         })
         sortingList.push({ id: 'room+id+asc', label: "Room Number" })
         Object.values(roomTypes).forEach(rt => { sortingList.push({ ...rt }) })

@@ -323,8 +323,7 @@ const CreateNewReservation = async (data, user) => {
     manyNight = countNight(arrivalDate, departureDate);
     await isRoomAvailable({ arr: arrivalDate, dep: departureDate }, data.room.roomId)
 
-    const guestName = data.nameContact.split('/')[0];
-    const guestContact = data.nameContact.split('/')[1];
+    const [guestName, guestContact] = data.nameContact.split('/');
     if (guestContact === undefined) throw Error('Please send a correct format [Guest Name]/[Phone Number]')
     const createdGuest = await CreateNewGuest(guestName, guestContact);
     const createdReserver = await CreateNewReserver(createdGuest.guest.id, data);

@@ -401,7 +401,7 @@ model Shift {
   workTime      Int
   UoM           String
   RoomMaid      RoomMaid[]
-}
+} 
 
 model MaidTask {
   id                  Int           @id @default(autoincrement())

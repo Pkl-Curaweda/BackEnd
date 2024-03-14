@@ -9,7 +9,8 @@ const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
 
 const R_FrontOffice = new Router();
-const voucher = require('../controllers/Front Office/C_Voucher')
+const voucher = require('../controllers/Front Office/C_Voucher');
+const { createReservationValidation, validateCreateReservation } = require("../validations/Front Office/reservation.validation");
 
 R_FrontOffice.use(auth(['showAdmin']))
 
@@ -19,7 +20,7 @@ R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", get
 R_FrontOffice.get("/detail/report/", getReportDetail);
 R_FrontOffice.get('/detail/checker/room', getCheckerRoom);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId", getInvoiceDetail);
-R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", auth(['createAdmin']), putNewInvoiceData)
+R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", auth(['createAdmin']) ,putNewInvoiceData)
 R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", auth(['createAdmin']), postHelperDetail);
 R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", auth(['createAdmin']), putNewReservationData);
 R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", auth(['createAdmin']), deleteInvoice);
