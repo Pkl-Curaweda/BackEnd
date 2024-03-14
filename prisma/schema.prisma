@@ -154,7 +154,7 @@ model Reservation {
   manyBaby           Int
   manyNight          Int
   borderColor        String?           @default("#16a75c")
-  reservationRemarks String?           @default("") @db.Text
+  reservationRemarks String?           @db.Text
   onGoingReservation Boolean?          @default(true)
   inHouseIndicator   Boolean?          @default(false)
   arrivalDate        DateTime
@@ -401,7 +401,7 @@ model Shift {
   workTime      Int
   UoM           String
   RoomMaid      RoomMaid[]
-} 
+}
 
 model MaidTask {
   id                  Int           @id @default(autoincrement())
