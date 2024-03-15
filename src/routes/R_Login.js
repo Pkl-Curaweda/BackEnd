@@ -1,5 +1,5 @@
 const { Router } = require("express");
-const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser, forceActivate } = require("../controllers/C_User");
+const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUser, forceActivate, createQR, downloadQrCodes } = require("../controllers/C_User");
 const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controllers/C_Guest");
 const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
@@ -11,7 +11,9 @@ R_Login.post("/user/login/:encryptedData?", postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);
 R_Login.get('/user/me', auth(), getCurrentUser);
+R_Login.get('/user/qr-download/:encrypt', downloadQrCodes)
 R_Login.post('/user/force', forceActivate)
+R_Login.post('/user/qr-create', auth(['createSuperAdmin']), createQR)
 
 //Guest Login
 R_Login.get("/guest/", GetAllGuest);

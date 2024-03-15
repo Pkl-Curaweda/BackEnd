@@ -5,6 +5,7 @@ const { ThrowError, PrismaDisconnect, generateRandomString, generateExpire } = r
 const { generateQRToken } = require("../Authorization/M_Token");
 const { encrypt } = require("../../utils/encryption");
 const { createOooRoom } = require("./M_OOORoom");
+const { error } = require("console");
 
 const getAllAvailableRoom = async () => {
     try {
@@ -84,6 +85,7 @@ const generateQrRoom = async (email, password) => {
     try {
         const storedData = { email, password }
         const path = `${process.env.QR_PATH}/QR-${email}.png`
+        console.log(path)
         if (!fs.existsSync(path)) {
             const stringfyData = JSON.stringify(storedData);
             const encryptedData = encrypt(stringfyData);

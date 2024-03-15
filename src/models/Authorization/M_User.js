@@ -1,7 +1,10 @@
 const bcrypt = require('bcrypt');
+const fs = require('fs')
+const qr = require("qrcode");
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const { RemoveToken, CreateAndAssignToken, deleteTokenByUserId, deleteAllTokenByUserId } = require("./M_Token");
+const { encrypt } = require('../../utils/encryption');
 
 const UserLogin = async (email, password) => {
   try {
@@ -121,6 +124,27 @@ const activateDeactivateRoomEmail = async (resvRoomId, act) => {
   }
 }
 
+const createQRCode = async (email, password) => {
+  try{
+    const storedData = { email, password }
+    const exist = await prisma.user.findFirstOrThrow({ where: { email } })
+    const match = await bcrypt.compare(password, exist.password)
+    if(!match) throw Error('Wrong Password')
+    const path = `${process.env.QR_PATH}/QR-${email}.png`
+    if (!fs.existsSync(path)) {
+        const stringfyData = JSON.stringify(storedData);
+        const encryptedData = encrypt(stringfyData);
+        const storedQR = encryptedData;
+        qr.toFile(path, storedQR, (err) => {
+            if (err) console.log(err);
+        });
+    }
+    return encrypt(path)
+  }catch(err){
+    ThrowError(err)
+  }finally{ await PrismaDisconnect() }
+}
+
 const select = {
   id: true,
   name: true,
@@ -237,4 +261,4 @@ async function remove(id) {
 }
 
 
-module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail, forceActivateUserByEmail };
+module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail, forceActivateUserByEmail, createQRCode };
