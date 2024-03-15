@@ -94,4 +94,10 @@ typings/
 
 # Keep environment variables out of version control
 prisma/migrations
-public/assets
+public/assets/images
+public/assets/lost-found
+public/assets/picker-found
+public/assets/profile-pict
+public/assets/qr
+public/assets/room
+public/assets/services

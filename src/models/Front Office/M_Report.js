@@ -88,7 +88,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     }
 
     for (let i = startIndex; i <= endIndex; i++) {
-      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTaxed = 0, rooms = { ...roomList };
+      let roomAvailable = 0, occupied = 0, occ = 0, roomRevenue = 0, arr = 0, added = { ident: "", rm_avail: 0, rno: 0, occ: 0, rev: 0, arr: 0 }, totalPayment = 0, totalTax =  0, rooms = { ...roomList };
       const searchDate = dates[i];
       searchDates.push(searchDate)
       const rsv = resvRooms.filter(rsv => {
@@ -103,11 +103,8 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         let invoice = rs.Invoice.filter(inv => {
           return isDateInRange(new Date(searchDate), new Date(`${inv.created_at.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${inv.created_at.toISOString().split('T')[0]}T23:59:59.999Z`))
         })
-        for (let pay of payment) {
-          const totalTax = + pay.tax
-          totalPayment = + pay.total
-          totalTaxed = + (totalPayment - totalTax)
-        }
+        console.log(payment, invoice)
+        for (let pay of payment) totalTax =+ pay.tax
         for (let inv of invoice) totalPayment += (inv.qty * inv.rate)
       }
       const roomArray = Object.values(rooms)
@@ -135,7 +132,7 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         },
         taxService: {
           unTax: totalPayment,
-          taxed: totalTaxed
+          taxed: totalTax
         }
       };
       reports.push(storedData);

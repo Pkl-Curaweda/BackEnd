@@ -490,7 +490,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
         break;
       case 'checkin':
         progressIndex = 1
-      if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
+        if (oldBorderColor === progressColor[1]) throw Error("Already Check In")
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {

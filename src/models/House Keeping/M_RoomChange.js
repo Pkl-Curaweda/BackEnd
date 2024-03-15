@@ -1,6 +1,6 @@
 const { rm } = require("fs");
 const { prisma } = require("../../../prisma/seeder/config");
-const { ThrowError, PrismaDisconnect, splitDateTime, isArrangementMatch } = require("../../utils/helper");
+const { ThrowError, PrismaDisconnect, splitDateTime, isArrangementMatch, isRoomAvailable } = require("../../utils/helper");
 
 const ChangeRoom = async (id, reservationId, body) => {
   try {
@@ -13,12 +13,12 @@ const ChangeRoom = async (id, reservationId, body) => {
     ])
     if (body.roomId === resvRoom.room.id) throw Error('You didnt change the Room Number')
     await isArrangementMatch(body.roomId, body.arrangmentCodeId)
-    const changeRoomLog = await prisma.roomChange.create({
-      data: {
-        roomFromId: resvRoom.room.id,
-        roomToId: body.roomId,
-        resvRoomId: id,
-        reason: body.note
+  const changeRoomLog = await prisma.roomChange.create({
+    data: {
+      roomFromId: resvRoom.room.id,
+      roomToId: body.roomId,
+      resvRoomId: id,
+      reason: body.note
       },
     });
 
