@@ -10,7 +10,7 @@ async function findAll(req, res) {
     const lf = await lostFoundRepository.all(req.query)
     return success(res, 'Get Success', lf)
 
-  } catch(err) {
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -29,11 +29,14 @@ async function findOne(req, res) {
 }
 
 async function lostFinish(req, res) {
-  const  { id, status } = req.params
-  try{
-    const data = await lostFoundRepository.finishLostFound(id, req.user, status)
+  const { id, status } = req.params
+  try {
+    if (status != "LOST") {
+      for (let file of req.files) { req.body[file.fieldname] = convertFilesToURL(file.path) }
+    }
+    const data = await lostFoundRepository.finishLostFound(id, status, status != "LOST" ? req.body : undefined)
     return success(res, 'Update Success', data)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -79,6 +82,13 @@ async function remove(req, res) {
   } catch (err) {
     return error(res, err.message)
   }
+}
+
+function convertFilesToURL(filePath) {
+  // Replace backslashes with forward slashes and remove the leading part of the path
+  const urlPath = filePath.replace(/\\/g, '/').replace(/^public\//, '');
+  // Concatenate with the base URL
+  return `http://localhost:3000/${urlPath}`;
 }
 
 module.exports = { findAll, findOne, create, update, remove, lostFinish }

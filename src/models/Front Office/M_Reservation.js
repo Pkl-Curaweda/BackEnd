@@ -6,7 +6,7 @@ const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRo
 const { getAllAvailableRoom, changeRoomStatusByDescription, changeOccupied } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/IMPPS/M_RoomMaid");
-const { genearateListOfTask } = require("../House Keeping/IMPPS/M_MaidTask");
+const { genearateListOfTask, createNewMaidTask, assignTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { activateRoomEmail, activateDeactivateRoomEmail } = require("../Authorization/M_User");
@@ -508,6 +508,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
           await activateDeactivateRoomEmail(room.id, "deactivate")
           await changeRoomStatusByDescription(room.roomId, "VD")
           await changeOccupied(room.roomId, false)
+          await genearateListOfTask("CHECKOUT", room.roomId)
         }
         currentStat = await checkCurrentStatus(id)
         if (currentStat != 1) throw Error("Status aren't Guaranteed")

@@ -3,7 +3,7 @@ const express = require('express')
 const crypto = require('crypto');
 const path = require('path');
 const multer = require('multer');
-const { error } = require('../utils/response.js');
+const fs = require('fs')
 
 //Middleware
 const {auth} = require('../middlewares/auth.js')
@@ -31,10 +31,42 @@ const status = require('../controllers/House Keeping/C_Status.js')
 const roomChange = require('../controllers/House Keeping/C_RoomChange.js')
 const arrivalDeparture = require('../controllers/House Keeping/C_ArrivalDeparture.js');
 const roomOcc = require('../controllers/House Keeping/C_RoomOCC.js')
-const { route } = require('./R_Login.js');
 const { postStat } = require('../controllers/Front Office/C_FloorPlan.js');
 const { dailyCleaning, amenitiesTask, resetSchedule, postCreate, postCreateRoomMaid, getAll } = require('../controllers/House Keeping/IMPPS/C_RoomMaid.js');
 
+//Start Multer
+const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
+const storage = multer.diskStorage({
+    destination: (_req, _file, cb) => {
+        const path = `public/assets/picker-found/ItemID-${_req.params.id}` 
+        fs.access(path, (err) => {
+            if(err){
+                fs.mkdir(path, err => {
+                    if(err) return cb(err)
+                    cb(null, path)
+                })
+            }else cb(null, path)
+        })
+    },
+    filename: (_req, file, cb) => {
+        crypto.pseudoRandomBytes(16, (_err, raw) => {
+            cb(null, raw.toString('hex') + path.extname(file.originalname))
+        })
+    }
+})
+
+const upload = multer({
+    storage,
+    fileFilter(req, file, cb) {
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            req.fileValidationError = 'Only image file are allowed'
+            cb(null, false)
+            return
+        }
+        cb(null, true)
+    }
+})
+//End Multer
 
 const router = express.Router()
 
@@ -65,7 +97,7 @@ router.delete('/users/:id', user.remove)
 //Start Lost Found
 router.get('/lostfound/', lostFound.findAll)
 
-router.post('/lostfound/:id/:status', auth(['createAdmin']), lostFound.lostFinish)
+router.post('/lostfound/:id/:status', auth(['createAdmin']), upload.any(), lostFound.lostFinish)
 router.put('/lostfound/:id', updateLostFoundValidation, lostFound.update)
 router.delete('/lostfound/:id/:act', lostFound.remove)
 //End Lost Found

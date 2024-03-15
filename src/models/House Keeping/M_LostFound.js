@@ -27,12 +27,12 @@ const select = {
   },
   finished_at: true,
   description: true,
-  user: {
-    select: {
-      name: true,
-      phone: true,
-    }
-  },
+  pickerName: true,
+  pickerEmail: true,
+  pickerContact: true,
+  pickerGender: true,
+  pickerImage: true,
+  ktpImage: true,
   location: true,
   image: true,
 }
@@ -107,14 +107,15 @@ async function all(option) {
               name: true,
             }
           },
+          pickerName: true,
+          pickerContact: true,
+          pickerGender: true,
+          pickerEmail: true,
+          pickerImage: true,
+          ktpImage: true,
+          status: true,
           finished_at: true,
-          description: true,
-          user: {
-            select: {
-              name: true,
-              phone: true,
-            }
-          },
+          description: true,//TODO: MIGRATE WITH DB
           location: true,
           image: true,
         }
@@ -134,8 +135,13 @@ async function all(option) {
         roomNo: lf.roomId,
         pic: lf.pic ? lf.pic.name : '-',
         desc: lf.description,
-        reportedBy: lf.user ? lf.user.name : '-',
-        phoneNumber: lf.user ? lf.user.phone : '-',
+        pickerName: lf.pickerName ? lf.pickerName : "",
+        pickerContact: lf.pickerContact ? lf.pickerContact : "",
+        pickerEmail: lf.pickerEmail ? lf.pickerEmail : "",
+        pickerGender: lf.pickerGender ? lf.pickerGender : "",
+        pickerImage: lf.pickerImage ? lf.pickerImage : "",
+        ktpImage: lf.ktpImage ? lf.ktpImage : "",
+        status: lf.status,
         reportedDate: lf.finished_at != null ? splitDateTime(lf.finished_at).date : '-',
         location: lf.location || '-',
         image: lf.image
@@ -170,9 +176,9 @@ async function all(option) {
  */
 async function create(lostFound, image, sender) {
   try {
+    console.log(lostFound)
     const roomId = lostFound.roomId
     delete lostFound.roomId
-    lostFound.phoneNumber = sender.phone
     return await prisma.lostFound.create({
       data: {
         ...lostFound,
@@ -195,23 +201,25 @@ async function create(lostFound, image, sender) {
   }
 }
 
-const finishLostFound = async (lostFoundId, sender, status) => {
+const finishLostFound = async (lostFoundId, status, body) => {
   let update
   try {
     switch (status) {
       case "FOUND":
         update = {
           finished_at: new Date(),
-          userId: sender.id,
-          phoneNumber: sender.phone
+          ...body
         }
         break;
       default:
         status = "LOST"
         update = {
           finished_at: null,
-          userId: null,
-          phoneNumber: null
+          pickerName: null,
+          pickerEmail: null,
+          pickerGender: null,
+          pickerImage: null,
+          ktpImage: null
         }
         break;
     }

@@ -164,8 +164,6 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 departure.departedToday.room++
                 departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
-            console.log("ARRIVAL ==================",arrival)
-            console.log("DEPARTURE ==================",departure)
             table.push(data)
         })
         sortingList.push({ id: 'room+id+asc', label: "Room Number" })
