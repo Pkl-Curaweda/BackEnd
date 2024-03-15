@@ -216,6 +216,7 @@ const finishLostFound = async (lostFoundId, status, body) => {
         update = {
           finished_at: null,
           pickerName: null,
+          pickerContact: null,
           pickerEmail: null,
           pickerGender: null,
           pickerImage: null,

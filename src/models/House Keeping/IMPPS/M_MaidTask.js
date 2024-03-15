@@ -116,7 +116,7 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
                 break;
             case "CHECKOUT":
                 const room = await prisma.room.findFirst({ where: { deleted: false, id: roomId  }, include: { roomType: true } })
-                assigne = await assignTask([{ action, roomId: room.id, request: "Room just checked out", workload: taskWorkload[`FCLN-${room.roomType.id}`], typeId: `FCLN-${room.roomType.id}`}])
+                assigne = await assignTask([{ action, roomId: room.id, request: `Room ${roomId} just checked out`, workload: taskWorkload[`FCLN-${room.roomType.id}`], typeId: `FCLN-${room.roomType.id}`}])
                 break;
             default:
                 throw Error('No action matched')
