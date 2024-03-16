@@ -26,18 +26,20 @@ const app = express();
 const port = process.env.PORT || 3000;
 const origins = process.env.ALLOWED_ORIGINS || [];
 
+const corsOptions = {
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
+  credentials: true,
+};
+
 //middlewares
 app.use(morgan("combined"));
 app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-app.use(
-  cors({
-    origin: origins.split(","),
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
+
 app.use(
   bodyParser.urlencoded({
     extended: true,
