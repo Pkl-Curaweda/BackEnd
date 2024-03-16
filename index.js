@@ -8,29 +8,23 @@ const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const https = require("https");
 
-// routers
-const R_Login = require("./src/routes/R_Login");
-const R_FrontOffice = require("./src/routes/R_FrontOffice");
-const R_HouseKeeping = require("./src/routes/R_HouseKeeping");
-const R_InRoomService = require("./src/routes/R_InRoomService");
-const R_SA = require("./src/routes/R_SuperAdmin");
-const dashboard = require("./src/models/Front Office/M_Dashboard");
-const R_Notif = require("./src/routes/R_Notification");
-const R_IMPPS = require("./src/routes/R_IMPPS");
-
-const { auth } = require("./src/middlewares/auth");
-const { success, error } = require("./src/utils/response");
-
 //port
 const app = express();
-const port = process.env.PORT || 3000;
-const origins = process.env.ALLOWED_ORIGINS || [];
+const port = process.env.PORT || 3030;
 
+const allowedOrigins = ['https://ihms.curaweda.com'];
 const corsOptions = {
-  origin: "*",
+  origin: function(origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
+
 
 //middlewares
 app.use(morgan("combined"));
@@ -56,6 +50,19 @@ app.use(
 );
 
 // scheduleInvoiceReservation()
+
+// routers
+const R_Login = require("./src/routes/R_Login");
+const R_FrontOffice = require("./src/routes/R_FrontOffice");
+const R_HouseKeeping = require("./src/routes/R_HouseKeeping");
+const R_InRoomService = require("./src/routes/R_InRoomService");
+const R_SA = require("./src/routes/R_SuperAdmin");
+const dashboard = require("./src/models/Front Office/M_Dashboard");
+const R_Notif = require("./src/routes/R_Notification");
+const R_IMPPS = require("./src/routes/R_IMPPS");
+
+const { auth } = require("./src/middlewares/auth");
+const { success, error } = require("./src/utils/response");
 
 //??Start Endpoints
 // app.get("*", checkUser)
