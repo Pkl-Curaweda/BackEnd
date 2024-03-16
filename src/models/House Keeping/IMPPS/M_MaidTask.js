@@ -61,7 +61,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
-            console.log(currentSchedule, workload)
             currentSchedule = formatToSchedule(currentSchedule, workload)
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
             lowestRoomMaidId = choosenMaid.id
@@ -114,6 +113,10 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
                     listTask.push({ action, roomId: room.id, request: "Need to be cleaned", workload: taskWorkload[tt], typeId: tt })
                 }
                 assigne = await assignTask(listTask)
+                break;
+            case "CHECKOUT":
+                const room = await prisma.room.findFirst({ where: { deleted: false, id: roomId  }, include: { roomType: true } })
+                assigne = await assignTask([{ action, roomId: room.id, request: `Room ${roomId} just checked out`, workload: taskWorkload[`FCLN-${room.roomType.id}`], typeId: `FCLN-${room.roomType.id}`}])
                 break;
             default:
                 throw Error('No action matched')
@@ -220,4 +223,4 @@ const updateTask = async (taskId, data) => {
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask }
+module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask }

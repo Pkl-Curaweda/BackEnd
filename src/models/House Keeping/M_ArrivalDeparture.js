@@ -5,7 +5,7 @@ const { prisma } = require("../../../prisma/seeder/config");
 const searchGet = (q) => {
     try {
         const search = q
-        if(parseInt(search) === NaN) return
+        if (parseInt(search) === NaN) return
         return {
             OR: [
                 { idCard: { every: { cardId: { contains: search } } } },
@@ -21,7 +21,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
     let arrival = { checkInToday: { room: 0, person: 0 }, arriving: { room: 0, person: 0 } }, departure = { departedToday: { room: 0, person: 0 }, departing: { room: 0, person: 0 } }, date, sortingList = [];
     try {
         const dateNew = new Date();
-        const currDate =splitDateTime(dateNew.toISOString()).date;
+        const currDate = splitDateTime(dateNew.toISOString()).date;
         if (arr === undefined) arr = currDate
         if (dep === undefined) {
             dep = new Date(arr);
@@ -117,6 +117,7 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 orderBy: so && so.orderQuery
             })
         ])
+        const shownReservation = {}
         let table = [], roomTypes = {}
         reservations.forEach(res => {
             const nik = res.reservation.idCard.length != 1 ? '-' : res.reservation.idCard[0]
@@ -141,31 +142,29 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 roomStatus: res.room.roomStatus,
                 created: splitDateTime(res.created_at).date
             }
-            console.log(currDate)
-            if (res.reservation.checkInDate) {
+            if (res.reservation.checkInDate && shownReservation[res.reservation.id] === undefined) {
                 if (data.arrival === currDate) {
                     console.log(data.arrival)
                     arrival.arriving.room++
                     arrival.arriving.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
-                if (data.departure === currDate) {
+                if (data.departure === currDate && shownReservation[res.reservation.id] === undefined) {
                     console.log(data.departure)
                     departure.departing.room++
                     departure.departing.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
             }
-            if (splitDateTime(res.reservation.checkInDate).date === currDate) {
+            if (splitDateTime(res.reservation.checkInDate).date === currDate && shownReservation[res.reservation.id] === undefined) {
                 console.log('Check IN')
                 arrival.checkInToday.room++
                 arrival.checkInToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
-            if (splitDateTime(res.reservation.checkoutDate).date === currDate) {
+            if (splitDateTime(res.reservation.checkoutDate).date === currDate && shownReservation[res.reservation.id] === undefined) {
                 console.log('Check Out')
                 departure.departedToday.room++
                 departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
-            console.log("ARRIVAL ==================",arrival)
-            console.log("DEPARTURE ==================",departure)
+            shownReservation[res.reservation.id] = 0
             table.push(data)
         })
         sortingList.push({ id: 'room+id+asc', label: "Room Number" })

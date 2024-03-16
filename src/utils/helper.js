@@ -522,11 +522,10 @@ async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
   try {
     const reservationFromRoom = await prisma.resvRoom.findMany({
       where: {
-        deleted: false, roomId, reservation: {
-          AND: [{ onGoingReservation: true, checkoutDate: null }]
-        }
+        deleted: false, roomId
       }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } }
     })
+    console.log(date)
     const dates = generateDateBetweenStartAndEnd(new Date(date.arr), new Date(date.dep))
     for (let date of dates) {
       for (let res of reservationFromRoom) {
@@ -629,6 +628,9 @@ const convertBooleanToHex = (bool) => {
 const convertAmPm = (hour) => {
   return hour > 12 ? hour + " pm" : `${hour.toString().padStart(2, '0')} am`
 }
+
+
+
 
 module.exports = {
   splitDateTime,

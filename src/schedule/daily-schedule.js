@@ -61,3 +61,5 @@ schedule.scheduleJob('invoiceValidator', '* 0 * * *', async () => { //? CHECKING
     const resvRooms = await prisma.resvRoom.findMany({ where: { reservation: { arrivalDate: { gte: currentDate } } }, select: { id: true, reservation: { select: { id: true } } }})
     for(let res of resvRooms) await addNewInvoiceFromArticle([], res.reservation, res.id)
 })
+
+// schedule.scheduleJob('changeStatus', )

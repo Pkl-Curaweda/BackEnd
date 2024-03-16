@@ -1,4 +1,4 @@
-const { UserLogout, UserLogin, GetAllUsers, forceActivateUserByEmail } = require("../models/Authorization/M_User");
+const { UserLogout, UserLogin, GetAllUsers, forceActivateUserByEmail, createQRCode } = require("../models/Authorization/M_User");
 const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken");
@@ -92,6 +92,25 @@ const forceActivate = async (req, res) => {
     }
 }
 
+const createQR = async (req, res) =>  {
+    try{
+        const createdQR = await createQRCode(req.body.email, req.body.password)
+        return success(res, 'QR Created', { downloadInHere: `${process.env.BASE_URL}/auth/user/qr-download/${createdQR}` })
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+
+const downloadQrCodes = async (req, res) => {
+    const { encrypt } = req.params
+    try{
+        const pathToDownload = decrypt(encrypt)
+        return res.download(pathToDownload)
+    }catch(err){
+        return error(res, err.message)
+    }
+}
 
 
-module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, getCurrentUser, forceActivate }
+
+module.exports = { postLogin, getNewUserRefreshToken, postLogout, getAllUsers, downloadQrCodes,getCurrentUser, forceActivate, createQR }
