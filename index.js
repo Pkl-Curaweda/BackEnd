@@ -10,21 +10,23 @@ const https = require("https");
 
 //port
 const app = express();
-const port = process.env.PORT || 3030;
+const port = process.env.PORT || 3000;
 
-const allowedOrigins = ['https://ihms.curaweda.com'];
+const allowedOrigins = [
+  "https://ihms.curaweda.com", //Production
+  // "http://localhost:9000", //Development
+];
 const corsOptions = {
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
-
 
 //middlewares
 app.use(morgan("combined"));
@@ -87,7 +89,6 @@ app.use("/impps", R_IMPPS);
 app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
-
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
 const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
 const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
@@ -97,7 +98,6 @@ const httpsServer = https.createServer(credentials, app);
 httpsServer.listen(port, () => {
   console.log(`HTTPS Server running on port ${port}`);
 });
-
 
 // app.listen(port, () => {
 //   console.log(`Listening to port ${port}`);
