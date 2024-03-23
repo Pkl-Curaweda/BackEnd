@@ -8,7 +8,6 @@ const getData = async (query) => {
     try {
         const roles = await prisma.role.findMany({ where: { NOT: [{ id: 1 }, { id: 2 }], deleted: false }, select: { id: true, name: true, access: true } })
         for (let role of roles) {
-            console.log("============================", role)
             sendedData.listRole.push({
                 id: role.id,
                 name: role.name,
@@ -225,7 +224,6 @@ const editRoleById = async (roleId, body) => {
 
         const roleExist = await prisma.role.findFirstOrThrow({ where: { id: roleId }, select: { id: true } })
         const data = await prisma.role.update({ where: { id: roleExist.id }, data: { name: body.name, defaultPath: body.path, access: body.access } })
-        console.log(data)
         return data
     } catch (err) {
         ThrowError(err)
@@ -236,13 +234,11 @@ const editRoleById = async (roleId, body) => {
 
 const addNewRoomBoy = async (body) => {
     const { userId, shift, aliases, departmentId } = body
-    console.log(userId)
     try {
         const [userExist, shiftExist] = await prisma.$transaction([
             prisma.roomMaid.findFirst({ where: { userId } }),
             prisma.shift.findFirstOrThrow({ where: { id: shift } })
         ])
-        console.log(userExist)
         if (userExist != null) throw Error('User already assign as Maid')
         return await prisma.roomMaid.create({
             data: { shift: { connect: { id: shiftExist.id } }, aliases, user: { connect: { id: userId } }, department: { connect: { id: departmentId } } }

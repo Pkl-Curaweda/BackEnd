@@ -104,7 +104,6 @@ const getChart = async () => {
             const dtName = new Date(dt).toLocaleDateString('en-US', { weekday: 'long' });
             resvChart[dtName] = { ident: dtName.substring(0, 3), ...data };
         }
-        console.log(resvChart)
         hkChart = Object.values(hkChart)
         return { resvChart, hkChart }
     } catch (err) {

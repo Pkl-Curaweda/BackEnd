@@ -35,7 +35,6 @@ const CheckToken = async (type, refreshToken) => {
 const RemoveToken = async (refreshToken) => {
   try {
     console.log('DELETING TOKEN')
-    console.log(refreshToken)
     const [exist, deletedToken] = await prisma.$transaction([
       prisma.userToken.findFirstOrThrow({ where: { refreshToken } }),
       prisma.userToken.delete({ where: { refreshToken } })

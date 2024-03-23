@@ -64,7 +64,6 @@ const createService = async (req, res) => {
   const { id, serviceShown } = req.user
   const { name, price, desc, serviceTypeId, subTypeId } = req.body;
   try {
-    console.log(serviceTypeId, serviceShown)
     const allowToCreate = serviceShown.serviceTypes.some(type => +serviceTypeId === type)
     if(!allowToCreate) throw Error('You cannot create item with this Type')
     const pictureUrl = generateAssetUrl(req.file.filename);

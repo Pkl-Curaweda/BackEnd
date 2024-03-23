@@ -16,7 +16,6 @@ const mainMenuIRSData = async (userData) => {
                 ]
             }, select: { name: true, openHour: true, closeHour: true, path: true, picture: true }
         })
-        console.log(role.name)
         if (role.name != "Admin" && role.name != "Mitra") role.name = "user"
         for (let service of serviceType) {
             listOfMenu.push({

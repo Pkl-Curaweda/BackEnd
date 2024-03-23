@@ -20,6 +20,7 @@ const R_IMPPS = require("./src/routes/R_IMPPS");
 
 const { auth } = require("./src/middlewares/auth");
 const { success, error } = require("./src/utils/response");
+const { runSchedule } = require("./src/schedule/daily-schedule");
 
 //port
 const app = express();
@@ -38,7 +39,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: origins.split(","),
+  credentials: true,
+}));
 
 app.use(
   bodyParser.urlencoded({
@@ -53,10 +57,12 @@ app.use(
       message: "Too many request, please slow down",
     },
   })
-);
+  );
+  
+  //schedule
+  runSchedule()
 
-// scheduleInvoiceReservation()
-
+  
 //??Start Endpoints
 // app.get("*", checkUser)
 app.get("/ping", (req, res) => {
@@ -82,16 +88,16 @@ app.use("/irs", R_InRoomService);
 
 
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-const credentials = { key: privateKey, cert: certificate };
-const httpsServer = https.createServer(credentials, app);
+// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
+// const httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(port, () => {
-  console.log(`HTTPS Server running on port ${port}`);
-});
-
-
-// app.listen(port, () => {
-//   console.log(`Listening to port ${port}`);
+// httpsServer.listen(port, () => {
+//   console.log(`HTTPS Server running on port ${port}`);
 // });
+
+
+app.listen(port, () => {
+  console.log(`Listening to port ${port}`);
+});
