@@ -21,8 +21,11 @@ const ThrowError = (err) => {
 
 const formatToSchedule = (startTime, minutesToAdd) => {
   try {
+    console.log(startTime, minutesToAdd)
     const parsedTime = parse(startTime, 'HH:mm', new Date());
+    console.log(parsedTime)
     const newTime = addMinutes(parsedTime, minutesToAdd);
+    console.log(newTime)
     const formattedTime = format(newTime, 'HH:mm');
     return formattedTime;
   } catch (err) {
@@ -572,9 +575,10 @@ function getTimeDifferenceInMinutes(isoTimestamp1, isoTimestamp2) {
 }
 
 function getMaidPerfomance(minuteFinish, standardMinute) {
-  let percentagesIndex = 0, percentages = [1.4, 1.2, 1, 0.9, 0.8];
+  let percentagesIndex = 5, percentages = [1.4, 1.2, 1, 0.9, 0.8];
   const standardMinuteEntry = percentages.map((factor) => standardMinute * factor);
-  while (minuteFinish < standardMinuteEntry[percentagesIndex]) percentagesIndex++
+  console.log(percentagesIndex)
+  while (minuteFinish < standardMinuteEntry[percentagesIndex]) percentagesIndex--
   return percentagesIndex
 }
 
