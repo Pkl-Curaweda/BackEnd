@@ -504,7 +504,7 @@ const loginPath = (ident) => {
       path = '/fo/super-admin'
       break;
     case "Admin":
-      path = `/`
+      path = `/fo/dashboard`
       break;
     case "Supervisor":
       path = `/hk/spv/dashboard/`
