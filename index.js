@@ -25,10 +25,19 @@ const { runSchedule } = require("./src/schedule/daily-schedule");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
-const origins = process.env.ALLOWED_ORIGINS || [];
 
+const allowedOrigins = [
+  // "https://ihms.curaweda.com", //Production
+  "http://localhost:9000", //Development
+];
 const corsOptions = {
-  origin: "*",
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
@@ -39,12 +48,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-app.use(
-  cors({
-    origin: origins.split(","),
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 
 app.use(
   bodyParser.urlencoded({

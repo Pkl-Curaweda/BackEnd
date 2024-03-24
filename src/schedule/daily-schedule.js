@@ -9,8 +9,6 @@ const { genearateListOfTask } = require('../models/House Keeping/IMPPS/M_MaidTas
         console.log('IMPPS Running......')
         console.log('Generating Task....')
         await genearateListOfTask("DLYCLEAN").then(() => { console.log('Task Successfully Created') })
-    
-    
     })
     
     schedule.scheduleJob('invoiceValidator', '* 0 * * *', async () => { //? CHECKING EVERY RESERVATION INVOICE
