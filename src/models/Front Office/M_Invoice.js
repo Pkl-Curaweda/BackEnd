@@ -365,8 +365,12 @@ const deleteInvoiceData = async (reservationId, resvRoomId, id) => {
   try {
     const [exist, deleted] = await prisma.$transaction([
       prisma.invoice.findFirstOrThrow({ where: { id, resvRoomId } }),
-      prisma.invoice.delete({ where: { id, resvRoomId } })
+      prisma.invoice.delete({ where: { id, resvRoomId }})
     ])
+    if(deleted.articleTypeId){
+      const stocks = await prisma.stock.findFirst({ where:{ articleTypeId: deleted.articleTypeId } })
+      await prisma.stock.update({ where: { articleTypeId: deleted.articleTypeId }, data: { remain: stocks.remain + deleted.qty } })
+    }
     return deleted
   } catch (err) {
     ThrowError(err)
