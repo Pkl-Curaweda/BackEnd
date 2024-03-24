@@ -8,6 +8,23 @@ const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const https = require("https");
 
+<<<<<<< HEAD
+=======
+// routers
+const R_Login = require("./src/routes/R_Login");
+const R_FrontOffice = require("./src/routes/R_FrontOffice");
+const R_HouseKeeping = require("./src/routes/R_HouseKeeping");
+const R_InRoomService = require("./src/routes/R_InRoomService");
+const R_SA = require("./src/routes/R_SuperAdmin");
+const dashboard = require("./src/models/Front Office/M_Dashboard");
+const R_Notif = require("./src/routes/R_Notification");
+const R_IMPPS = require("./src/routes/R_IMPPS");
+
+const { auth } = require("./src/middlewares/auth");
+const { success, error } = require("./src/utils/response");
+const { runSchedule } = require("./src/schedule/daily-schedule");
+
+>>>>>>> 6017d2d7045543389aaa2e6c173b0cffa596a58c
 //port
 const app = express();
 const port = process.env.PORT || 3000;
@@ -34,7 +51,10 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: origins.split(","),
+  credentials: true,
+}));
 
 app.use(
   bodyParser.urlencoded({
@@ -49,10 +69,12 @@ app.use(
       message: "Too many request, please slow down",
     },
   })
-);
+  );
+  
+  //schedule
+  runSchedule()
 
-// scheduleInvoiceReservation()
-
+<<<<<<< HEAD
 // routers
 const R_Login = require("./src/routes/R_Login");
 const R_FrontOffice = require("./src/routes/R_FrontOffice");
@@ -66,6 +88,9 @@ const R_IMPPS = require("./src/routes/R_IMPPS");
 const { auth } = require("./src/middlewares/auth");
 const { success, error } = require("./src/utils/response");
 
+=======
+  
+>>>>>>> 6017d2d7045543389aaa2e6c173b0cffa596a58c
 //??Start Endpoints
 // app.get("*", checkUser)
 app.get("/ping", (req, res) => {
@@ -90,15 +115,25 @@ app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-const credentials = { key: privateKey, cert: certificate };
-const httpsServer = https.createServer(credentials, app);
+// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
+// const httpsServer = https.createServer(credentials, app);
 
+<<<<<<< HEAD
 httpsServer.listen(port, () => {
   console.log(`HTTPS Server running on port ${port}`);
 });
 
 // app.listen(port, () => {
 //   console.log(`Listening to port ${port}`);
+=======
+// httpsServer.listen(port, () => {
+//   console.log(`HTTPS Server running on port ${port}`);
+>>>>>>> 6017d2d7045543389aaa2e6c173b0cffa596a58c
 // });
+
+
+app.listen(port, () => {
+  console.log(`Listening to port ${port}`);
+});

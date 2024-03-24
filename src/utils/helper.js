@@ -525,7 +525,6 @@ async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
         deleted: false, roomId
       }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } }
     })
-    console.log(date)
     const dates = generateDateBetweenStartAndEnd(new Date(date.arr), new Date(date.dep))
     for (let date of dates) {
       for (let res of reservationFromRoom) {

@@ -103,7 +103,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
         let invoice = rs.Invoice.filter(inv => {
           return isDateInRange(new Date(searchDate), new Date(`${inv.created_at.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${inv.created_at.toISOString().split('T')[0]}T23:59:59.999Z`))
         })
-        console.log(payment, invoice)
         for (let pay of payment) totalTax =+ pay.tax
         for (let inv of invoice) totalPayment += (inv.qty * inv.rate)
       }

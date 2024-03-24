@@ -85,7 +85,6 @@ const generateQrRoom = async (email, password) => {
     try {
         const storedData = { email, password }
         const path = `${process.env.QR_PATH}/QR-${email}.png`
-        console.log(path)
         if (!fs.existsSync(path)) {
             const stringfyData = JSON.stringify(storedData);
             const encryptedData = encrypt(stringfyData);

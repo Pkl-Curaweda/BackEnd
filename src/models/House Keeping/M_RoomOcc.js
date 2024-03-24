@@ -152,7 +152,6 @@ const getRoomOccupancyData = async (q) => {
             graph.room += data.room
             graph.person += data.person
         })
-        console.log(percData)
         listOfTypes.push({ id: 'ALL', label: "ALL" })
         return { listOfTypes, currData, percData: { roomPerc, personPerc, graph }, roomStatus }
     } catch (err) {

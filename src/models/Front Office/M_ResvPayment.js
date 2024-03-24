@@ -84,7 +84,6 @@ const paidInvoice = async (invoiceId) => {
 const createResvPayment = async (reservationId, resvRoomId, data) => {
     let paidArticle = [], totalBill = 0, totalTax = 0, { invoices, paidAmount, paymentMethod, useTax } = data
     try {
-        console.log(data)
         await prisma.resvRoom.findFirstOrThrow({ where: { reservationId, id: resvRoomId } });
         for (let dt of invoices) {
             if (useTax != false) totalTax += (dt.amount * 21) / 100 //TODO: NEED TO BE CHANGED

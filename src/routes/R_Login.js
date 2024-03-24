@@ -3,11 +3,12 @@ const { postLogin, postLogout, getNewUserRefreshToken, getAllUsers, getCurrentUs
 const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controllers/C_Guest");
 const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
+const { validateLogin } = require("../validations/login.validation");
 const R_Login = Router();
 
 //User
 R_Login.get("/user", getAllUsers)
-R_Login.post("/user/login/:encryptedData?", postLogin);
+R_Login.post("/user/login/:encryptedData?", validateLogin, postLogin);
 R_Login.post('/user/logout', postLogout);
 R_Login.get("/user/refresh", getNewUserRefreshToken);
 R_Login.get('/user/me', auth(), getCurrentUser);

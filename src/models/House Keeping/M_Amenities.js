@@ -48,11 +48,9 @@ const getAllAmenitiesData = async (art, q) => {
             }
         }
         const total = usedLog.length
-        console.log(page, perPage)
         startIndex = Math.max(0, (+page - 1) * +perPage);
         endIndex = Math.min(usedLog.length - 1, (startIndex + +perPage - 1));
         usedLog = usedLog.slice(startIndex, endIndex + 1)
-        console.log(usedLog)
 
         const lastPage = Math.ceil(total / perPage);
         return {

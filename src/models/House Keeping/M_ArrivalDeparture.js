@@ -144,23 +144,19 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
             }
             if (res.reservation.checkInDate && shownReservation[res.reservation.id] === undefined) {
                 if (data.arrival === currDate) {
-                    console.log(data.arrival)
                     arrival.arriving.room++
                     arrival.arriving.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
                 if (data.departure === currDate && shownReservation[res.reservation.id] === undefined) {
-                    console.log(data.departure)
                     departure.departing.room++
                     departure.departing.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
                 }
             }
             if (splitDateTime(res.reservation.checkInDate).date === currDate && shownReservation[res.reservation.id] === undefined) {
-                console.log('Check IN')
                 arrival.checkInToday.room++
                 arrival.checkInToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
             if (splitDateTime(res.reservation.checkoutDate).date === currDate && shownReservation[res.reservation.id] === undefined) {
-                console.log('Check Out')
                 departure.departedToday.room++
                 departure.departedToday.person += res.reservation.manyAdult + res.reservation.manyBaby + res.reservation.manyChild
             }
@@ -174,7 +170,6 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
         }, {
             id: 'resv+id+asc', label: 'Reservation Number'
         })
-        console.log(sortingList)
         const lastPage = Math.ceil(total / perPage);
         return {
             sortingList,

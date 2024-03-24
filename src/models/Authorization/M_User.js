@@ -5,10 +5,12 @@ const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect } = require("../../utils/helper");
 const { RemoveToken, CreateAndAssignToken, deleteTokenByUserId, deleteAllTokenByUserId } = require("./M_Token");
 const { encrypt } = require('../../utils/encryption');
+const { th } = require('@faker-js/faker');
+const { threadId } = require('worker_threads');
 
 const UserLogin = async (email, password) => {
   try {
-    const user = await prisma.user.findUniqueOrThrow({
+    const user = await prisma.user.findUnique({
       where: { email, deleted: false }, select: {
         id: true,
         name: true,
@@ -30,6 +32,7 @@ const UserLogin = async (email, password) => {
         }
       }
     });
+    if(!user) throw Error('Unregistered Email. Please use registered Email')
     if (!user.canLogin) throw Error('Your account need to be activated, please tell our staff')
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");

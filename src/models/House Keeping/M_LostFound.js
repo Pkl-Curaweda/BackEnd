@@ -176,7 +176,6 @@ async function all(option) {
  */
 async function create(lostFound, image, sender) {
   try {
-    console.log(lostFound)
     const roomId = lostFound.roomId
     delete lostFound.roomId
     return await prisma.lostFound.create({

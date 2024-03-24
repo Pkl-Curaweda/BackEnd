@@ -245,7 +245,6 @@ const addNewSupervisorTask = async (body) => {
     try {
         delete body.roomNo, delete body.maidId
         body.typeId = "SPVTASK"
-        console.log(body, roomNo, maidId)
         const createdTask = await task.createNewMaidTask(maidId, roomNo, body)
         return createdTask
     } catch (err) {
