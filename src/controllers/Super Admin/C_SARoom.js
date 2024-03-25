@@ -53,7 +53,7 @@ const postAddEdit = async (req, res) => {
 const postAddRoom = async (req, res) => {
     const { action } = req.params
     try {
-        if(req.file) req.body.image = process.env.BASE_URL + '/assets/room/' + req.file.filename
+        if(req.file) req.body.image = process.env.BASE_URL + '/assets/lost-found/' + req.file.filename
         const payload = await addEditRoom(req.body, action)
         return success(res, payload.message, payload.data)
     } catch (err) {
