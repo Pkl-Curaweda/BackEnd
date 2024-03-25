@@ -50,8 +50,10 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
             if (currentSchedule === undefined) {
                 if (action === "DLYCLEAN") {
                     currentSchedule = latestTask != null ? latestTask.schedule.split('-')[1] : shift.startTime
+                    currentSchedule = currentSchedule.trim()
                     hours = parseInt(currentSchedule.split(":")[0])
                     minutes = parseInt(currentSchedule.split(":")[1])
+                    console.log(currentSchedule)
                 } else {
                     const { time } = splitDateTime(currentDate.toISOString())
                     hours = time.split(':')[0]
@@ -61,6 +63,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
+            console.log(currentSchedule)
             currentSchedule = formatToSchedule(currentSchedule, workload)
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
             lowestRoomMaidId = choosenMaid.id
@@ -145,10 +148,11 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 if (roomMaid.currentTask != null) throw Error("You need to finish your current task first")
                 if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error("You need to finish your urgent task first")
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", rowColor: "FFFC9B", mainStatus: "ON PROGRESS" } })
-                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
-                message = `Room Maid ${roomMaid.aliases} | Starting new Task`
-                break;
+            updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
+            message = `Room Maid ${roomMaid.aliases} | Starting new Task`
+            break;
             case "end":
+                if (task.endTime != null) throw Error('Task already finished')
                 if (roomMaid.currentTask != taskId && task.startTime === null || roomMaid.urgentTask != taskId && task.startTime === null) throw Error("You cannot end this task, need to be started")
                 const removeTask = roomMaid.currentTask === taskId ? { currentTask: null } : { urgentTask: null }
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { endTime: currentDate, status: "Need to be check", rowColor: "B7E5B4", mainStatus: "CHECKING" } })
@@ -156,6 +160,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
                 messageSend = `Room Maid ${roomMaid.aliases} | Finishing Task`
                 break;
             case "re-clean":
+                if (task.endTime === null) throw Error('Maid still working on this, please wait')
                 if (roomMaid.urgentTask === task.id) throw Error(`You already give this task to ${roomMaid.aliases}`)
                 if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error(`Slown down please, you already give task to ${roomMaid.user.name}`)
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { status: "Re-Clean", mainStatus: "ON PROGRESS", comment: payload.comment, rowColor: "F28585", endTime: null, checkedTime: currentDate }, select: { roomId: true } })

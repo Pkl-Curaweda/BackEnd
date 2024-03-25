@@ -226,6 +226,7 @@ const countTaskPerformance = async (taskId, spvPerformance) => {
         const task = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId }, select: { endTime: true, startTime: true, type: { select: { standardTime: true } } } })
         const minutes = getTimeDifferenceInMinutes(task.startTime, task.endTime)
         const maidPerfomance = getMaidPerfomance(minutes, task.type.standardTime)
+        console.log(spvPerformance, maidPerfomance)
         return parseInt((spvPerformance + maidPerfomance) / 2)
     } catch (err) {
         ThrowError(err)
