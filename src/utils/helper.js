@@ -457,7 +457,7 @@ const getWorkingShifts = async (currentTime) => {
     const restEndTime = getMinutesFromTimeString(shift.restTimeEnd);
     if (!(currentHour >= restStartTime && currentHour < restEndTime)) return currentHour >= shiftStartTime && currentHour < shiftEndTime;
   });
-  return currentShifts;
+  return currentShifts || shifts[0];
 };
 
 const getLowestWorkloadShift = async (currentHourFormat) => {

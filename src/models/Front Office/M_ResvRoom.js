@@ -43,7 +43,7 @@ const createNewResvRoom = async (id, data, user) => {
     const reservation = await prisma.reservation.findFirst({ where: { id } })
     await isRoomAvailable({ arr: reservation.arrivalDate.toISOString(), dep: reservation.departureDate.toISOString() }, data.roomId)
     await isArrangementMatch(data.roomId, data.arrangmentCode)
-    const roomMaid = await getWorkingShifts(new Date())
+    const roomMaid = await getWorkingShifts(new Date()) || 1
     const resvRoom = await prisma.resvRoom.create({
       data: {
         reservation: {
