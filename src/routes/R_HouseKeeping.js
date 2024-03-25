@@ -38,11 +38,11 @@ const { dailyCleaning, amenitiesTask, resetSchedule, postCreate, postCreateRoomM
 const allowedMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp']
 const storage = multer.diskStorage({
     destination: (_req, _file, cb) => {
-        cb(null, `public/assets/picker-found`)
+        cb(null, `public/assets/lost-found`)
     },
     filename: (_req, file, cb) => {
         crypto.pseudoRandomBytes(16, (_err, raw) => {
-            cb(null, raw.toString('hex') + `ItemID-${_req.params.id}` + path.extname(file.originalname))
+            cb(null, raw.toString('hex') + path.extname(file.originalname))
         })
     }
 })
