@@ -88,7 +88,7 @@ function convertFilesToURL(filePath) {
   // Replace backslashes with forward slashes and remove the leading part of the path
   const urlPath = filePath.replace(/\\/g, '/').replace(/^public\//, '');
   // Concatenate with the base URL
-  return `http://localhost:3000/${urlPath}`;
+  return `${process.env.BASE_URL}/${urlPath}`;
 }
 
 module.exports = { findAll, findOne, create, update, remove, lostFinish }
