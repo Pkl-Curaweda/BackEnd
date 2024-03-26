@@ -142,13 +142,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
             }
           },
         },
-        roomMaids: {
-          select: {
-            user: {
-              select: { name: true, picture: true }
-            }
-          }
-        },
         deleted: true,
         reservation: {
           select: {
@@ -186,11 +179,6 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
         }
       },
       orderBy: orderBy && orderBy.orderQuery || { created_at: 'desc' }
-    })
-
-    const roomBoys = await prisma.roomMaid.findMany({
-      where: { deleted: false },
-      select: { user: { select: { name: true } } }
     })
 
     let roomsData = {}, roomTypes = {}, resvStatus = {}
@@ -243,7 +231,7 @@ const getAllReservation = async (sortAndOrder, displayOption, nameQuery, dateQue
       sortingRoomType.options.push(id)
       sortingRoomType.toChange[id] = { col, val }
     }
-    return { sortingRoomNo, sortingRoomType, reservations: Array.from(reservationMap.values()), roomBoys, meta };
+    return { sortingRoomNo, sortingRoomType, reservations: Array.from(reservationMap.values()), meta };
   } catch (err) {
     ThrowError(err);
   } finally {
