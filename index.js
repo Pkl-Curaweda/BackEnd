@@ -38,6 +38,13 @@ const corsOptions = {
       callback(new Error("Not allowed by CORS"));
     }
   },
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
@@ -91,14 +98,14 @@ app.use("/impps", R_IMPPS);
 app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
-// SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
+// // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
 // const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
 // const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
 // const credentials = { key: privateKey, cert: certificate };
 // const httpsServer = https.createServer(credentials, app);
 
 // httpsServer.listen(port, () => {
-//   console.log(HTTPS Server running on port ${port});
+//   console.log(`HTTPS Server running on port ${port}`);
 // });
 
 app.listen(port, () => {
