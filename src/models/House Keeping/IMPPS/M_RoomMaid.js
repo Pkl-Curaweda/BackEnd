@@ -54,7 +54,7 @@ const assignRoomMaid = async (resvRoomId) => {
 
 
 const getRoomMaidTaskById = async (id, q) => {
-    const { page = 1, perPage = 30, history = "false" } = q
+    const { page = 1, perPage = 30, history = "false"} = q
     try {
         const currDate = new Date().toISOString().split('T')[0]
         const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true, user: { select: { name: true } } } })
@@ -79,24 +79,43 @@ const getRoomMaidTaskById = async (id, q) => {
                 actual: true,
                 status: true,
                 type: { select: { standardTime: true, UoM: true } }
-            }, orderBy: { rowColor: 'asc' }, take: +perPage, skip: (page - 1) * perPage
+            }, orderBy: { created_at: 'asc' }, take: +perPage, skip: (page - 1) * perPage
         })
 
         const maidPerfomance = await convertPerfomance(roomMaid.id)
-        const listTask = maidTask.map(mTask => {
-            return {
-                taskId: mTask.id,
-                roomNo: mTask.room.id,
-                roomType: mTask.room.roomType,
-                schedule: mTask.schedule,
-                rowColor: `#${mTask.rowColor}`,
-                standard: `${mTask.customWorkload ? mTask.customWorkload : mTask.type.standardTime} ${mTask.type.UoM}`,
-                actual: `${mTask.actual || 0} ${mTask.UoM}`,
-                remarks: mTask.request ? mTask.request : "-",
-                status: mTask.status ? mTask.status : "-",
-                comments: mTask.comment ? mTask.comment : "-"
-            };
+        let listOfCheckTask = [], listOfTask = []
+        maidTask.forEach((mTask, i)=> {
+            if(mTask.rowColor != "B7E5B4"){
+                listOfTask.push({
+                    priority: i,
+                    taskId: mTask.id,
+                    roomNo: mTask.room.id,
+                    roomType: mTask.room.roomType,
+                    schedule: mTask.schedule,
+                    rowColor: `#${mTask.rowColor}`,
+                    standard: `${mTask.customWorkload ? mTask.customWorkload : mTask.type.standardTime} ${mTask.type.UoM}`,
+                    actual: `${mTask.actual || 0} ${mTask.UoM}`,
+                    remarks: mTask.request ? mTask.request : "-",
+                    status: mTask.status ? mTask.status : "-",
+                    comments: mTask.comment ? mTask.comment : "-"
+                })
+            }else{
+                listOfCheckTask.push({
+                    priority: i,
+                    taskId: mTask.id,
+                    roomNo: mTask.room.id,
+                    roomType: mTask.room.roomType,
+                    schedule: mTask.schedule,
+                    rowColor: `#${mTask.rowColor}`,
+                    standard: `${mTask.customWorkload ? mTask.customWorkload : mTask.type.standardTime} ${mTask.type.UoM}`,
+                    actual: `${mTask.actual || 0} ${mTask.UoM}`,
+                    remarks: mTask.request ? mTask.request : "-",
+                    status: mTask.status ? mTask.status : "-",
+                    comments: mTask.comment ? mTask.comment : "-"
+                })
+            }
         })
+        const listTask = [...listOfTask, ...listOfCheckTask]
         return { maidName: roomMaid.user.name, performance: maidPerfomance, listTask }
     } catch (err) {
         ThrowError(err)

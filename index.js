@@ -7,6 +7,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const https = require("https");
+const http = require('http')
 
 // routers
 const R_Login = require("./src/routes/R_Login");
@@ -25,6 +26,8 @@ const { runSchedule } = require("./src/schedule/daily-schedule");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
+const server = http.createServer(app)
+const io = require('socket.io')(server)
 
 const allowedOrigins = [
   // "https://ihms.curaweda.com", //Production
@@ -56,7 +59,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use(cors(corsOptions));
-
 app.use(
   bodyParser.urlencoded({
     extended: true,
@@ -108,6 +110,7 @@ app.use("/irs", R_InRoomService);
 //   console.log(`HTTPS Server running on port ${port}`);
 // });
 
-app.listen(port, () => {
+// PRODUCTION ONLY
+server.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });

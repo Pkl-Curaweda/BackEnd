@@ -54,7 +54,7 @@ const rooms = [
   },
   {
     id: 105,
-    roomTypeId: "FML",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
@@ -63,7 +63,7 @@ const rooms = [
   },
   {
     id: 106,
-    roomTypeId: "FML",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
@@ -72,7 +72,7 @@ const rooms = [
   },
   {
     id: 107,
-    roomTypeId: "FML",
+    roomTypeId: "STD",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
@@ -81,7 +81,7 @@ const rooms = [
   },
   {
     id: 108,
-    roomTypeId: "STD",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
@@ -90,7 +90,7 @@ const rooms = [
   },
   {
     id: 109,
-    roomTypeId: "STD",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
@@ -99,7 +99,7 @@ const rooms = [
   },
   {
     id: 110,
-    roomTypeId: "STD",
+    roomTypeId: "FML",
     roomImage: "http://localhost:3000/assets/room/room_1.jpg",
     roomStatusId: 1,
     floor: 1,
