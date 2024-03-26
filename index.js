@@ -22,16 +22,16 @@ const R_IMPPS = require("./src/routes/R_IMPPS");
 const { auth } = require("./src/middlewares/auth");
 const { success, error } = require("./src/utils/response");
 const { runSchedule } = require("./src/schedule/daily-schedule");
+const SocketService = require("./src/socket/setup");
 
 //port
 const app = express();
 const port = process.env.PORT || 3000;
 const server = http.createServer(app)
-const io = require('socket.io')(server)
 
 const allowedOrigins = [
   // "https://ihms.curaweda.com", //Production
-  "http://localhost:9000", //Development
+  "http://localhost:9002", //Development
 ];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -51,6 +51,7 @@ const corsOptions = {
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
+
 
 //middlewares
 app.use(morgan("combined"));
@@ -75,7 +76,15 @@ app.use(
 );
 
 //schedule
-runSchedule();
+runSchedule()
+
+//Socket
+const serverSocket = new SocketService(server, {
+  cors: {
+    origin: "http://localhost:9002",
+    credentials: true
+  }
+})
 
 //??Start Endpoints
 // app.get("*", checkUser)
@@ -100,7 +109,7 @@ app.use("/impps", R_IMPPS);
 app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
-// // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
+// SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
 // const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
 // const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
 // const credentials = { key: privateKey, cert: certificate };
@@ -114,3 +123,5 @@ app.use("/irs", R_InRoomService);
 server.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });
+
+module.exports = serverSocket

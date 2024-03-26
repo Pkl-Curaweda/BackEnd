@@ -195,8 +195,6 @@ model ResvRoom {
   roomId           Int?
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
-  roomMaids        RoomMaid?       @relation(fields: [roomMaidId], references: [id])
-  roomMaidId       Int?
   billComment      String?        @db.Text
   voucher          Voucher?       @relation(fields: [voucherId], references: [id])
   voucherId        String?
@@ -384,7 +382,6 @@ model RoomMaid {
   department    Department @relation(fields: [departmentId], references: [id])
   departmentId  Int
   deleted       Boolean    @default(false)
-  ResvRoom      ResvRoom[]
   updated_at    DateTime   @updatedAt
   MaidTask      MaidTask[] @relation("assignTo")
   MaidBefore    MaidTask[] @relation("assignBefore")

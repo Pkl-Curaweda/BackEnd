@@ -8,7 +8,6 @@ const { ResvStatusSeed } = require("./resvStatus.seeder");
 async function ReservationBatchSeed() {
 	// important to seed in order
 	// await ReserverSeed(); //#3
-	await ResvStatusSeed(); // #1
 	await ReservationSeed(); //#4
 	// await ResvRoomSeed(); //#5
 	// await ResvPaymentSeed();

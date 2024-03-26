@@ -13,6 +13,13 @@ const { ShiftSeed } = require("./housekeeping/shift.seeder");
 const { NotificationSeed } = require("./global/notification.seeder");
 const { ThrowError, PrismaDisconnect } = require("../../src/utils/helper");
 const { VoucherSeed } = require("./frontoffice/reservation/voucher.seeder");
+const { specialTreatmentSeed } = require("./frontoffice/specialTreatment.seeder");
+const { ResvStatusSeed } = require("./frontoffice/reservation/resvStatus.seeder");
+const { orderTrackSeed } = require("./inroomservice/frontOffice (Develop)/orderTrack");
+const { paymentMethodSeed } = require("./inroomservice/payment/paymentMethod.seeder");
+const { serviceBatchSeed } = require("./inroomservice/services");
+const { StockSeed } = require("./housekeeping/stock.seeder");
+const { taskTypeSeed } = require("./housekeeping/taskType.seeder");
 
 
 async function main() {
@@ -24,24 +31,32 @@ async function main() {
   await ShiftSeed();
   await articleTypeSeed()
   await roomBatchSeed()
+  await specialTreatmentSeed();
+  await ResvStatusSeed(); // #1
   await NotificationSeed()
   await roomMaidSeed()
+  await orderTrackSeed()
+  await paymentMethodSeed(); // important to seed paymentMethod first before payment
+  await serviceBatchSeed();
+  await StockSeed();
+  await taskTypeSeed();
+
   
   /* front office seeed */
-  await frontOfficeBatchSeed();
+  // await frontOfficeBatchSeed();
   /* front office seeed end */
   
   /* token seeed */
-  await tokenSeed(); // important to seed token after user
+  // await tokenSeed(); // important to seed token after user
 
   /* user seeed end */
 
   /* in room service seeed */
-  await inRoomServiceBatchSeed();
+  // await inRoomServiceBatchSeed();
   /* in room service end */
 
   /*House Keeping seed */
-  await houseKeepingSeed();
+  // await houseKeepingSeed();
 }
 
 main()

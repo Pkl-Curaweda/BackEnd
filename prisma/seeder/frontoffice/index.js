@@ -7,7 +7,6 @@ const { specialTreatmentSeed } = require("./specialTreatment.seeder");
 async function frontOfficeBatchSeed() {
   await ReservationBatchSeed();
   // await roomChangeSeed();
-  await specialTreatmentSeed();
 }
 
 module.exports = { frontOfficeBatchSeed };

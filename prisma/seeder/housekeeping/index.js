@@ -8,9 +8,6 @@ const { StockSeed } = require("./stock.seeder");
 const { taskTypeSeed } = require("./taskType.seeder");
 
 async function houseKeepingSeed() {
-  await StockSeed();
-  await taskTypeSeed();
-  await maidTaskSeed();
   await cleanRoomSeed();
   await dirtyRoomSeed();
   await oooRoomSeed();

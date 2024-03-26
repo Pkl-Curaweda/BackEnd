@@ -168,9 +168,9 @@ const postWaitingList = async (req, res) => {
 }
 
 const postChangeProgress = async (req, res) => {
-  const { reservationId, changeProgress } = req.params
+  const { reservationId, changeProgress } = req.params, { force } = req.query
   try {
-    const changedProgress = await ChangeReservationProgress(parseInt(reservationId), changeProgress);
+    const changedProgress = await ChangeReservationProgress(parseInt(reservationId), changeProgress, force);
     return success(res, changedProgress.message, changedProgress)
   } catch (err) {
     return error(res, err.message)

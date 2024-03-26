@@ -279,6 +279,7 @@ const getDetailById = async (id, reservationId) => {
             manyChild: true,
             arrivalDate: true,
             departureDate: true,
+            checkoutDate: true,
             resvStatus: {
               select: { id: true, description: true },
             },
@@ -474,7 +475,7 @@ const AddWaitingList = async (reservationId, resvRoomId, request) => {
   }
 }
 
-const ChangeReservationProgress = async (id, changeTo) => {
+const ChangeReservationProgress = async (id, changeTo, force = "false") => {
   try {
     let currentStat;
     const reservation = await prisma.reservation.findFirstOrThrow({ where: { id }, select: { id: true, borderColor: true, onGoingReservation: true, checkInDate: true, checkoutDate: true, inHouseIndicator: true, resvRooms: { select: { id: true, roomId: true } } } });
@@ -503,7 +504,7 @@ const ChangeReservationProgress = async (id, changeTo) => {
       case 'checkout':
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
-        await generateBalanceAndTotal({}, reservation.id).then(({ balance }) => { if (balance < 0) throw Error('Balance must be 0 before Check Out') })
+        await generateBalanceAndTotal({}, reservation.id).then(({ balance }) => { if (balance < 0 && force != "true") throw Error('Balance must be 0 before Check Out') })
         for (let room of reservation.resvRooms) {
           await activateDeactivateRoomEmail(room.id, "deactivate")
           await changeRoomStatusByDescription(room.roomId, "VD")

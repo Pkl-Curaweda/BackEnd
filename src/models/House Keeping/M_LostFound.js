@@ -75,18 +75,23 @@ const sortingLostFound = (s) => {
  * @return {Promise<GetAllLostFoundResult>}
  */
 async function all(option) {
-  let graph = { found: 0, lost: 0 }, orderBy
+  let graph = { found: 0, lost: 0 }, orderBy, whereDate = {}
   try {
     let { page = 1, perPage = 5, search = '', searchDate, sortOrder = '' } = option
-    if (searchDate === undefined) searchDate = new Date().toISOString().split('T')[0]
+    if (searchDate != undefined){
+      searchDate = new Date().toISOString().split('T')[0]
+      whereDate = {
+        AND: [
+          { created_at: { gte: `${searchDate}T00:00:00.000Z` } },
+          { created_at: { lte: `${searchDate}T23:59:59.999Z` } },
+        ],
+      }
+    } 
     const where = {
       description: {
         contains: search,
       },
-      AND: [
-        { created_at: { gte: `${searchDate}T00:00:00.000Z` } },
-        { created_at: { lte: `${searchDate}T23:59:59.999Z` } },
-      ],
+      ...whereDate,
       deleted: false,
     }
     orderBy = sortingLostFound(sortOrder)

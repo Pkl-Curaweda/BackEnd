@@ -6,12 +6,9 @@ const { frontOfficeDevelopBatchSeed } = require("./frontOffice (Develop)");
 const { orderTrackSeed } = require("./frontOffice (Develop)/orderTrack");
 async function inRoomServiceBatchSeed() {
   /* service seeed */
-  await orderTrackSeed()
-  await serviceBatchSeed();
   /* service seeed end */
 
   /* payment seeed */
-  await paymentMethodSeed(); // important to seed paymentMethod first before payment
   await paymentSeed();
   /* payment seeed end */
   await frontOfficeDevelopBatchSeed()
