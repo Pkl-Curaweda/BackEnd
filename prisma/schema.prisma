@@ -179,7 +179,7 @@ model SpecialTreatment {
 
 model ResvStatus {
   id          Int           @id @default(autoincrement())
-  description String
+description String
   rowColor    String
   textColor   String
   reservation Reservation[]
@@ -195,8 +195,8 @@ model ResvRoom {
   roomId           Int?
   arrangment       ArrangmentCode @relation(fields: [arrangmentCodeId], references: [id])
   arrangmentCodeId String
-  roomMaids        RoomMaid       @relation(fields: [roomMaidId], references: [id])
-  roomMaidId       Int
+  roomMaids        RoomMaid?       @relation(fields: [roomMaidId], references: [id])
+  roomMaidId       Int?
   billComment      String?        @db.Text
   voucher          Voucher?       @relation(fields: [voucherId], references: [id])
   voucherId        String?

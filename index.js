@@ -7,6 +7,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const https = require("https");
+const http = require('http')
 
 // routers
 const R_Login = require("./src/routes/R_Login");
@@ -25,10 +26,12 @@ const { runSchedule } = require("./src/schedule/daily-schedule");
 //port
 const app = express();
 const port = process.env.PORT || 3000;
+const server = http.createServer(app)
+const io = require('socket.io')(server)
 
 const allowedOrigins = [
-  "https://ihms.curaweda.com", //Production
-  // "http://localhost:9000", //Development
+  // "https://ihms.curaweda.com", //Production
+  "http://localhost:9000", //Development
 ];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -57,7 +60,6 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
 app.use(cors(corsOptions));
-
 app.use(
   bodyParser.urlencoded({
     extended: true,
@@ -71,12 +73,16 @@ app.use(
       message: "Too many request, please slow down",
     },
   })
-  );
-  
-  //schedule
-  runSchedule()
+);
 
-  
+//schedule
+runSchedule()
+
+//Socket
+io.on('connection', (socket) => {
+  console.log('A user connected')
+})
+
 //??Start Endpoints
 // app.get("*", checkUser)
 app.get("/ping", (req, res) => {
@@ -101,15 +107,16 @@ app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-const credentials = { key: privateKey, cert: certificate };
-const httpsServer = https.createServer(credentials, app);
+// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
+// const httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(port, () => {
-  console.log(`HTTPS Server running on port ${port}`);
-});
+// httpsServer.listen(port, () => {
+//   console.log(`HTTPS Server running on port ${port}`);
+// });
 
-app.listen(port, () => {
+// PRODUCTION ONLY
+server.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });

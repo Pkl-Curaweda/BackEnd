@@ -4,6 +4,7 @@ const { ThrowError, PrismaDisconnect, formatToSchedule, splitDateTime, getWorkin
 const { createNotification } = require("../../Authorization/M_Notitication")
 const { countTaskPerformance, countActual, resetRoomMaid, isRoomMaid } = require("./M_RoomMaid")
 const { warnEnvConflicts } = require("@prisma/client/runtime/library")
+const { th } = require("@faker-js/faker")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
@@ -63,7 +64,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
                 currentDate.setHours(hours);
                 currentDate.setMinutes(minutes);
             } previousSchedule = currentSchedule
-            console.log(currentSchedule)
             currentSchedule = formatToSchedule(currentSchedule, workload)
             const choosenMaid = await getLowestWorkloadShift(currentSchedule)
             lowestRoomMaidId = choosenMaid.id
@@ -118,8 +118,8 @@ const genearateListOfTask = async (action, roomId, request, article, articleQty)
                 assigne = await assignTask(listTask)
                 break;
             case "CHECKOUT":
-                const room = await prisma.room.findFirst({ where: { deleted: false, id: roomId  }, include: { roomType: true } })
-                assigne = await assignTask([{ action, roomId: room.id, request: `Room ${roomId} just checked out`, workload: taskWorkload[`FCLN-${room.roomType.id}`], typeId: `FCLN-${room.roomType.id}`}])
+                const room = await prisma.room.findFirst({ where: { deleted: false, id: roomId }, include: { roomType: true } })
+                assigne = await assignTask([{ action, roomId: room.id, request: `Room ${roomId} just checked out`, workload: taskWorkload[`FCLN-${room.roomType.id}`], typeId: `FCLN-${room.roomType.id}` }])
                 break;
             default:
                 throw Error('No action matched')
@@ -140,18 +140,21 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
         const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id: maidId }, include: { user: true } })
         if (task.roomMaidId != maidId) throw Error(`Task not assigned to ${roomMaid.aliases}`)
         const currentDate = new Date().toISOString()
+        const awaitedTask = await checkTaskSequence(task.id, task.created_at, task.roomMaidId)
         if (task.finished != false) throw Error('Task already finished')
         switch (action) {
             case "start":
+                if (awaitedTask > 0) throw Error(`${awaitedTask} Need to be finished, before starting this task`)
                 if (task.endTime != null) throw Error('This task needed to be checked first')
                 if (roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
                 if (roomMaid.currentTask != null) throw Error("You need to finish your current task first")
                 if (roomMaid.urgentTask != null && roomMaid.urgentTask != taskId) throw Error("You need to finish your urgent task first")
                 updateTask = await prisma.maidTask.update({ where: { id: taskId }, data: { startTime: currentDate, status: "Working on it", rowColor: "FFFC9B", mainStatus: "ON PROGRESS" } })
-            updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
-            message = `Room Maid ${roomMaid.aliases} | Starting new Task`
-            break;
+                updateMaid = await prisma.roomMaid.update({ where: { id: maidId }, data: { currentTask: taskId } })
+                message = `Room Maid ${roomMaid.aliases} | Starting new Task`
+                break;
             case "end":
+                if (awaitedTask > 0) throw Error(`${awaitedTask} Need to be finished, before starting this task`)
                 if (task.endTime != null) throw Error('Task already finished')
                 if (roomMaid.currentTask != taskId && task.startTime === null || roomMaid.urgentTask != taskId && task.startTime === null) throw Error("You cannot end this task, need to be started")
                 const removeTask = roomMaid.currentTask === taskId ? { currentTask: null } : { urgentTask: null }
@@ -218,6 +221,26 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
     }
 }
 
+const checkTaskSequence = async (id, created, maidId) => {
+    try {
+        const task = await prisma.maidTask.count({
+            where: {
+                NOT: { id},
+                roomMaidId: maidId,
+                startTime: null,
+                endTime: null,
+                AND: [
+                    { created_at: { gte: `${splitDateTime(created).date}T00:00:00.000Z` } },
+                    { created_at: { lte: created } }
+                ]
+            }
+        })
+        return task
+    } catch (err) {
+        ThrowError(err)
+    }
+}
+
 const updateTask = async (taskId, data) => {
     try {
         const exist = await prisma.maidTask.findFirstOrThrow({ where: { id: taskId } })
@@ -228,4 +251,4 @@ const updateTask = async (taskId, data) => {
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask }
+module.exports = { genearateListOfTask, checkTaskSequence, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask }

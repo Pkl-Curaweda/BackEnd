@@ -28,7 +28,7 @@ const roles = [
       showAdmin: true,
       createAdmin: true
     },
-    defaultPath: '/',
+    defaultPath: '/fo/dashboard',
     created_at: new Date(),
     updated_at: new Date(),
   },
