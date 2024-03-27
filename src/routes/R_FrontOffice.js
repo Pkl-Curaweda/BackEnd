@@ -3,7 +3,7 @@ const { getArrivalGuestData, putChangeTreatment } = require("../controllers/Fron
 const { getFloorPlan, postStat, getFloorPLanDetail } = require("../controllers/Front Office/C_FloorPlan");
 const { CreateLog, getFilterRoomAvail, getRoomAvailability } = require("../controllers/Front Office/C_RoomAvailability");
 const { getAllReport, getReportPDF, postReportPDF } = require("../controllers/Front Office/C_Report");
-const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF } = require("../controllers/Front Office/C_Invoice");
+const { getInvoice, getSummary, getInvoicePDF, postNewInvoice, getPrintData, postNewPayment, postInvoicePDF, checkInvoiceBill } = require("../controllers/Front Office/C_Invoice");
 const { getHelperDetail, postHelperDetail, putNewReservationData, deleteReservation, getReportDetail, getInvoiceDetail, getPreviousCard, putNewInvoiceData, deleteInvoice, getCheckerRoom } = require("../controllers/Front Office/C_Detail");
 const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
@@ -13,6 +13,8 @@ const voucher = require('../controllers/Front Office/C_Voucher');
 const { createReservationValidation, validateCreateReservation } = require("../validations/Front Office/reservation.validation");
 
 R_FrontOffice.use(auth(['showAdmin']))
+//?CHECKER
+R_FrontOffice.get("/check-invoice/:reservationId/:resvRoomId", checkInvoiceBill)
 
 //?DETAIL RESERVATION
 R_FrontOffice.get("/detail/reservation/:reservationId/idcard", getPreviousCard);
@@ -20,7 +22,7 @@ R_FrontOffice.get("/detail/reservation/:reservationId/:resvRoomId/:action?", get
 R_FrontOffice.get("/detail/report/", getReportDetail);
 R_FrontOffice.get('/detail/checker/room', getCheckerRoom);
 R_FrontOffice.get("/detail/invoice/:reservationId/:resvRoomId", getInvoiceDetail);
-R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", auth(['createAdmin']) ,putNewInvoiceData)
+R_FrontOffice.put("/detail/invoice/:reservationId/:resvRoomId", auth(['createAdmin']), putNewInvoiceData)
 R_FrontOffice.post("/detail/reservation/:reservationId/:resvRoomId/:action/:changeProgress?", auth(['createAdmin']), postHelperDetail);
 R_FrontOffice.put("/detail/reservation/:reservationId/:resvRoomId/edit", auth(['createAdmin']), putNewReservationData);
 R_FrontOffice.delete("/detail/invoice/:reservationId/:resvRoomId/delete", auth(['createAdmin']), deleteInvoice);

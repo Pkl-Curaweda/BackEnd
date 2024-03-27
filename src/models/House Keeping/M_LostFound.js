@@ -79,14 +79,13 @@ async function all(option) {
   try {
     let { page = 1, perPage = 5, search = '', searchDate, sortOrder = '' } = option
     if (searchDate != undefined){
-      searchDate = new Date().toISOString().split('T')[0]
       whereDate = {
         AND: [
           { created_at: { gte: `${searchDate}T00:00:00.000Z` } },
           { created_at: { lte: `${searchDate}T23:59:59.999Z` } },
         ],
       }
-    } 
+    }
     const where = {
       description: {
         contains: search,

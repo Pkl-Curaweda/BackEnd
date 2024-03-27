@@ -1,4 +1,4 @@
-const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice, addNewInvoiceFromArticle, addNewInvoiceFromOrder } = require("../../models/Front Office/M_Invoice");
+const { GetInvoiceByResvRoomId, printInvoice, addNewInvoice, addNewInvoiceFromArticle, addNewInvoiceFromOrder, checkInvoiceRoom } = require("../../models/Front Office/M_Invoice");
 const { getBillingSummary, createResvPayment } = require("../../models/Front Office/M_ResvPayment");
 const { error, success } = require("../../utils/response");
 
@@ -56,4 +56,13 @@ const getPrintData = async (req, res) => {
   }
 }
 
-module.exports = { getInvoice, getSummary, postNewInvoice, getPrintData, postNewPayment };
+const checkInvoiceBill = async(req, res, next) => {
+  const { reservationId, resvRoomId } = req.params;
+  try{
+    await checkInvoiceRoom(+resvRoomId)
+    return success(res, 'Bill Valid')
+  }catch(err){
+    return error(res, err.message)
+  }
+}
+module.exports = { getInvoice, getSummary, postNewInvoice, getPrintData, postNewPayment, checkInvoiceBill };
