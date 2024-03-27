@@ -109,4 +109,4 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
 };
 
 
-module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken, deleteAllTokenByUserId};
+module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken, deleteAllTokenByUserId, deleteAllTokenByRoleId};

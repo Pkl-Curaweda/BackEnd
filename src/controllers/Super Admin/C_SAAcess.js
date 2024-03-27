@@ -2,6 +2,7 @@ const { prisma } = require("../../../prisma/seeder/config")
 const { error, success } = require("../../utils/response")
 const modelSAAcess = require('../../models/Super Admin/M_SAAccess')
 const { getEditArrangmentHelper, getAddArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
+const { deleteAllTokenByRoleId, deleteAllTokenByUserId } = require("../../models/Authorization/M_Token")
 
 const get = async (req, res) => {
     try {
@@ -17,9 +18,10 @@ const logoutAlToken = async (req, res) => {
     try {
         switch (type) {
             case "role":
+                await deleteAllTokenByRoleId(+id)
                 break;
             default:
-
+                await deleteAllTokenByUserId(+id)
                 break;
         }
         return success(res, 'Token removed, logout success')
