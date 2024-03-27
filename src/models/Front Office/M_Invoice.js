@@ -118,7 +118,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
     return {
       invoices,
       added: {
-        roomBoys: resvRoom.roomMaids.user.name,
         voucherNo: resvRoom.voucherId || '-'
       },
       artList,
@@ -428,6 +427,7 @@ module.exports = {
   printInvoice,
   addNewInvoiceFromOrder,
   putInvoiceData,
+  checkInvoiceRoom,
   addNewInvoiceFromArticle,
   deleteInvoiceData
 };

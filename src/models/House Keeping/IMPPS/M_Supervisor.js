@@ -89,7 +89,7 @@ const helperAddTask = async (query) => {
                 id: room.id,
                 image: room.roomImage,
                 type: room.roomTypeId,
-                workload: room.resvRooms.length < 1 ? (await prisma.taskType.findFirstOrThrow({ where: { id: `CLN` } })).standardTime : (await prisma.taskType.findFirstOrThrow({ where: { id: `FCLN-${room.roomType.longDesc}` } })).standardTime
+                workload: room.resvRooms.length < 1 ? (await prisma.taskType.findFirstOrThrow({ where: { id: `CLN` } })).standardTime : (await prisma.taskType.findFirstOrThrow({ where: { id: `FCLN-${room.roomType.id}` } })).standardTime
             }
         }
 

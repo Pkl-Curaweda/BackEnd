@@ -193,8 +193,13 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
 }
 
 const createNewMaidTask = async (roomMaidId, roomId, data) => {
+    let { time } = splitDateTime(new Date().toISOString())
     try {
-        const { time } = splitDateTime(new Date().toISOString())
+        const latestTaskFromMaid = await getAllToday({ roomMaidId }, { schedule: true }, { created_at: 'desc' })
+        if(latestTaskFromMaid.length > 0){
+            time = latestTaskFromMaid[0].schedule.split('-')[1]
+            time = time.trim()
+        } 
         const [hours, minutes] = time.split(':')
         const currentTime = `${hours}:${minutes}`
         const [roomMaid, room] = await prisma.$transaction([

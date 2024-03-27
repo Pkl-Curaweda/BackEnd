@@ -269,6 +269,7 @@ const getDetailById = async (id, reservationId) => {
             arrivalDate: true,
             departureDate: true,
             checkoutDate: true,
+            checkInDate: true,
             resvStatus: {
               select: { id: true, description: true },
             },
@@ -590,6 +591,6 @@ module.exports = {
   AddWaitingList,
   orderReservationByIdentifier,
   changeSpecialTreatment,
-  checkCurrentStatus,
+checkCurrentStatus,
   GetPreviousIdCard
 };
