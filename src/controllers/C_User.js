@@ -1,4 +1,4 @@
-const { UserLogout, UserLogin, GetAllUsers, forceActivateUserByEmail, createQRCode } = require("../models/Authorization/M_User");
+const { UserLogout, UserLogin, GetAllUsers, forceActivateUserByEmail, createQRCode, changePassword } = require("../models/Authorization/M_User");
 const { RefreshToken } = require("../models/Authorization/M_Token");
 const { error, success } = require("../utils/response");
 const jwt = require("jsonwebtoken");

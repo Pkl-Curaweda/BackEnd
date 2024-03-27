@@ -119,6 +119,17 @@ const putEditRoomBoy = async (req, res) => {
     }
 }
 
+const postChangePassword = async (req, res) => {
+    let { password, email } = req.body
+    try{
+        await changePassword(email, password)
+        return success(res, 'Password Successfully Changed')
+    }catch(err){
+        return error(res, err.message)
+    }
+}
+
+
 const deleteData = async (req, res) => {
     let { ident, id } = req.params, deleted
     try {
@@ -141,4 +152,4 @@ const deleteData = async (req, res) => {
     }
 }
 
-module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, postAddEditUser, logoutAlToken, getHelper, deleteData }
+module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postChangePassword, postNewRoomBoy, putEditRoomBoy, postAddEditUser, logoutAlToken, getHelper, deleteData }

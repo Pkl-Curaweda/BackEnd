@@ -68,6 +68,7 @@ R_SA.post('/access/role', SAAccess.postNewRole)
 //     next()
 // }, SAAccess.postNewUser)
 R_SA.post('/access/rb/', SAAccess.postNewRoomBoy)
+R_SA.post('/access/change-password', SAAccess.postChangePassword)
 R_SA.put('/access/rb/:id', SAAccess.putEditRoomBoy)
 R_SA.put('/access/role/:id', SAAccess.putEditRole)
 R_SA.post('/access/user/:action/:id?', upload.single('picture'), (req, res, next) => {
