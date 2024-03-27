@@ -234,7 +234,7 @@ const checkTaskSequence = async (id, created, maidId) => {
                 roomMaidId: maidId,
                 startTime: null,
                 endTime: null,
-                AND: [
+            AND: [
                     { created_at: { gte: `${splitDateTime(created).date}T00:00:00.000Z` } },
                     { created_at: { lte: created } }
                 ]
@@ -243,6 +243,20 @@ const checkTaskSequence = async (id, created, maidId) => {
         return task
     } catch (err) {
         ThrowError(err)
+    }
+}
+
+const deleteCheckoutTask = async (roomId) => {
+    try{
+        const currentDate = splitDateTime(new Date().toISOString()).date
+        const task = await prisma.maidTask.findFirst({ where: { roomId, request: `Room ${roomId} just checked out`, AND: [
+            {created_at: { gte: `${currentDate}T00:00:00.00Z` }},
+            {created_at: { lte: `${currentDate}23:59:59.999Z` }}
+        ] } })
+        if(task) await prisma.maidTask.delete({ where: { id: task.id } })
+        return task
+    }catch(err){
+
     }
 }
 
@@ -256,4 +270,4 @@ const updateTask = async (taskId, data) => {
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, checkTaskSequence, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask }
+module.exports = { genearateListOfTask, checkTaskSequence, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask, deleteCheckoutTask }

@@ -1,7 +1,7 @@
 const { prisma } = require("../../../prisma/seeder/config.js");
 const { GetInvoiceDetailByArt, putInvoiceData, deleteInvoiceData } = require("../../models/Front Office/M_Invoice.js");
 const { getReportDetailData } = require("../../models/Front Office/M_Report.js");
-const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard, AddWaitingList, roomAvailableChecker } = require("../../models/Front Office/M_Reservation.js");
+const { editReservation, CreateNewReservation, deleteReservationById, getDetailById, DetailCreateReservationHelper, ChangeReservationProgress, AddNewIdCard, GetPreviousIdCard, AddWaitingList, roomAvailableChecker, reverseCheckIn } = require("../../models/Front Office/M_Reservation.js");
 const { createNewResvRoom } = require("../../models/Front Office/M_ResvRoom.js");
 const { assignTask } = require("../../models/House Keeping/IMPPS/M_MaidTask.js");
 const { ChangeRoom } = require("../../models/House Keeping/M_RoomChange.js");
@@ -15,6 +15,9 @@ const getHelperDetail = (req, res) => {
       break;
     case "edit":
       getEditReservationHelper(req, res);
+      break;
+    case "reset-checkin":
+      getReverseCheckIn(req, res)
       break;
     default:
       getDetailData(req, res);
@@ -61,10 +64,10 @@ const getDetailData = async (req, res) => {
 }
 
 const getCheckerRoom = async (req, res) => {
-  try{
+  try {
     await roomAvailableChecker(req.query)
     return success(res, 'Room Available')
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -101,7 +104,7 @@ const getReportDetail = async (req, res) => {
 }
 
 const getInvoiceDetail = async (req, res) => {
-  const { reservationId, resvRoomId} = req.params;
+  const { reservationId, resvRoomId } = req.params;
   const { ids } = req.query;
   try {
     const detail = await GetInvoiceDetailByArt(parseInt(reservationId), parseInt(resvRoomId), +ids)
@@ -126,7 +129,7 @@ const postNewReservation = async (req, res) => {
   const body = req.body;
   try {
     const reservation = await CreateNewReservation(body, req.user);
-    const message = reservation.createdResvRoom.voucherMessage !=  undefined ? `${reservation.createdResvRoom.voucherMessage}, but Reservation Created Successfully` : `Created Successfully with Id ${reservation.createdReservation.id}`
+    const message = reservation.createdResvRoom.voucherMessage != undefined ? `${reservation.createdResvRoom.voucherMessage}, but Reservation Created Successfully` : `Created Successfully with Id ${reservation.createdReservation.id}`
     return success(res, message, reservation);
   } catch (err) {
     return error(res, err.message);
@@ -156,13 +159,23 @@ const postChangeRoom = async (req, res) => {
   }
 };
 
+const getReverseCheckIn = async (req, res) => {
+  const { resvRoomId, reservationId } = req.params;
+  try {
+    const data = await reverseCheckIn(reservationId)
+    return success(res, 'Reservation back to Check In', data)
+  } catch (err) {
+    return error(res, err.message)
+  }
+}
+
 const postWaitingList = async (req, res) => {
-  const { reservationId, resvRoomId} = req.params
+  const { reservationId, resvRoomId } = req.params
   const { request } = req.body
-  try{
+  try {
     const task = await AddWaitingList(reservationId, resvRoomId, request)
     return success(res, 'Request successfully received', task)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -207,10 +220,10 @@ const putNewInvoiceData = async (req, res) => {
   const { ids } = req.query;
   const [id, uniqueId] = ids.split('-');
   const body = req.body
-  try{
+  try {
     const updatedData = await putInvoiceData(parseInt(reservationId), parseInt(resvRoomId), { date, id: parseInt(id), uniqueId: parseInt(uniqueId) }, body)
     return success(res, '', updatedData)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -230,10 +243,10 @@ const deleteReservation = async (req, res) => {
 const deleteInvoice = async (req, res) => {
   const { reservationId, resvRoomId } = req.params
   const { ids } = req.query
-  try{
+  try {
     const deleted = await deleteInvoiceData(+reservationId, +resvRoomId, +ids)
     return success(res, 'Invoice Successfully Deleted', deleted)
-  }catch(err){
+  } catch (err) {
     return error(res, err.message)
   }
 }
@@ -243,6 +256,7 @@ module.exports = {
   getHelperDetail,
   postHelperDetail,
   putNewReservationData,
+  getReverseCheckIn,
   deleteReservation,
   getCheckerRoom,
   getReportDetail,

@@ -32,7 +32,7 @@ const UserLogin = async (email, password) => {
         }
       }
     });
-    if(!user) throw Error('Unregistered Email. Please use registered Email')
+    if (!user) throw Error('Unregistered Email. Please use registered Email')
     if (!user.canLogin) throw Error('Your account need to be activated, please tell our staff')
     const auth = await bcrypt.compare(password, user.password);
     if (!auth) throw Error("Wrong Password");
@@ -127,25 +127,43 @@ const activateDeactivateRoomEmail = async (resvRoomId, act) => {
   }
 }
 
+const changePassword = async (email, newPassword) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email, deleted: false }, select: { id: true, password: true}
+    });
+    if (!user) throw Error('Unregistered Email. Please use registered Email')
+    if(bcrypt.compare(newPassword, password)) throw Error('Password is the same as the previous')
+    
+    const salt = bcrypt.genSalt()
+    newPassword = bcrypt.hash(newPassword, salt)
+    return await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } })
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
 const createQRCode = async (email, password) => {
-  try{
+  try {
     const storedData = { email, password }
     const exist = await prisma.user.findFirstOrThrow({ where: { email } })
     const match = await bcrypt.compare(password, exist.password)
-    if(!match) throw Error('Wrong Password')
+    if (!match) throw Error('Wrong Password')
     const path = `${process.env.QR_PATH}/QR-${email}.png`
     if (!fs.existsSync(path)) {
-        const stringfyData = JSON.stringify(storedData);
-        const encryptedData = encrypt(stringfyData);
-        const storedQR = encryptedData;
-        qr.toFile(path, storedQR, (err) => {
-            if (err) console.log(err);
-        });
+      const stringfyData = JSON.stringify(storedData);
+      const encryptedData = encrypt(stringfyData);
+      const storedQR = encryptedData;
+      qr.toFile(path, storedQR, (err) => {
+        if (err) console.log(err);
+      });
     }
     return encrypt(path)
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{ await PrismaDisconnect() }
+  } finally { await PrismaDisconnect() }
 }
 
 const select = {
@@ -264,4 +282,4 @@ async function remove(id) {
 }
 
 
-module.exports = { UserLogin, UserLogout, GetAllUsers, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail, forceActivateUserByEmail, createQRCode };
+module.exports = { UserLogin, UserLogout, GetAllUsers, changePassword, all, get, create, update, remove, forbiddenToLogin, activateDeactivateRoomEmail, forceActivateUserByEmail, createQRCode };

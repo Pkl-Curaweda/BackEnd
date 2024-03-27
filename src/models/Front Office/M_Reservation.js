@@ -6,7 +6,7 @@ const { createNewResvRoom, deleteResvRoomByReservationId } = require("./M_ResvRo
 const { getAllAvailableRoom, changeRoomStatusByDescription, changeOccupied } = require("../House Keeping/M_Room");
 const { encrypt } = require("../../utils/encryption");
 const { assignRoomMaid } = require("../House Keeping/IMPPS/M_RoomMaid");
-const { genearateListOfTask, createNewMaidTask, assignTask } = require("../House Keeping/IMPPS/M_MaidTask");
+const { genearateListOfTask, createNewMaidTask, assignTask, deleteCheckoutTask } = require("../House Keeping/IMPPS/M_MaidTask");
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { activateRoomEmail, activateDeactivateRoomEmail } = require("../Authorization/M_User");
@@ -495,14 +495,14 @@ const ChangeReservationProgress = async (id, changeTo, force = "false") => {
         progressIndex = 2
         if (oldBorderColor === progressColor[0]) throw Error("Reservation hasn't Check In yet")
         await generateBalanceAndTotal({}, reservation.id).then(({ balance }) => { if (balance < 0 && force != "true") throw Error('Balance must be 0 before Check Out') })
+        currentStat = await checkCurrentStatus(id)
+        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         for (let room of reservation.resvRooms) {
           await activateDeactivateRoomEmail(room.id, "deactivate")
           await changeRoomStatusByDescription(room.roomId, "VD")
           await changeOccupied(room.roomId, false)
           await genearateListOfTask("CHECKOUT", room.roomId)
         }
-        currentStat = await checkCurrentStatus(id)
-        if (currentStat != 1) throw Error("Status aren't Guaranteed")
         reservation.checkoutDate = currentDate
         break;
       default:
@@ -578,9 +578,28 @@ const roomAvailableChecker = async (query) => {
   }
 }
 
+const reverseCheckIn = async (reservationId) => {
+  try {
+    const { resvRooms } = await prisma.reservation.findFirstOrThrow({ where: { id: +reservationId }, include: { resvRooms: true }})
+    for(let room of resvRooms){
+      await activateDeactivateRoomEmail(room.id, "activate")
+      await changeRoomStatusByDescription(room.roomId, "OC")
+      await changeOccupied(room.roomId, true)
+      await deleteCheckoutTask(room.roomId)
+    }
+    return await prisma.reservation.update({ where: { borderColor: "#fffc06", onGoingReservation: true, inHouseIndicator: true, checkoutDate: null } })
+
+  } catch (err) {
+    ThrowError(err)
+  } finally {
+    await PrismaDisconnect()
+  }
+}
+
 module.exports = {
   getAllReservation,
   getDetailById,
+  reverseCheckIn,
   deleteReservationById,
   CreateNewReservation,
   editReservation,
@@ -591,6 +610,6 @@ module.exports = {
   AddWaitingList,
   orderReservationByIdentifier,
   changeSpecialTreatment,
-checkCurrentStatus,
+  checkCurrentStatus,
   GetPreviousIdCard
 };
