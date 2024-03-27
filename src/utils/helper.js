@@ -521,11 +521,11 @@ const loginPath = (ident) => {
   return path
 }
 
-async function isRoomAvailable(date = { arr: '', dep: '' }, roomId) {
+async function isRoomAvailable(date = { arr: '', dep: '' }, roomId, id) {
   try {
     const reservationFromRoom = await prisma.resvRoom.findMany({
       where: {
-        deleted: false, roomId
+        deleted: false, roomId, ...(id && { NOT: { id } })
       }, select: { reservation: { select: { arrivalDate: true, departureDate: true } } }
     })
     const dates = generateDateBetweenStartAndEnd(new Date(date.arr), new Date(date.dep))

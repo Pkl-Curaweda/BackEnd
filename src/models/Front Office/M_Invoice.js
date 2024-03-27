@@ -47,7 +47,6 @@ const GetInvoiceByResvRoomId = async (reservationId, resvRoomId, sortIdentifier,
           },
         },
         voucherId: true,
-        roomMaids: { select: { user: { select: { name: true } } } },
         reservation: {
           select: {
             arrivalDate: true,

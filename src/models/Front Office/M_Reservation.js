@@ -10,6 +10,7 @@ const { genearateListOfTask, createNewMaidTask, assignTask } = require("../House
 const { isVoucherValid, setVoucher } = require("./M_Voucher");
 const { addNewInvoiceFromArticle } = require("./M_Invoice");
 const { activateRoomEmail, activateDeactivateRoomEmail } = require("../Authorization/M_User");
+const io = require("../../..");
 
 const orderReservationByIdentifier = (sortAndOrder) => {
   let query = { orderQuery: undefined, whereQuery: undefined };
@@ -563,12 +564,12 @@ const changeSpecialTreatment = async (reservationId, specialTreatmentId) => {
 }
 
 const roomAvailableChecker = async (query) => {
-  let { roomId, range } = query
+  let { roomId, range, id } = query
   try {
     let [arr, dep] = range.split('T')
     arr = arr.replace(/\//g, '-')
     dep = dep.replace(/\//g, '-')
-    return await isRoomAvailable({ arr, dep }, +roomId)
+    return await isRoomAvailable({ arr, dep }, +roomId, +id)
   } catch (err) {
     ThrowError(err)
   } finally {

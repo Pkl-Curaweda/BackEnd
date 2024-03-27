@@ -4,12 +4,22 @@ const { GetQRCode, PostNewGuest, GetAllGuest, PostLogin } = require("../controll
 const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
 const { validateLogin } = require("../validations/login.validation");
+const { CheckToken } = require("../models/Authorization/M_Token");
+const { error } = require("../utils/response");
 const R_Login = Router();
+
+//Token
+R_Login.get('check--token', async (req, res, next) => {
+    try {
+        await CheckToken()
+        next()
+    } catch (err) { return error(res, err.message) }
+})
 
 //User
 R_Login.get("/user", getAllUsers)
 R_Login.post("/user/login/:encryptedData?", (req, res, next) => {
-    if(!req.params.encryptedData) validateLogin
+    if (!req.params.encryptedData) validateLogin
     next()
 }, postLogin);
 R_Login.post('/user/logout', postLogout);

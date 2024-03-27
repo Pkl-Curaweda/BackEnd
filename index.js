@@ -22,7 +22,6 @@ const R_IMPPS = require("./src/routes/R_IMPPS");
 const { auth } = require("./src/middlewares/auth");
 const { success, error } = require("./src/utils/response");
 const { runSchedule } = require("./src/schedule/daily-schedule");
-const SocketService = require("./src/socket/setup");
 
 //port
 const app = express();
@@ -31,7 +30,7 @@ const server = http.createServer(app)
 
 const allowedOrigins = [
   // "https://ihms.curaweda.com", //Production
-  "http://localhost:9002", //Development
+  "http://localhost:9000", //Development
 ];
 const corsOptions = {
   origin: function (origin, callback) {
@@ -79,14 +78,28 @@ app.use(
 runSchedule()
 
 //Socket
-const serverSocket = new SocketService(server, {
+const io = require('socket.io')(server, {
   cors: {
-    origin: "http://localhost:9002",
+    origin: "http://localhost:9000",
     credentials: true
   }
 })
 
-//??Start Endpoints
+io.on('connection', (socket) => {
+  console.log('A User Connected')
+  socket.on('refreshTask', (data) => {
+    io.emit('refreshTask', { message: 'Refresh mas' })
+  })
+  socket.on('notif', (data) => {
+    io.emit('notif', { message: 'Refresh mas' })
+  })
+
+  socket.on('disconnect', (data) => {
+    console.log('User outwawa')
+  })
+})
+
+//??Expresss Start Endpoints
 // app.get("*", checkUser)
 app.get("/ping", (req, res) => {
   return res.json({ message: "Succesfully pinged" });
@@ -124,4 +137,4 @@ server.listen(port, () => {
   console.log(`Listening to port ${port}`);
 });
 
-module.exports = serverSocket
+module.exports = io

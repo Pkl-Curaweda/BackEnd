@@ -71,7 +71,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
                             }
                         ]
                     }
-                }, select: { roomId: true, roomMaids: { select: { user: { select: { name: true } } } }, reservation: { select: { id: true, arrivalDate: true, departureDate: true, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }
+                }, select: { roomId: true,reservation: { select: { id: true, arrivalDate: true, departureDate: true, resvStatus: { select: { description: true } }, reserver: { select: { guest: { select: { name: true } } } } } } }, orderBy: { created_at: 'desc' }
             })
             room.push({
                 roomNo: r.id,
@@ -79,7 +79,7 @@ const getCleanDirtyData = async (sortOrder, arr, dep) => {
                 guestName: resv ? resv.reservation.reserver.guest.name : "-",
                 arrival: resv ? splitDateTime(resv.reservation.arrivalDate).date : "-",
                 departure: resv ? splitDateTime(resv.reservation.departureDate).date : "-",
-                pic: resv ? resv.roomMaids.user.name : "-"
+                status: resv ? resv.reservation.resvStatus.description : "-"
             })
             const status = r.roomStatus.shortDescription;
             if (main.hasOwnProperty(status)) {
