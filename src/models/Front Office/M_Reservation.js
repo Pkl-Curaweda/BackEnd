@@ -580,8 +580,10 @@ const roomAvailableChecker = async (query) => {
 
 const reverseCheckIn = async (reservationId) => {
   try {
+    console.log('Sampe sini?')
     const { resvRooms } = await prisma.reservation.findFirstOrThrow({ where: { id: +reservationId }, include: { resvRooms: true }})
     for(let room of resvRooms){
+      console.log('Sampe sini 2?')
       await activateDeactivateRoomEmail(room.id, "activate")
       await changeRoomStatusByDescription(room.roomId, "OC")
       await changeOccupied(room.roomId, true)

@@ -248,11 +248,14 @@ const checkTaskSequence = async (id, created, maidId) => {
 
 const deleteCheckoutTask = async (roomId) => {
     try{
+        console.log('Sampe sini?')
         const currentDate = splitDateTime(new Date().toISOString()).date
         const task = await prisma.maidTask.findFirst({ where: { roomId, request: `Room ${roomId} just checked out`, AND: [
             {created_at: { gte: `${currentDate}T00:00:00.00Z` }},
             {created_at: { lte: `${currentDate}23:59:59.999Z` }}
         ] } })
+        console.log('Sampe sini?')
+        console.log(task)
         if(task) await prisma.maidTask.delete({ where: { id: task.id } })
         return task
     }catch(err){
