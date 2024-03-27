@@ -12,6 +12,22 @@ const get = async (req, res) => {
     }
 }
 
+const logoutAlToken = async (req, res) => {
+    const { id, type } = req.params
+    try {
+        switch (type) {
+            case "role":
+                break;
+            default:
+
+                break;
+        }
+        return success(res, 'Token removed, logout success')
+    } catch (err) {
+        return error(res, err.message)
+    }
+}
+
 const getHelper = async (req, res) => {
     let { ident, act } = req.params, helper
     try {
@@ -104,7 +120,7 @@ const putEditRoomBoy = async (req, res) => {
 const deleteData = async (req, res) => {
     let { ident, id } = req.params, deleted
     try {
-        switch(ident){
+        switch (ident) {
             case "role":
                 deleted = await modelSAAcess.deleteRole(+id)
                 break;
@@ -123,4 +139,4 @@ const deleteData = async (req, res) => {
     }
 }
 
-module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, postAddEditUser, getHelper, deleteData }
+module.exports = { get, postNewRole, putEditRole, postNewUser, putEditUserWithImage, postNewRoomBoy, putEditRoomBoy, postAddEditUser, logoutAlToken, getHelper, deleteData }

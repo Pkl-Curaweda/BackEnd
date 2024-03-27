@@ -587,7 +587,7 @@ const reverseCheckIn = async (reservationId) => {
       await changeOccupied(room.roomId, true)
       await deleteCheckoutTask(room.roomId)
     }
-    return await prisma.reservation.update({ where: { borderColor: "#fffc06", onGoingReservation: true, inHouseIndicator: true, checkoutDate: null } })
+    return await prisma.reservation.update({where: { id: +reservationId } ,data: { borderColor: "#fffc06", onGoingReservation: true, inHouseIndicator: true, checkoutDate: null } })
 
   } catch (err) {
     ThrowError(err)

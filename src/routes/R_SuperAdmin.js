@@ -71,11 +71,13 @@ R_SA.post('/access/rb/', SAAccess.postNewRoomBoy)
 R_SA.put('/access/rb/:id', SAAccess.putEditRoomBoy)
 R_SA.put('/access/role/:id', SAAccess.putEditRole)
 R_SA.post('/access/user/:action/:id?', upload.single('picture'), (req, res, next) => {
-    if (req.fileValidationError) {
+if (req.fileValidationError) {
         return error(res, req.fileValidationError)
     }
     next()
 }, SAAccess.postAddEditUser)
 R_SA.delete('/access/:ident/:id', SAAccess.deleteData)
+R_SA.delete('/logout-all/:type/:id', SAAccess.logoutAlToken)
+
 //? END ACCESS PAGE
 module.exports = R_SA

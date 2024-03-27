@@ -71,6 +71,20 @@ const CreateAndAssignToken = async (type, data) => {
   }
 }
 
+const deleteAllTokenByRoleId = async (roleId) => {
+  try{
+    const { users } = await prisma.role.findFirstOrThrow({ where: { id: +roleId }, include: { users: true } })
+    for(let user of users){
+      await deleteAllTokenByRoleId(user.id)
+    }
+    return 'Success'
+  }catch(err){
+    ThrowError(err)
+  }finally{
+    await PrismaDisconnect()
+  }
+}
+
 const deleteAllTokenByUserId = async (userId) => {
   try{
     return await prisma.userToken.deleteMany({ where: { userId } })
