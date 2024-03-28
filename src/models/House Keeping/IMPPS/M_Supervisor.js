@@ -7,10 +7,26 @@ const { isRoomMaid } = require("./M_RoomMaid")
 const { send } = require("process")
 const { getAllAvailableRoom } = require("../M_Room")
 
+const formatShownColor = (query) => {
+    let colorToShown = []
+    const { current = "true", check = "true", urgent = "true", existed = "true",  history = "false" } = query
+    if(current != "false") colorToShown.push('FFFC9B')
+    if(check != "false") colorToShown.push('B7E5B4')
+    if(urgent != "false") colorToShown.push('F28585')
+    if(existed != "false") colorToShown.push('FFFFFF')
+    if(history != "false") colorToShown.push('BBE2EC')
+    return colorToShown
+}
+
 const getSupervisorData = async (q) => {
     const { history = "false" } = q
     try {
-        const tasks = await task.getAllToday({ ...(history === "false" && { finished: false }) }, {
+        const colorToShown = formatShownColor(q)
+        const tasks = await task.getAllToday(
+            {
+                ...(history === "false" && { finished: false }),
+                rowColor: { in: colorToShown }
+            }, {
             room: {
                 select: { id: true, roomType: true }
             },
@@ -46,7 +62,7 @@ const getSupervisorData = async (q) => {
                 comments: task.comment ? task.comment : "-"
             };
         })
-        const listRoom = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] ,deleted: false}, select: { id: true } })
+        const listRoom = await prisma.room.findMany({ where: { NOT: [{ id: 0 }], deleted: false }, select: { id: true } })
         const listStatus = await prisma.roomStatus.findMany({ select: { longDescription: true, shortDescription: true } })
         return { listTask, listStatus, listRoom }
     } catch (err) {
@@ -112,11 +128,11 @@ const helperAddTask = async (query) => {
 }
 
 const helperChangeStatus = async () => {
-    try{
+    try {
         return await getAllAvailableRoom()
-    }catch(err){
+    } catch (err) {
         ThrowError(err)
-    }finally{
+    } finally {
         await PrismaDisconnect()
     }
 }
@@ -264,4 +280,4 @@ const isSupervisor = async (supervisorId) => {
     }
 }
 
-module.exports = { getSupervisorData, isSupervisor, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewSupervisorTask, helperAddTask,helperChangeStatus }
+module.exports = { getSupervisorData, isSupervisor, addUnavailableRoomBoy, helperUnavailableRoomBoy, addNewSupervisorTask, helperAddTask, helperChangeStatus }
