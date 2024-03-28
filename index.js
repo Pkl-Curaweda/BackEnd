@@ -26,21 +26,15 @@ const { runSchedule } = require("./src/schedule/daily-schedule");
 
 //port
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3030;
 const server = http.createServer(app)
 
 const allowedOrigins = [
-  // "https://ihms.curaweda.com", //Production
+  "https://ihms.curaweda.com", //Production
   "http://localhost:9000", //Development
 ];
+
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -85,7 +79,7 @@ const onlineTrackJson = new LocalJson(onlineTrackJsonPath)
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: "http://localhost:9000",
+    origin: allowedOrigins,
     credentials: true
   }
 })
@@ -95,21 +89,19 @@ io.on('connection', async (socket) => {
   onlineTrackJson.addEntry(name, true)
 
   io.emit('online', onlineTrackJson.readDataKey())
-  socket.on('refreshTask', (data) => {
+  socket.on('refreshTask', () => {
     io.emit('refreshTask', { message: 'Refresh mas' })
   })
-  socket.on('notif', (data) => {
+  socket.on('notif', () => {
     io.emit('notif', { message: 'Refresh mas' })
   })
   socket.on('resv', () => {
-    console.log('MENIGAS =================================')
     io.emit('resv', { message: 'Kami disini' })
   })
 
-  socket.on('disconnect', (data) => {
+  socket.on('disconnect', () => {
     onlineTrackJson.deleteEntry(name)
     io.emit('online', onlineTrackJson.readDataKey())
-    console.log('User outwawa')
   })
 
 })
@@ -138,18 +130,18 @@ app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-// const credentials = { key: privateKey, cert: certificate };
-// const httpsServer = https.createServer(credentials, app);
+const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+const credentials = { key: privateKey, cert: certificate };
+const httpsServer = https.createServer(credentials, app);
 
-// httpsServer.listen(port, () => {
-//   console.log(`HTTPS Server running on port ${port}`);
-// });
+httpsServer.listen(port, () => {
+  console.log(`HTTPS Server running on port ${port}`);
+});
 
 // DEVELOPMENT ONLY
-server.listen(port, (err) => {
-  console.log(`Listening to port ${port}`);
-});
+// server.listen(port, (err) => {
+//   console.log(`Listening to port ${port}`);
+// });
 
 module.exports = io
