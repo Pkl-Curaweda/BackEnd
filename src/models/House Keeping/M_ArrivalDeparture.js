@@ -93,9 +93,6 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                             }
                         }
                     },
-                    roomMaids: {
-                        select: { user: { select: { name: true } } }
-                    },
                     arrangmentCodeId: true,
                     room: {
                         select: {
@@ -138,7 +135,6 @@ const get = async (page = 1, perPage = 5, search = "", so, arr, dep) => {
                 arrival: splitDateTime(res.reservation.arrivalDate).date,
                 departure: splitDateTime(res.reservation.departureDate).date,
                 night: res.reservation.manyNight,
-                roomBoy: res.roomMaids,
                 roomStatus: res.room.roomStatus,
                 created: splitDateTime(res.created_at).date
             }

@@ -133,10 +133,10 @@ const changePassword = async (email, newPassword) => {
       where: { email, deleted: false }, select: { id: true, password: true}
     });
     if (!user) throw Error('Unregistered Email. Please use registered Email')
-    if(bcrypt.compare(newPassword, user.password)) throw Error('Password is the same as the previous')
+    if( await bcrypt.compare(newPassword, user.password)) throw Error('Password is the same as the previous')
 
-    const salt = bcrypt.genSalt()
-    newPassword = bcrypt.hash(newPassword, salt)
+    const salt = await bcrypt.genSalt()
+    newPassword = await bcrypt.hash(newPassword, salt)
     return await prisma.user.update({ where: { id: user.id }, data: { password: newPassword } })
   } catch (err) {
     ThrowError(err)

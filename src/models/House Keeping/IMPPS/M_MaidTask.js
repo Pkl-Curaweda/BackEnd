@@ -5,6 +5,7 @@ const { createNotification } = require("../../Authorization/M_Notitication")
 const { countTaskPerformance, countActual, resetRoomMaid, isRoomMaid } = require("./M_RoomMaid")
 const { warnEnvConflicts } = require("@prisma/client/runtime/library")
 const { th } = require("@faker-js/faker")
+const io = require("../../../..")
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
@@ -71,7 +72,7 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
 
             maidWorkload = lowestWorkload + workload
             const [createdTask, assigned] = await prisma.$transaction([
-                prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, schedule: `${previousSchedule}-${currentSchedule}`, typeId } }),
+                prisma.maidTask.create({ data: { roomId, request, roomMaidId: lowestRoomMaidId, schedule: `${previousSchedule} - ${currentSchedule}`, typeId } }),
                 prisma.roomMaid.update({ where: { id: lowestRoomMaidId }, data: { workload: maidWorkload } })
             ])
             await createNotification({ content: request })
@@ -254,14 +255,13 @@ const deleteCheckoutTask = async (roomId) => {
         const task = await prisma.maidTask.findFirst({
             where: {
                 roomId, AND: [
+
                     { created_at: { gte: `${currentDate}T00:00:00.00Z` } },
-                    { created_at: { lte: `${currentDate}23:59:59.999Z` } }
+                    { created_at: { lte: `${currentDate}T23:59:59.999Z` } }
                 ]
             }
         })
-        console.log('Sampe sini?')
-        console.log(task)
-        // if (task) await prisma.maidTask.delete({ where: { id: task.id } })
+        if (task) await prisma.maidTask.delete({ where: { id: task.id } })
         return task
     } catch (err) {
 

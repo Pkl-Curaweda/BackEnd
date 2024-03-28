@@ -101,10 +101,11 @@ io.on('connection', async (socket) => {
   socket.on('notif', (data) => {
     io.emit('notif', { message: 'Refresh mas' })
   })
-  socket.on('refreshReservation', () => {
-    io.emit('refreshReservation', {})
+  socket.on('resv', () => {
+    console.log('MENIGAS =================================')
+    io.emit('resv', { message: 'Kami disini' })
   })
-  
+
   socket.on('disconnect', (data) => {
     onlineTrackJson.deleteEntry(name)
     io.emit('online', onlineTrackJson.readDataKey())

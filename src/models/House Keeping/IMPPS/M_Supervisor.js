@@ -15,7 +15,7 @@ const getSupervisorData = async (q) => {
                 select: { id: true, roomType: true }
             },
             roomMaid: {
-                select: { id: true, aliases: true, currentTask: true }
+                select: { id: true, aliases: true, user: { select: { name: true } }, currentTask: true }
             },
             id: true,
             roomMaidId: true,
@@ -41,7 +41,7 @@ const getSupervisorData = async (q) => {
                 standard: `${task.customWorkload ? task.customWorkload : task.type.standardTime} ${task.UoM}`,
                 actual: `${task.actual || 0} ${task.UoM}`,
                 remarks: task.request ? task.request : "-",
-                pic: task.roomMaid.aliases,
+                pic: ` ${task.roomMaid.aliases} - ${task.roomMaid.user.name}`,
                 status: task.status ? task.status : "-",
                 comments: task.comment ? task.comment : "-"
             };
