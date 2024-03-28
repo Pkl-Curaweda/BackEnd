@@ -94,7 +94,7 @@ io.on('connection', async (socket) => {
   const name = socket.handshake.query.name
   onlineTrackJson.addEntry(name, true)
 
-  socket.broadcast.emit('online', onlineTrackJson.readDataKey())
+  io.emit('online', onlineTrackJson.readDataKey())
   socket.on('refreshTask', (data) => {
     io.emit('refreshTask', { message: 'Refresh mas' })
   })

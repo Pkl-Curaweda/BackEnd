@@ -5,14 +5,14 @@ const { auth } = require("../middlewares/auth");
 const { getAllNotification, getUnreadMessage } = require("../controllers/C_Notification");
 const { validateLogin } = require("../validations/login.validation");
 const { CheckToken } = require("../models/Authorization/M_Token");
-const { error } = require("../utils/response");
+const { error, success } = require("../utils/response");
 const R_Login = Router();
 
 //Token
 R_Login.get('/check-token', async (req, res, next) => {
     try {
-        await CheckToken()
-        next()
+        const userData = await CheckToken('user', req.headers.authorization.split(' ')[1], req.cookies['refresh_token'])
+        return success(res, 'Token Valid', userData)
     } catch (err) { return error(res, err.message) }
 })
 

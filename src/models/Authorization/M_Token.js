@@ -1,4 +1,4 @@
-const { date } = require("zod");
+const jwt = require("jsonwebtoken");
 const { prisma } = require("../../../prisma/seeder/config");
 const { ThrowError, PrismaDisconnect, generateRandomString, generateExpire } = require("../../utils/helper");
 
@@ -17,14 +17,34 @@ const generateRefreshToken = async (client) => {
   }
 };
 
-const CheckToken = async (type, refreshToken) => {
-  let token;
+const CheckToken = async (type, accessToken, refreshToken) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
-    token = await tokenClient.findUniqueOrThrow({ where: { refreshToken } });
-    if (!token) throw Error('Invalid refresh token')
-    if (Date.now() > refreshToken.expired_at.getTime()) throw Error('Refresh token expired')
-    return token;
+    await tokenClient.findFirstOrThrow({ where: { refreshToken } })
+    const decoded = jwt.verify(accessToken, process.env.SECRET_CODE);
+    const user = await prisma.user.findUnique({
+      where: { id: +decoded.sub, deleted: false }, select: {
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        picture: true,
+        password: true,
+        canLogin: true,
+        guest: {
+          select: {
+            name: true,
+          }
+        },
+        role: {
+          select: {
+            name: true,
+            defaultPath: true
+          }
+        }
+      }
+    });
+    return user;
   } catch (err) {
     ThrowError(err);
   } finally {
@@ -72,26 +92,26 @@ const CreateAndAssignToken = async (type, data) => {
 }
 
 const deleteAllTokenByRoleId = async (roleId) => {
-  try{
+  try {
     const { users } = await prisma.role.findFirstOrThrow({ where: { id: +roleId }, include: { users: true } })
     console.log(users)
-    for(let user of users){
+    for (let user of users) {
       await deleteAllTokenByUserId(user.id)
     }
     return 'Success'
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
 
 const deleteAllTokenByUserId = async (userId) => {
-  try{
+  try {
     return await prisma.userToken.deleteMany({ where: { userId } })
-  }catch(err){
+  } catch (err) {
     ThrowError(err)
-  }finally{
+  } finally {
     await PrismaDisconnect()
   }
 }
@@ -100,7 +120,7 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
   try {
     const tokenClient = type === "user" ? prisma.userToken : prisma.guestToken;
     const token = await tokenClient.findFirstOrThrow({ where: { refreshToken } })
-    if(new Date().toISOString() >= token.expire_at) await RemoveToken("user", refreshToken)
+    if (new Date().toISOString() >= token.expire_at) await RemoveToken("user", refreshToken)
     return token
   } catch (err) {
     ThrowError(err);
@@ -110,4 +130,4 @@ const RefreshToken = async (type, refreshToken, expired_at) => {
 };
 
 
-module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken, deleteAllTokenByUserId, deleteAllTokenByRoleId};
+module.exports = { CreateAndAssignToken, CheckToken, RefreshToken, RemoveToken, deleteAllTokenByUserId, deleteAllTokenByRoleId };
