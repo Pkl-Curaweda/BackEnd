@@ -196,10 +196,10 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
     let { time } = splitDateTime(new Date().toISOString())
     try {
         const latestTaskFromMaid = await getAllToday({ roomMaidId }, { schedule: true }, { created_at: 'desc' })
-        if(latestTaskFromMaid.length > 0){
+        if (latestTaskFromMaid.length > 0) {
             time = latestTaskFromMaid[0].schedule.split('-')[1]
             time = time.trim()
-        } 
+        }
         const [hours, minutes] = time.split(':')
         const currentTime = `${hours}:${minutes}`
         const [roomMaid, room] = await prisma.$transaction([
@@ -230,11 +230,11 @@ const checkTaskSequence = async (id, created, maidId) => {
     try {
         const task = await prisma.maidTask.count({
             where: {
-                NOT: { id},
+                NOT: { id },
                 roomMaidId: maidId,
                 startTime: null,
                 endTime: null,
-            AND: [
+                AND: [
                     { created_at: { gte: `${splitDateTime(created).date}T00:00:00.000Z` } },
                     { created_at: { lte: created } }
                 ]
@@ -247,18 +247,23 @@ const checkTaskSequence = async (id, created, maidId) => {
 }
 
 const deleteCheckoutTask = async (roomId) => {
-    try{
-        console.log('Sampe sini?')
+    try {
         const currentDate = splitDateTime(new Date().toISOString()).date
-        const task = await prisma.maidTask.findFirst({ where: { roomId, request: `Room ${roomId} just checked out`, AND: [
-            {created_at: { gte: `${currentDate}T00:00:00.00Z` }},
-            {created_at: { lte: `${currentDate}23:59:59.999Z` }}
-        ] } })
+        console.log('Sampe sini?')
+        console.log(roomId)
+        const task = await prisma.maidTask.findFirst({
+            where: {
+                roomId, AND: [
+                    { created_at: { gte: `${currentDate}T00:00:00.00Z` } },
+                    { created_at: { lte: `${currentDate}23:59:59.999Z` } }
+                ]
+            }
+        })
         console.log('Sampe sini?')
         console.log(task)
-        if(task) await prisma.maidTask.delete({ where: { id: task.id } })
+        // if (task) await prisma.maidTask.delete({ where: { id: task.id } })
         return task
-    }catch(err){
+    } catch (err) {
 
     }
 }

@@ -3,6 +3,7 @@ const { error, success } = require("../../utils/response")
 const modelSAAcess = require('../../models/Super Admin/M_SAAccess')
 const { getEditArrangmentHelper, getAddArrangmentHelper } = require("../../models/Super Admin/M_SARoom")
 const { deleteAllTokenByRoleId, deleteAllTokenByUserId } = require("../../models/Authorization/M_Token")
+const { changePassword } = require("../../models/Authorization/M_User")
 
 const get = async (req, res) => {
     try {

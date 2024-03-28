@@ -9,7 +9,7 @@ const { error } = require("../utils/response");
 const R_Login = Router();
 
 //Token
-R_Login.get('check--token', async (req, res, next) => {
+R_Login.get('/check-token', async (req, res, next) => {
     try {
         await CheckToken()
         next()

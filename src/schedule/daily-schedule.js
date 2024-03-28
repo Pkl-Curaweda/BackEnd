@@ -5,7 +5,7 @@ const { addNewInvoiceFromArticle } = require('../models/Front Office/M_Invoice')
 const { genearateListOfTask } = require('../models/House Keeping/IMPPS/M_MaidTask')
 
  function runSchedule () {
-    schedule.scheduleJob('generateTask', '* 6 * * *', async () => { //? GENERATE DAILY CLEAN
+    schedule.scheduleJob('generateTask', '0 6 * * *', async () => { //? GENERATE DAILY CLEAN
         console.log('IMPPS Running......')
         console.log('Generating Task....')
         await genearateListOfTask("DLYCLEAN").then(() => { console.log('Task Successfully Created') })

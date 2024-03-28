@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const rateLimit = require("express-rate-limit");
 const fs = require("fs");
 const https = require("https");
@@ -78,6 +79,10 @@ app.use(
 runSchedule()
 
 //Socket
+const LocalJson = require("./src/local");
+const onlineTrackJsonPath = './src/local/onlineTracker.json'
+const onlineTrackJson = new LocalJson(onlineTrackJsonPath)
+
 const io = require('socket.io')(server, {
   cors: {
     origin: "http://localhost:9000",
@@ -85,18 +90,27 @@ const io = require('socket.io')(server, {
   }
 })
 
-io.on('connection', (socket) => {
-  console.log('A User Connected')
+io.on('connection', async (socket) => {
+  const name = socket.handshake.query.name
+  onlineTrackJson.addEntry(name, true)
+
+  socket.broadcast.emit('online', onlineTrackJson.readDataKey())
   socket.on('refreshTask', (data) => {
     io.emit('refreshTask', { message: 'Refresh mas' })
   })
   socket.on('notif', (data) => {
     io.emit('notif', { message: 'Refresh mas' })
   })
-
+  socket.on('refreshReservation', () => {
+    io.emit('refreshReservation', {})
+  })
+  
   socket.on('disconnect', (data) => {
+    onlineTrackJson.deleteEntry(name)
+    io.emit('online', onlineTrackJson.readDataKey())
     console.log('User outwawa')
   })
+
 })
 
 //??Expresss Start Endpoints
@@ -132,8 +146,8 @@ app.use("/irs", R_InRoomService);
 //   console.log(`HTTPS Server running on port ${port}`);
 // });
 
-// PRODUCTION ONLY
-server.listen(port, () => {
+// DEVELOPMENT ONLY
+server.listen(port, (err) => {
   console.log(`Listening to port ${port}`);
 });
 
