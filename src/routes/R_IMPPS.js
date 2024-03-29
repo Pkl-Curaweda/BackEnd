@@ -9,6 +9,9 @@ const multer = require("multer");
 const crypto = require('crypto');
 const path = require('path');
 const { auth } = require("../middlewares/auth");
+const { checkAndRun } = require("../models/House Keeping/IMPPS/M_MaidTask");
+const { error } = require("console");
+const { success } = require("../utils/response");
 const R_IMPPS = Router()
 
 //Start Multer
@@ -37,6 +40,14 @@ const upload = multer({
 })
 //End Multer
 
+R_IMPPS.get('/check', async (req, res) => {
+    try{
+        await checkAndRun()
+        return success(res, 'Running properly')
+    }catch(err){
+        return error(res, err.message)
+    }
+})
 
 //ESSENTIAL ROOM MAID
 R_IMPPS.get('/roomboy/get-all', roomMaid.getAll)

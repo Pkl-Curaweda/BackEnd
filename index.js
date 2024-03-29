@@ -70,7 +70,7 @@ app.use(
 );
 
 //schedule
-runSchedule()
+// runSchedule()
 
 //Socket
 const LocalJson = require("./src/local");

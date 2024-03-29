@@ -7,6 +7,20 @@ const { warnEnvConflicts } = require("@prisma/client/runtime/library")
 const { th } = require("@faker-js/faker")
 const io = require("../../../..")
 
+const checkAndRun = async () => {
+    try {
+        const manyTask = await getAllToday()
+        if (manyTask.length < 1) {
+            await resetRoomMaid() //function reset all workload of maid
+            await genearateListOfTask("DLYCLEAN")
+        }
+    } catch (err) {
+        ThrowError(err)
+    } finally {
+        await PrismaDisconnect()
+    }
+}
+
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
         const currDate = new Date().toISOString().split('T')[0]
@@ -43,8 +57,6 @@ const assignTask = async (tasks = [{ action: 'GUEREQ', roomId: 101, request: 'Re
         prisma.maidTask.findFirst({ where: { AND: [{ created_at: { gte: `${currentDate.toISOString().split('T')[0]}T00:00:00.000Z` } }, { created_at: { lte: currentDate.toISOString() } }] }, orderBy: { created_at: 'desc' } })
     ])
     //if latestTask wasn't find while findFirst, then it mean this was the first task of a new day
-    if (latestTask === null) await resetRoomMaid() //function reset all workload of maid
-
     try {
         tasks.sort((a, b) => b.workload - a.workload)
         for (let task of tasks) {
@@ -145,7 +157,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
         if (task.finished != false) throw Error('Task already finished')
         switch (action) {
             case "start":
-                if(task.startTime) throw Error('Task already stareted')
+                if (task.startTime) throw Error('Task already stareted')
                 if (awaitedTask > 0) throw Error(`${awaitedTask} Need to be finished, before starting this task`)
                 if (task.endTime != null) throw Error('This task needed to be checked first')
                 if (roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
@@ -281,4 +293,4 @@ const updateTask = async (taskId, data) => {
         await PrismaDisconnect()
     }
 }
-module.exports = { genearateListOfTask, checkTaskSequence, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask, deleteCheckoutTask }
+module.exports = { genearateListOfTask, checkTaskSequence, checkAndRun, getAllToday, getAllWorkingTaskId, taskAction, updateTask, createNewMaidTask, assignTask, deleteCheckoutTask }
