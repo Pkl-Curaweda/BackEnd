@@ -30,8 +30,8 @@ const port = process.env.PORT || 3030;
 const server = http.createServer(app)
 
 const allowedOrigins = [
-  // "https://ihms.curaweda.com", //Production
-  "http://localhost:9000", //Development
+  "https://ihms.curaweda.com", //Production
+  // "http://localhost:9000", //Development
 ];
 
 const corsOptions = {
@@ -132,18 +132,18 @@ app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-// const credentials = { key: privateKey, cert: certificate };
-// const httpsServer = https.createServer(credentials, app);
+const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+const credentials = { key: privateKey, cert: certificate };
+const httpsServer = https.createServer(credentials, app);
 
-// httpsServer.listen(port, () => {
-//   console.log(`HTTPS Server running on port ${port}`);
-// });
+httpsServer.listen(port, () => {
+  console.log(`HTTPS Server running on port ${port}`);
+});
 
 // DEVELOPMENT ONLY
-server.listen(port, (err) => {
-  console.log(`Listening to port ${port}`);
-});
+// server.listen(port, (err) => {
+//   console.log(`Listening to port ${port}`);
+// });
 
 module.exports = io
