@@ -10,7 +10,7 @@ const rooms = [
   {
     id: 0,
     roomTypeId: "REMOVED",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -19,7 +19,7 @@ const rooms = [
   {
     id: 101,
     roomTypeId: "DLX",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -28,7 +28,7 @@ const rooms = [
   {
     id: 102,
     roomTypeId: "DLX",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -37,7 +37,7 @@ const rooms = [
   {
     id: 103,
     roomTypeId: "DLX",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -46,7 +46,7 @@ const rooms = [
   {
     id: 104,
     roomTypeId: "DLX",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -55,7 +55,7 @@ const rooms = [
   {
     id: 105,
     roomTypeId: "STD",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+  roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -64,7 +64,7 @@ const rooms = [
   {
     id: 106,
     roomTypeId: "STD",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -73,7 +73,7 @@ const rooms = [
   {
     id: 107,
     roomTypeId: "STD",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -82,7 +82,7 @@ const rooms = [
   {
     id: 108,
     roomTypeId: "FML",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -91,7 +91,7 @@ const rooms = [
   {
     id: 109,
     roomTypeId: "FML",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,
@@ -100,7 +100,7 @@ const rooms = [
   {
     id: 110,
     roomTypeId: "FML",
-    roomImage: "http://localhost:3000/assets/room/room_1.jpg",
+    roomImage: `${process.env.BASE_URL}/assets/room/room_1.jpg`,
     roomStatusId: 1,
     floor: 1,
     occupied_status: false,

@@ -168,7 +168,7 @@ const addNewInvoiceFromOrder = async (orderId, resvRoomId) => {
 const addNewInvoiceFromArticle = async (b = [], reservationId, resvRoomId) => {
   let addedArticle = []
   try {
-    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservationId }, select: { reservation: { select: { arrivalDate: true, departureDate: true, checkInDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true } } } })
+    const resvRoom = await prisma.resvRoom.findFirstOrThrow({ where: { id: resvRoomId, reservation: { id: +reservationId } }, select: { reservation: { select: { arrivalDate: true, departureDate: true, checkInDate: true } }, arrangment: { select: { rate: true } }, roomId: true, voucherId: true, voucher: { select: { id: true } } } })
     if (resvRoom.reservation.checkInDate === null) throw Error('Reseration must be Check In before adding another Invoice')
     await checkInvoiceRoom(resvRoomId).then(data => {
       for (let dt of data) b.push(dt)

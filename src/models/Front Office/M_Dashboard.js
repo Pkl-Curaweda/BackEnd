@@ -64,6 +64,7 @@ const getChart = async () => {
         await prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } }, select: { id: true } }).then(rooms =>{
             for(let room of rooms)  hkChart[room.id] = { label: room.id, value: 0 }
         })
+        console.log(hkChart)
         const currentDay = new Date()
         const currentMonth = (currentDay.getMonth() + 1).toString().padStart(2, '0');
         const lastDayOfMonth = new Date(currentDay.getFullYear(), currentDay.getMonth() + 1, 0);
@@ -74,6 +75,9 @@ const getChart = async () => {
         const resvRoom = await prisma.resvRoom.findMany({
             where: {
                 deleted: false,
+                room: {
+                    deleted: false
+                },
                 reservation: {
                     OR: [
                         { arrivalDate: { gte: `${arrivalDate}T00:00:00.000Z` } },

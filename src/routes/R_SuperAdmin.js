@@ -41,7 +41,7 @@ const upload = multer({
 //? START ROOM PAGE
 R_SA.get('/room', SARoom.get)
 R_SA.get('/room/helper/:ident/:id/:act?', SARoom.getHelper)
-R_SA.post('/room/room/:action?', upload.single('picture'), (req, res, next) => {
+R_SA.post('/room/room/:action?', upload.single('image'), (req, res, next) => {
     if (req.fileValidationError) {
         return error(res, req.fileValidationError)
     }

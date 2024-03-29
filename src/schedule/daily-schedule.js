@@ -11,12 +11,12 @@ const { genearateListOfTask } = require('../models/House Keeping/IMPPS/M_MaidTas
         await genearateListOfTask("DLYCLEAN").then(() => { console.log('Task Successfully Created') })
     })
     
-    schedule.scheduleJob('invoiceValidator', '* 0 * * *', async () => { //? CHECKING EVERY RESERVATION INVOICE
+    schedule.scheduleJob('invoiceValidator', '0 0 * * *', async () => { //? CHECKING EVERY RESERVATION INVOICE
         console.log('IMPPS Running......')
         console.log('Validating Invoice.......')
         const currentDate = new Date().toISOString()
         const resvRooms = await prisma.resvRoom.findMany({ where: { reservation: { arrivalDate: { gte: currentDate } } }, select: { id: true, reservation: { select: { id: true } } }})
-        for(let res of resvRooms) await addNewInvoiceFromArticle([], res.reservation, res.id)
+        for(let res of resvRooms) await addNewInvoiceFromArticle([], res.reservation.id, res.id)
     })
 }
 
