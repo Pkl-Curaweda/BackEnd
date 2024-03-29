@@ -8,8 +8,8 @@ const get = async (req, res) => {
     const user = req.user
     try {
         const roomMaid = await isRoomMaid(user.id)
-        const { maidName, performance, listTask } = await getRoomMaidTaskById(roomMaid.id, req.query)
-        return success(res, `Get Success`, { maidName, performance, listTask })
+        const { maidName, aliases, workload,  performance, listTask } = await getRoomMaidTaskById(roomMaid.id, req.query)
+        return success(res, `Get Success`, { maidName, aliases, workload, performance, listTask })
     } catch (err) {
         return error(res, err.message)
     }
