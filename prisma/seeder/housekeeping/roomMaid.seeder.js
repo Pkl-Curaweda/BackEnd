@@ -6,7 +6,7 @@ const roomMaids = [
     user: { connect: { id: 3 } },
     aliases: 'AL',
     workload: 0,
-    shift: { connect: { id: 3 } },
+    shift: { connect: { id: 1 } },
     department: { connect: { id: 1 } }
   },
   {
@@ -20,7 +20,7 @@ const roomMaids = [
     user: { connect: { id: 5 } },
     aliases: 'AQ',
     workload: 0,
-    shift: { connect: { id: 1 } },
+    shift: { connect: { id: 3 } },
     department: { connect: { id: 1 } }
   },
 ];
