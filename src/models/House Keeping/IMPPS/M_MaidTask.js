@@ -157,7 +157,7 @@ const taskAction = async (action, maidId, taskId, payload = { comment: '', perfo
         if (task.finished != false) throw Error('Task already finished')
         switch (action) {
             case "start":
-                if (task.startTime) throw Error('Task already stareted')
+                if (task.startTime) throw Error('Task already started')
                 if (awaitedTask > 0) throw Error(`${awaitedTask} Need to be finished, before starting this task`)
                 if (task.endTime != null) throw Error('This task needed to be checked first')
                 if (roomMaid.currentTask === taskId) throw Error('You already start this task, please finish it first')
