@@ -57,7 +57,7 @@ const getRoomMaidTaskById = async (id, q) => {
     const { page = 1, perPage = 30, history = "false"} = q
     try {
         const currDate = new Date().toISOString().split('T')[0]
-        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, urgentTask: true, currentTask: true, user: { select: { name: true } } } })
+        const roomMaid = await prisma.roomMaid.findFirstOrThrow({ where: { id }, select: { id: true, workload: true, aliases: true, urgentTask: true, currentTask: true, user: { select: { name: true } } } })
         const maidTask = await prisma.maidTask.findMany({
             where: {
                 roomMaidId: id, AND: [
@@ -116,7 +116,7 @@ const getRoomMaidTaskById = async (id, q) => {
             }
         })
         const listTask = [...listOfTask, ...listOfCheckTask]
-        return { maidName: roomMaid.user.name, performance: maidPerfomance, listTask }
+        return { maidName: roomMaid.user.name, performance: maidPerfomance, listTask, aliases: roomMaid.aliases, workload: roomMaid.workload}
     } catch (err) {
         ThrowError(err)
     } finally {

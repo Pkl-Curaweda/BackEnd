@@ -207,11 +207,12 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
             prisma.roomMaid.findFirstOrThrow({ where: { id: roomMaidId, deleted: false } }),
             prisma.room.findFirstOrThrow({ where: { id: roomId, deleted: false } })
         ])
-        const canWorkOnTask = roomMaid.workload + data.customWorkload < 480
+        const workloadAdded = roomMaid.workload + +data.customWorkload
+        const canWorkOnTask = workloadAdded <= 480
+        if (!canWorkOnTask) throw Error('Please assign another maid for this task')
         const scheduleEnd = formatToSchedule(currentTime, data.customWorkload)
         data.schedule = `${currentTime} - ${scheduleEnd}`
         data.customWorkload = +data.customWorkload
-        if (!canWorkOnTask) throw Error('Please assign another maid for this task')
         const createdTask = await prisma.maidTask.create({
             data: {
                 roomId: room.id,
@@ -219,6 +220,7 @@ const createNewMaidTask = async (roomMaidId, roomId, data) => {
                 ...data
             }
         })
+        await prisma.roomMaid.update({ where: { id: roomMaid.id }, data: { workload: workloadAdded } })
         return createdTask
     } catch (err) {
         ThrowError(err)

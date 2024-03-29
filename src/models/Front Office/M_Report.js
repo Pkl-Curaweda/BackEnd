@@ -54,7 +54,6 @@ const getReportData = async (disOpt, page, perPage, sort, date) => {
     if (disOpt != "day") endIndex = dates.length - 1
     startIndex = Math.max(0, startIndex);
     endIndex = Math.min(dates.length - 1, endIndex);
-
     const [rms, resvRooms] = await prisma.$transaction([
       prisma.room.findMany({ where: { NOT: { id: 0 }, deleted: false }, select: { id: true, deleted: false} }),
       prisma.resvRoom.findMany({
@@ -367,12 +366,16 @@ const getReportDetailData = async (date, displayOption) => {
       prisma.room.findMany({ where: { deleted: false, NOT: { id: 0 } } ,select: { id: true, roomType: true } })
     ])
 
+    
     for (let room of rooms) percentages[`room_${room.id}`] = 0
     for (let date of dates) {
+      console.log('====================',date)
       const resv = resvRoom.filter(rsv => {
         let [arrivalDate, departureDate] = [rsv.reservation.arrivalDate, rsv.reservation.departureDate]
+        console.log(date, arrivalDate, departureDate)
         return isDateInRange(new Date(date), new Date(`${arrivalDate.toISOString().split('T')[0]}T00:00:00.000Z`), new Date(`${departureDate.toISOString().split('T')[0]}T23:59:59.999Z`));
       })
+      console.log(resv)
       for (let rs of resv) {
         const { roomType, id } = rs.room;
         total.RESERVATION++;
