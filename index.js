@@ -10,25 +10,6 @@ const fs = require("fs");
 const https = require("https");
 const http = require('http')
 
-
-
-//port
-const app = express();
-const port = process.env.PORT || 3030;
-
-const allowedOrigins = ['https://ihms.curaweda.com'];
-const corsOptions = {
-  origin: function(origin, callback) {
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
-  credentials: true,
-};
-
 // routers
 const R_Login = require("./src/routes/R_Login");
 const R_FrontOffice = require("./src/routes/R_FrontOffice");
@@ -42,6 +23,28 @@ const R_IMPPS = require("./src/routes/R_IMPPS");
 const { auth } = require("./src/middlewares/auth");
 const { success, error } = require("./src/utils/response");
 const { runSchedule } = require("./src/schedule/daily-schedule");
+
+//port
+const app = express();
+const port = process.env.PORT || 3030;
+const server = http.createServer(app)
+
+const allowedOrigins = [
+  "https://ihms.curaweda.com", //Production
+  // "http://localhost:9000", //Development
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
+  credentials: true,
+};
 
 
 //middlewares
