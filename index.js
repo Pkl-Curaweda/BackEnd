@@ -27,13 +27,22 @@ const { runSchedule } = require("./src/schedule/daily-schedule");
 //port
 const app = express();
 const port = process.env.PORT || 3030;
-const server = http.createServer(app)
+
+//? INITIALIZE DEVELOPMENT SERVER
+const server = http.createServer(app) 
+
+//? INITIALIZE PRODUCTION SERVER
+// SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
+// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+// const credentials = { key: privateKey, cert: certificate };
+// const httpsServer = https.createServer(credentials, app);
+
 
 const allowedOrigins = [
-  "https://ihms.curaweda.com", //Production
-  // "http://localhost:9000", //Development
+  // "https://ihms.curaweda.com", //Production
+  "http://localhost:9000", //Development
 ];
-
 const corsOptions = {
   origin: function (origin, callback) {
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -45,7 +54,6 @@ const corsOptions = {
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTION",
   credentials: true,
 };
-
 
 //middlewares
 app.use(morgan("combined"));
@@ -77,12 +85,15 @@ const LocalJson = require("./src/local");
 const onlineTrackJsonPath = './src/local/onlineTracker.json'
 const onlineTrackJson = new LocalJson(onlineTrackJsonPath)
 
-const io = require('socket.io')(server, {
+const io = require('socket.io')(
+  // httpsServer //?PRODUCTION SERVER
+  server //?DEVELOPMENT SERVER
+  , {
   cors: {
-    origin: allowedOrigins,
-    credentials: true
-  }
-})
+      origin: allowedOrigins,
+      credentials: true
+    }
+  })
 
 io.on('connection', async (socket) => {
   const name = socket.handshake.query.name
@@ -131,19 +142,15 @@ app.use("/impps", R_IMPPS);
 app.use("/irs", R_InRoomService);
 // app.use(middleware(['Admin', 'Super Admin']));
 
-// SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-const credentials = { key: privateKey, cert: certificate };
-const httpsServer = https.createServer(credentials, app);
 
-httpsServer.listen(port, () => {
-  console.log(`HTTPS Server running on port ${port}`);
-});
-
-// DEVELOPMENT ONLY
-// server.listen(port, (err) => {
-//   console.log(`Listening to port ${port}`);
+//? RUN PRODUCTION SERVER
+// httpsServer.listen(port, () => {
+//   console.log(`HTTPS Server running on port ${port}`);
 // });
+
+//? RUN DEVELOPMENT SERVER
+server.listen(port, (err) => {
+  console.log(`Listening to port ${port}`);
+});
 
 module.exports = io

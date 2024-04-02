@@ -9,7 +9,9 @@ const io = require("../../../..")
 
 const checkAndRun = async () => {
     try {
-        const manyTask = await getAllToday()
+        const manyTask = await getAllToday({ 
+            NOT: { typeId: { in: ['GREQ', 'SPVTASK'] } }
+        })
         if (manyTask.length < 1) {
             await resetRoomMaid() //function reset all workload of maid
             await genearateListOfTask("DLYCLEAN")
@@ -20,6 +22,7 @@ const checkAndRun = async () => {
         await PrismaDisconnect()
     }
 }
+
 
 const getAllToday = async (where, select, orderBy, take = 5, skip = 1) => {
     try {
