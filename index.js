@@ -29,14 +29,14 @@ const app = express();
 const port = process.env.PORT || 3030;
 
 //? INITIALIZE DEVELOPMENT SERVER
-const server = http.createServer(app) 
+// const server = http.createServer(app) 
 
 //? INITIALIZE PRODUCTION SERVER
 // SSL configuration DISABLE ATAU BERI KOMEN JIKA DI LOCAL !
-// const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
-// const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
-// const credentials = { key: privateKey, cert: certificate };
-// const httpsServer = https.createServer(credentials, app);
+const privateKey = fs.readFileSync("./certs/prmn.key", "utf8");
+const certificate = fs.readFileSync("./certs/prmn.crt", "utf8");
+const credentials = { key: privateKey, cert: certificate };
+const httpsServer = https.createServer(credentials, app);
 
 
 const allowedOrigins = [
@@ -86,8 +86,8 @@ const onlineTrackJsonPath = './src/local/onlineTracker.json'
 const onlineTrackJson = new LocalJson(onlineTrackJsonPath)
 
 const io = require('socket.io')(
-  // httpsServer //?PRODUCTION SERVER
-  server //?DEVELOPMENT SERVER
+  httpsServer //?PRODUCTION SERVER
+  // server //?DEVELOPMENT SERVER
   , {
   cors: {
       origin: allowedOrigins,
@@ -144,13 +144,13 @@ app.use("/irs", R_InRoomService);
 
 
 //? RUN PRODUCTION SERVER
-// httpsServer.listen(port, () => {
-//   console.log(`HTTPS Server running on port ${port}`);
-// });
+httpsServer.listen(port, () => {
+  console.log(`HTTPS Server running on port ${port}`);
+});
 
 //? RUN DEVELOPMENT SERVER
-server.listen(port, (err) => {
-  console.log(`Listening to port ${port}`);
-});
+// server.listen(port, (err) => {
+//   console.log(`Listening to port ${port}`);
+// });
 
 module.exports = io
