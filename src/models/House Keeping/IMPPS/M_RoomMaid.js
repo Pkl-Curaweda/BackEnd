@@ -271,7 +271,7 @@ const resetRoomMaid = async () => {
         for (let rm of roomMaids) {
             await prisma.roomMaid.update({
                 where: { id: rm.id },
-                data: { workload: 0 }
+                data: { workload: 0, currentTask: null, urgentTask: null}
             })
         }
         return "Success"

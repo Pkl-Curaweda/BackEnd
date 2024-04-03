@@ -268,8 +268,6 @@ const checkTaskSequence = async (id, created, maidId) => {
 const deleteCheckoutTask = async (roomId) => {
     try {
         const currentDate = splitDateTime(new Date().toISOString()).date
-        console.log('Sampe sini?')
-        console.log(roomId)
         const task = await prisma.maidTask.findFirst({
             where: {
                 roomId, AND: [

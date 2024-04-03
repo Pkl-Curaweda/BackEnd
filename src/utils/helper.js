@@ -21,11 +21,8 @@ const ThrowError = (err) => {
 
 const formatToSchedule = (startTime, minutesToAdd) => {
   try {
-    console.log(startTime, minutesToAdd)
     const parsedTime = parse(startTime, 'HH:mm', new Date());
-    console.log(parsedTime)
     const newTime = addMinutes(parsedTime, minutesToAdd);
-    console.log(newTime)
     const formattedTime = format(newTime, 'HH:mm');
     return formattedTime;
   } catch (err) {
