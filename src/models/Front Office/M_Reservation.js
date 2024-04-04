@@ -350,7 +350,7 @@ const CreateNewReservation = async (data, user) => {
 //?HELPER SIDE
 const DetailCreateReservationHelper = async () => {
   try {
-    const availableRooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { id: true, roomType: true }, orderBy: { id: 'asc' } });
+    const availableRooms = await prisma.room.findMany({ where: { NOT: [{ id: 0 }] }, select: { id: true, roomType: true, roomImage: true }, orderBy: { id: 'asc' } });
     const arrangmentCode = await prisma.arrangmentCode.findMany({
       where: { NOT: [{ id: `REMOVED` }], deleted: false },
       select: {
