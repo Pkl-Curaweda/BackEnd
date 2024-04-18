@@ -61,7 +61,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.static("public"));
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(
   bodyParser.urlencoded({
     extended: true,

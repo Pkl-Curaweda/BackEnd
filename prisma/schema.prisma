@@ -427,7 +427,6 @@ model MaidTask {
   updated_at          DateTime      @updatedAt
   created_at          DateTime      @default(now())
 }
-
 model TaskType {
   id           String     @id @unique
   activity     String
