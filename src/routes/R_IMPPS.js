@@ -12,7 +12,6 @@ const { auth } = require("../middlewares/auth");
 const { checkAndRun } = require("../models/House Keeping/IMPPS/M_MaidTask");
 const { error } = require("console");
 const { success } = require("../utils/response");
-const { validateChangeSchedule } = require("../validations/IMPSS/supervisor.validation");
 const R_IMPPS = Router()
 
 //Start Multer
@@ -74,7 +73,7 @@ R_IMPPS.get('/spv/helper/:ident', auth(['showSupervisor']), supervisor.getHelper
 R_IMPPS.post('/spv/task', auth(['createSupervisor']), supervisor.postNewTask)
 R_IMPPS.post('/spv/unavail', auth(['createSupervisor']), supervisor.postUnavailRoomBoy)
 R_IMPPS.post('/spv/change-status/:id/:status', auth(['createSupervisor']), postStat)
-R_IMPPS.post('/spv/change-schedule/:id', auth(['createSupervisor']), validateChangeSchedule, supervisor.changeSchedule)
+R_IMPPS.post('/spv/change-schedule/:id', auth(['createSupervisor']), supervisor.changeSchedule)
 R_IMPPS.post('/spv/:taskId/:action', auth(["createSupervisor"]), roomMaid.post)
 R_IMPPS.put('/spv/:taskId', auth(['createSupervisor']), roomMaid.submitComment)
 
