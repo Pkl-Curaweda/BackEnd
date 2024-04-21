@@ -52,14 +52,16 @@ const changeSchedule = async (req, res) => {
 
         const startTimeIso = timeToIso(startTime)
         if(new Date().toISOString() > startTimeIso) throw Error('Time already passed')
-        const task = await prisma.maidTask.findFirstOrThrow({ where: { id: +id }, select: { customWorkload: true, type: { select: { standardTime: true } } } })
+        const task = await prisma.maidTask.findFirstOrThrow({ where: { id: +id }, select: { customWorkload: true, startTime: true, endTime: true, type: { select: { standardTime: true } } } })
+        if(task.startTime) throw Error('Task in work, cannot be changed')
+        if(task.endTime) throw Error('Task cannot be changed, it already finished')
         workloadToAdd = task.customWorkload ? task.customWorkload : task.type.standardTime
         const endTime = formatToSchedule(startTime, workloadToAdd)
         schedule += endTime
         const updatedTask = await updateTask(+id, { schedule, created_at: startTimeIso })
         return success(res, 'Schedule updated', updatedTask)
     } catch (err) {
-        return success(res, err.message)
+        return error(res, err.message)
     }
 }
 
