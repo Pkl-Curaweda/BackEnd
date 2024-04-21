@@ -7,7 +7,7 @@ const { getAllRoomStatus } = require("./M_Room")
 const getRoomOccupancyData = async (q) => {
     const { page, perPage, disOpt, filt } = q
     const currentDate = new Date()
-    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 } }, percData = {}
+    let currData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 } }, percData = { occ: { room: 0, person: 0 }, comp: { room: 0, person: 0 }, houseUse: { room: 0, person: 0 }, ooo: { room: 0, person: 0 }, om: { room: 0, person: 0 }, estOcc: { room: 0, person: 0 } }
     try {
         //TODO: HOUSE USE, COMP
         const listOfTypes = (await prisma.roomType.findMany({ where: { deleted: false, NOT: { id: 'REMOVED' } }, select: { id: true, longDesc: true } })).map(types => ({ id: types.id, label: `${types.longDesc} Room` }))
@@ -67,7 +67,6 @@ const getRoomOccupancyData = async (q) => {
                 currData.estOcc.person += estPerson
             }
         }
-        percData = { ...currData }
         let startDate, endDate
         const currentYear = currentDate.getFullYear()
 
@@ -91,19 +90,25 @@ const getRoomOccupancyData = async (q) => {
                 [startDate, endDate] = [`${currentDate.toISOString().split('T')[0]}T00:00:00.000Z`, `${currentDate.toISOString().split('T')[0]}T23:59:59.999Z`]
                 break;
         }
-        const notDate = {
-            not: {
-                gte: `${splitDateTime(currentDate.toISOString()).date}T00:00:00.000Z`,
-                lte: `${splitDateTime(currentDate.toISOString()).date}T23:59:59.999Z`
-            }
-        }
-        const [r, comp, hu, ooo, om] = await prisma.$transaction([
+        const [occ, r, comp, hu, ooo, om] = await prisma.$transaction([
             prisma.resvRoom.findMany({
                 where: {
                     reservation: {
-                        AND: [
-                            { arrivalDate: { gte: startDate, ...notDate } },
-                            { departureDate: { lte: endDate, ...notDate } }
+                        checkInDate: { not: null },
+                        OR: [
+                            { arrivalDate: { gte: startDate, lte: endDate } },
+                            { departureDate: { lte: endDate, gte: startDate } }
+                        ]
+                    }
+                },
+                select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
+            }),
+            prisma.resvRoom.findMany({
+                where: {
+                    reservation: {
+                        OR: [
+                            { arrivalDate: { gte: startDate, lte: endDate } },
+                            { departureDate: { lte: endDate, gte: startDate } }
                         ]
                     }
                 },
@@ -112,36 +117,44 @@ const getRoomOccupancyData = async (q) => {
             prisma.resvRoom.findMany({
                 where: {
                     voucher: { trackComp: true },
-                    created_at: { ...notDate }
+                    reservation: {
+                        OR: [
+                            { arrivalDate: { gte: startDate, lte: endDate } },
+                            { departureDate: { lte: endDate, gte: startDate } }
+                        ]
+                    }
                 },
                 select: { reservation: { select: { manyAdult: true, manyBaby: true, manyChild: true } } }
             }),
             prisma.oooOmRoom.count({ //TODO: MAYBE, PERSON IN HOUSE USE NEED TO BE CHANGED, FOR NOW IT ONLY TAKE THE STORED DATA FROM OOO OM ROOM MODEL
                 where: {
                     xType: "HU",
-                    created_at: { ...notDate }
+                    created_at: { gte: startDate, lte: endDate }
                 }
             }),
             prisma.oooOmRoom.count({
                 where: {
                     xType: "OOO",
-                    created_at: { ...notDate }
+                    created_at: { gte: startDate, lte: endDate }
                 }
             }),
             prisma.oooOmRoom.count({
                 where: {
                     xType: "OM",
-                    created_at: { ...notDate }
+                    created_at: { gte: startDate, lte: endDate }
                 }
             })
         ])
 
-        let estPers = 0, compPerson = 0
+        let estPers = 0, compPerson = 0, occPerson = 0
+        for (let resvOcc of occ) occPerson += resvOcc.reservation.manyAdult + resvOcc.reservation.manyBaby + resvOcc.reservation.manyChild
+        percData.occ.person += occPerson
         for (let resv of r) estPers += resv.reservation.manyAdult + resv.reservation.manyBaby + resv.reservation.manyChild
         percData.estOcc.person += estPers
         for (let com of comp) compPerson += com.reservation.manyAdult + com.reservation.manyBaby + com.reservation.manyChild
         percData.comp.person += compPerson
         percData.comp.room += comp.length
+        percData.occ.room += occ.length
         percData.houseUse.room += hu
         percData.ooo.room += ooo
         percData.om.room += om
